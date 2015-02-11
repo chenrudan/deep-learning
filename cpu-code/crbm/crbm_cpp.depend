@@ -1,0 +1,102 @@
+# depslib dependency file v1.0
+1405686782 source:/home/crd/github/deep-learning/crbm/crbm_cpp/matrix.cpp
+	<iostream>
+	<vector>
+	"matrix.h"
+
+1405686782 /home/crd/github/deep-learning/crbm/crbm_cpp/matrix.h
+	<iostream>
+	<vector>
+
+1405648962 source:/home/crd/github/deep-learning/crbm/crbm_cpp/test.cpp
+	<iostream>
+	<fstream>
+	<cstdio>
+	<cstdlib>
+	<cmath>
+	"opencv2/core/core.hpp"
+	"opencv2/highgui/highgui.hpp"
+	"matrix.h"
+	"preprocess.h"
+	"conv.h"
+	"crbm.h"
+	"load.h"
+	"show.h"
+
+1405313794 /home/crd/github/deep-learning/crbm/crbm_cpp/whiten.h
+	<iostream>
+	"matrix.h"
+
+1405319561 source:/home/crd/github/deep-learning/crbm/crbm_cpp/whiten.cpp
+	<iostream>
+	<cmath>
+	"whiten.h"
+
+1405580073 source:/home/crd/github/deep-learning/crbm/crbm_cpp/conv.cpp
+	<iostream>
+	"conv.h"
+	"matrix.h"
+
+1405326700 /home/crd/github/deep-learning/crbm/crbm_cpp/conv.h
+	<iostream>
+	"matrix.h"
+
+1405388814 source:/home/crd/github/deep-learning/crbm/crbm_cpp/preprocess.cpp
+	<iostream>
+	<cmath>
+	"preprocess.h"
+
+1405326840 /home/crd/github/deep-learning/crbm/crbm_cpp/preprocess.h
+	<iostream>
+	"matrix.h"
+
+1405835055 source:/home/crd/github/deep-learning/crbm/crbm_cpp/crbm.cpp
+	<iostream>
+	<vector>
+	<cmath>
+	<stdio.h>
+	<cstring>
+	"crbm.h"
+	"matrix.h"
+	"utils.h"
+	"conv.h"
+
+1405833869 /home/crd/github/deep-learning/crbm/crbm_cpp/crbm.h
+	<iostream>
+	<vector>
+	"matrix.h"
+
+1405409625 /home/crd/github/deep-learning/crbm/crbm_cpp/utils.h
+	<iostream>
+	<cstdlib>
+	<cmath>
+
+1405560386 /home/crd/github/deep-learning/crbm/crbm_cpp/load.h
+	<iostream>
+	<vector>
+
+1405561446 source:/home/crd/github/deep-learning/crbm/crbm_cpp/load.cpp
+	<iostream>
+	<fstream>
+	<vector>
+	"load.h"
+
+1405672759 source:/home/crd/github/deep-learning/crbm/crbm_cpp/show.cpp
+	<iostream>
+	<cstdio>
+	<cstdlib>
+	<cmath>
+	"opencv2/core/core.hpp"
+	"opencv2/highgui/highgui.hpp"
+	"show.h"
+	"matrix.h"
+
+1405648203 /home/crd/github/deep-learning/crbm/crbm_cpp/show.h
+	<iostream>
+	<cstdio>
+	<cstdlib>
+	<cmath>
+	"opencv2/core/core.hpp"
+	"opencv2/highgui/highgui.hpp"
+	"matrix.h"
+

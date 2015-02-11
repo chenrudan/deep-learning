@@ -1,0 +1,3 @@
+speak里面是之前看ica的一些相关总结
+
+result里面是训练hpc-cots的中间结果

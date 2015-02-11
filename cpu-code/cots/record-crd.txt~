@@ -1,0 +1,61 @@
+
+=====================================
+                face
+=====================================
+*************************************
+t1: lr5_a0.001.out
+the learning rate of w is :5
+the lambda is :0.001
+the learning rate of alpha is :0.001
+the layer1_alpha is :0.35
+the all size is : 5000
+the epoch number is : 1000
+-------------------------------------
+epoch: 0
+R_cost:  16.0783  p_cost  9.8196  total cost is 25.8979
+epoch: 303
+R_cost:  1.24408  p_cost  9.06799 total cost is 10.3121
+alpha  0.310786
+
+*************************************
+t2: 10.out
+the learning rate of w is :3 
+the lambda is :0.001
+the learning rate of alpha is :0.001
+the layer1_alpha is :0.4
+the all size is : 5000
+the epoch number is : 10
+-------------------------------------
+epoch: 0
+R_cost 20.2854  p_cost 11.2043   total cost is 31.4897
+epoch: 9
+R_cost 9.20422  p_cost 7.32676   total cost is 16.531
+alpha  0.255618
+
+*************************************
+t3: a0.8lr10alr0.0005.out
+the learning rate of w is :10
+the lambda is :0.001
+the learning rate of alpha is :0.0005
+the layer1_alpha is :0.8
+the all size is : 5000
+the epoch number is : 10
+--------------------------------------
+epoch: 0
+R_cost 122.607  p_cost 22.406    total cost is 145.013
+epoch: 9
+R_cost 3.5587   p_cost 8.85388   total cost is 12.4126
+alpha 0.315405
+
+
+
+
+
+
+
+
+
+
+
+
+

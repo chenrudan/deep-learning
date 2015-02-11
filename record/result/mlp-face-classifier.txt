@@ -1,0 +1,94 @@
+dataset: 
+	train:
+	test: Yale Face Dataset -- http://www.face-rec.org/databases/
+							   http://vision.ucsd.edu/content/yale-face-database
+
+		  Yale has 165 pictures, origin size is 320*243
+		  
+		  label从0开始，yalefaces_train.bin，yale_label_train.bin训练集包含15个人，每个人8张图
+		  			    yalefaces_test.bin，yale_label_tset.bin训练集包含15个人，每个人3张图
+		  
+		  ORL Face Dataset  -- http://www.cl.cam.ac.uk/research/dtg/attarchive/facedatabase.html
+		  label从0开始，orlfaces_train.bin，orl_label_train.bin训练集包含40个人，每个人8张图
+		  			    orlfaces_test.bin，orl_label_tset.bin训练集包含40个人，每个人2张图
+		  			    
+		  LFW Face Dataset1
+		  共1508张图， 83个label，1176 train + 332 test
+		  label从0开始, lfwfaces_train.bin，lfw_label_train.bin训练集包含83个人，每个人不定
+		  			    lfwfaces_test.bin，lfw_label_tset.bin训练集包含83个人，每个人4张图
+
+
+
+
+
+
+
+
+
+
+*****************
+dataset: yaleface
+*****************
+==============================================
+yale88*88*3_epoch20_lr0.01.out
+----------------------------------------------
+n_epochs: 20
+lr: -0.01
+error pairs: 148, 10, 127, 96, 214
+
+===============================================
+yale88*88*3_epoch100_lr0.01.out
+----------------------------------------------
+n_epochs: 20
+lr: -0.01
+error pairs: 93, 10,  127, 96
+
+===============================================
+yale96_epoch20_lr0.01.out
+----------------------------------------------
+n_epochs: 20
+lr: -0.01
+error pairs: 83, 93, 10, 127, 614
+
+===============================================
+yale96_epoch100_lr0.01.out
+----------------------------------------------
+n_epochs: 100
+lr: -0.01
+error pairs: 83, 93, 10, 127
+
+*********************
+dataset: orlface
+*********************
+===============================================
+orl96_epoch100_lr0.01.out
+----------------------------------------------
+n_epochs: 100
+lr: -0.01
+error pairs: 1426, 2639, 919, 916, 627, 930, 192, 2639, 924, 627
+
+===============================================
+orl96_epoch20_lr0.02.out
+-----------------------------------------------
+lr越大，越容易陷入局部最小值
+
+
+
+*********************
+dataset: lfwface
+*********************
+===============================================
+lfw96_lr0.01_label9.out
+----------------------------------------------
+n_epochs: 100
+lr: -0.01
+label: 9  from 50~100
+error rate: 0.5445
+
+===============================================
+
+
+
+
+
+
