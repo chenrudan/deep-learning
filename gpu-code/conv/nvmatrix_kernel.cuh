@@ -42,7 +42,9 @@ __global__ void kDumbMaxCols(float* mat, float* vec, unsigned int width, \
  __global__ void kMultByColVector(float* mat, float* vec, float* tgtMat, \
          unsigned int width, unsigned int height);
 
-__global__ void kSubtractFromScalar(float* gData, float scalar, float* target, \
+//__global__ void kSubtractFromScalar(float* gData, float scalar, float* target, \
+//       unsigned int numElements);
+__global__ void kSubtractFromScalar(float* gData, float* target, \
          unsigned int numElements);
 
  __global__ void kMult(float* matA, float* matB, float* tgtMat, \

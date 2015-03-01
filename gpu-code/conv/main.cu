@@ -160,29 +160,29 @@ int main(){
 			
 			int error = 0;
 			//Forward pass
-//		t = clock();
+		t = clock();
 			layer1.computeConvOutputs(miniTrainData);
-//		t = clock() - t;
+		t = clock() - t;
 //		cout << "conv: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
-//		t = clock();
+		t = clock();
 			layer1.computeMaxOutputs();
 			layer1.computeClassOutputs();
-//		t = clock() - t;
+		t = clock() - t;
 //		cout << "classout: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
-//		t = clock();
+		t = clock();
 			loglihood = layer1.computeError(miniTrainLabel, error);
 			layer1.computeDerivs(miniTrainData, miniTrainLabel);
-//		t = clock() - t;
+		t = clock() - t;
 //		cout << "derivs: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
-//		t = clock();
+		t = clock();
 			layer1.updatePars();
 			
 			miniTrainData->changePtr(minibatchSize * inSize * inSize);
 			miniTrainLabel->changePtr(minibatchSize);
 			numError += error;
-//		t = clock() - t;
+		t = clock() - t;
 //		cout << "update: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
-//		t = clock();
+		t = clock();
 
 //			cout << "epoch: " << epochIdx << ", minibatch: " << batchIdx \
 				<< ",total number: " <<  minibatchSize \

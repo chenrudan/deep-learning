@@ -5,6 +5,8 @@
 #include <cuda_runtime.h>
 #include "nvmatrix_kernel.cuh"
 
+__constant__ float dMinus = 1;
+
 __global__ void multiRowCol(float* aData, float* bData, float scaleAB, \
 		float* target, const int numInRowCol, const int times ){
 	extern __shared__ float result[];
@@ -58,9 +60,10 @@ __global__ void kAddRowVector(float* mat, float* vec, float* tgtMat, \
 	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int numThreads = blockDim.x * gridDim.x;
 
-	for (unsigned int i = idx; i < width * height; i += numThreads) {
-		tgtMat[i] = mat[i] + scaleVec * vec[i % width];
-	}
+//	for (unsigned int i = idx; i < width * height; i += numThreads) {
+		tgtMat[idx] = mat[idx] + scaleVec * vec[idx % width];
+		
+//	}
 }
 
 __global__ void kSoftmax(float* gData, float* target, unsigned int numCols) {   
@@ -170,11 +173,13 @@ __global__ void kMultByColVector(float* mat, float* vec, float* tgtMat, \
 //	}
 }
 
-__global__ void kSubtractFromScalar(float* gData, float scalar, float* target, \
+//__global__ void kSubtractFromScalar(float* gData, float scalar, float* target, \
+		unsigned int numElements) {
+__global__ void kSubtractFromScalar(float* gData, float* target, \
 		unsigned int numElements) {
 	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	for (unsigned int i = idx; i < numElements; i += blockDim.x * gridDim.x)
-		target[i] = scalar - gData[i];
+		target[i] = 1 - gData[i];
 }
 
 __global__ void kMult(float* matA, float* matB, float* tgtMat, \

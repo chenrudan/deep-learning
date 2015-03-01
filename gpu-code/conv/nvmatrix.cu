@@ -284,7 +284,7 @@ void NVMatrix::addRowVector(NVMatrix* vec, \
 
 void NVMatrix::subtractFromScalar(float scalar, NVMatrix* target, int numBlocks, \
 		int numThreadsPerBlock) { 
-	kSubtractFromScalar<<<numBlocks, numThreadsPerBlock>>>(_devData, scalar, \
+	kSubtractFromScalar<<<numBlocks, numThreadsPerBlock>>>(_devData, \
 			target->getDevData(),_numElements);
 	cudaThreadSynchronize();
 }

@@ -74,9 +74,9 @@ int main(){
 	int numOut = 10;
 	int trainNum = 50000;
 	int validNum = 10000;
-	int minibatchSize = 16;
+	int minibatchSize = 1024;
 	int numMinibatches = trainNum / minibatchSize;
-	int numEpoches = 80; 
+	int numEpoches = 300; 
 	int inChannel = 1;
 	
 
@@ -182,8 +182,8 @@ int main(){
 			}
 		}
 	}
-	//t = clock() - t;
-	//cout << "layer1 uses " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+//	t = clock() - t;
+//	cout << "layer1 uses " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
 	savePars(hHidVis, "hHidVis_t1.bin");
 	savePars(hHidBiases, "hHidBiases_t1.bin");
 	savePars(hAvgout, "hAvgout_t1.bin");

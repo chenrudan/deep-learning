@@ -8,6 +8,7 @@
 #include "convnet_kernel.cuh"
 
 using namespace std;
+	
 
 ConvNet::ConvNet(Matrix* hHidVis, Matrix* hAvgOut, Matrix* hHidBiases, \
 		Matrix*	hOutBiases,	float epsHidVis, float epsAvgOut, float epsHidBias, \
@@ -218,9 +219,20 @@ void ConvNet::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels){
 	_y_i->getTranspose(y_i_T);
 	//16*12*12 * 16, 16 * 10
 	y_i_T->rightMult(_dE_dy_j, 1, _dE_dw_ij, handle);
-
+/*
+t = clock() - t;
+cout << "dEdwij: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+t = clock();
+*/
 	//16 * 10
 	_dE_dy_j->sumRow(_dE_db_j, _minibatchSize, _numOut);
+
+/*
+t = clock() - t;
+cout << "dEdbj: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+t = clock();
+*/
+
 	//dE_dy_i, 16*16*12*12
 	NVMatrix* avgOut_T = new NVMatrix(_avgOut->getNumCols(), _avgOut->getNumRows());
 	_avgOut->getTranspose(avgOut_T);
@@ -231,12 +243,21 @@ void ConvNet::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels){
 	dim3 blocks = dim3(_minibatchSize, _numFilters);
 	dim3 threads = dim3(ceil(_poolResultSize / 16.0) * 16,  ceil(_poolResultSize / 16.0) * 16);
 	//dE_dy_h, 16*16*24*24
+/*
+t = clock() - t;
+cout << "dEdyi: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+t = clock();
+*/
 
 	_dE_dy_h->zeros();
 	compute_dE_dy_h_max<<<blocks, threads>>>(_dE_dy_i->getDevData(), \
 			_dE_dy_h->getDevData(), _maxPoolPos);
 	cudaThreadSynchronize();
-
+/*
+t = clock() - t;
+cout << "dEdyi: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+t = clock();
+*/
 
 	//dE_dx_h, 16*16*24*24
 	_y_h->subtractFromScalar(1, _dE_dx_h, _minibatchSize * _numFilters, \
@@ -244,9 +265,11 @@ void ConvNet::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels){
 
 	_dE_dx_h->eltWiseMult(_y_h, _minibatchSize * _numFilters, \
 			_convResultSize * _convResultSize);
+
 	_dE_dx_h->eltWiseMult(_dE_dy_h, _minibatchSize * _numFilters, \
 			_convResultSize * _convResultSize);
 
+clock_t t = clock();
 	NVMatrix* dE_dw_hk_tmp = new NVMatrix(_minibatchSize, \
 			_numFilters * _filterSize *_filterSize);
 	blocks = dim3(_minibatchSize, _numFilters);
@@ -257,12 +280,11 @@ void ConvNet::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels){
 			_dE_dx_h->getDevData(), dE_dw_hk_tmp->getDevData(), \
 			filConvtimes, imgConvtimes);
 	cudaThreadSynchronize();
-//clock_t t = clock();
-/*
+
 t = clock() - t;
 cout << "dEdwhktmp: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
 t = clock();
-*/
+
 	//按每一列作为一个线程，故两者乘积要比16*24*24大
 	dE_dw_hk_tmp->sumRow(_dE_dw_hk, _numFilters * 4, _minibatchSize * 16);
 	
@@ -318,7 +340,7 @@ void ConvNet::updatePars(){
 
 void ConvNet::computeLogistic(NVMatrix* miniData, NVMatrix* miniLabels, bool isTrain){
 
-	clock_t t = clock();
+//	clock_t t = clock();
 	int block = _minibatchSize;
 	int thread = _numOut;
 
@@ -329,28 +351,23 @@ void ConvNet::computeLogistic(NVMatrix* miniData, NVMatrix* miniLabels, bool isT
 //		t = clock();
 
 	_y_j->addRowVector(_outBiases, block, thread);
+//	t = clock() - t;                                                                
+//	cout << "yj: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+//	t = clock();
 
 	_y_j->apply(NVMatrix::SOFTMAX, block, 1);
 
-//	NVMatrix* y_j_sum = new NVMatrix(_minibatchSize, 1);
-//	_y_j->sumCol(y_j_sum, block, thread);
-//	_y_j->eltWiseDivideByVector(y_j_sum, block, thread);
-//	delete y_j_sum;
-
-
 	compute_dE_dy_j<<<block, thread>>>(_y_j->getDevData(), \
 			miniLabels->getDevData(), _dE_dy_j->getDevData());
-	cudaThreadSynchronize();
+//	t = clock() - t;                                                                
+//	cout << "yj: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+//	t = clock();
 
 	NVMatrix* y_i_T = new NVMatrix(miniData->getNumCols(), miniData->getNumRows());
 	miniData->getTranspose(y_i_T);
 
 	//16*12*12 * 16, 16 * 10
 	y_i_T->rightMult(_dE_dy_j, 1, _dE_dw_ij, handle);
-
-	//	t = clock() - t;                                                                                        
-	//	cout << "rightMult: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
-	//	t = clock();
 
 	//16 * 10
 	_dE_dy_j->sumRow(_dE_db_j, _minibatchSize, _numOut);
