@@ -166,7 +166,7 @@ void ConvNet::computeClassOutputs(){
 	int threads = _numOut;
 	_y_i->rightMult(_avgOut, 1, _y_j, handle);
 
-	_y_j->addRowVector(_outBiases, blocks, threads);
+	_y_j->addRowVector(_outBiases);
 	//防止_y_j溢出，保证E^x，控制在e^-15~e^15
 
 	_y_j->apply(NVMatrix::SOFTMAX, blocks, 1);
@@ -350,7 +350,7 @@ void ConvNet::computeLogistic(NVMatrix* miniData, NVMatrix* miniLabels, bool isT
 //		cout << "rightmulti1: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
 //		t = clock();
 
-	_y_j->addRowVector(_outBiases, block, thread);
+	_y_j->addRowVector(_outBiases);
 //	t = clock() - t;                                                                
 //	cout << "yj: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
 //	t = clock();

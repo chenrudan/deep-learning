@@ -5,10 +5,13 @@
 #ifndef NVMATRIX_KERNEL_H_
 #define NVMATRIX_KERNEL_H_
 
-#define COPY_BLOCK_SIZE                     16
 #define NUM_BLOCKS_MAX                      65535
 
+#define ADD_BLOCK_SIZE						16
+#define COPY_BLOCK_SIZE                     16
+
 #define DIVUP(a, b)                     (((a) + (b) - 1) / (b))
+
 
  __global__ void multiRowCol(float* aData, float* bData, float scaleAB, \
 		         float* target, const int numInRowCol, const int times);

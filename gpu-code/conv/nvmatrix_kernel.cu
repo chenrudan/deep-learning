@@ -57,20 +57,61 @@ __global__ void kAddColVector(float* mat, float* vec, float* tgtMat, \
 __global__ void kAddRowVector(float* mat, float* vec, float* tgtMat, \
 		const unsigned int width, const unsigned int height, \
 		const float scaleVec) {
-	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	const unsigned int numThreads = blockDim.x * gridDim.x;
+	
+	const unsigned int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idx = idxY * width + idxX;
+	const unsigned int numThreads = blockDim.x * gridDim.x * \
+									blockDim.y * gridDim.y;
 
-//	for (unsigned int i = idx; i < width * height; i += numThreads) {
+	//此处控制了线程数要小于行列积
+	for (unsigned int i = idx; i < width * height; i += numThreads) {
 		tgtMat[idx] = mat[idx] + scaleVec * vec[idx % width];
 		
-//	}
+	}
 }
 
-__global__ void kSoftmax(float* gData, float* target, unsigned int numCols) {   
+__global__ void kSoftmax(float* gData, unsigned int width, \
+		unsigned int height) {   
 
 	//跟同一个block里面值比较大小取最大值，减去最大值
+	const unsigned int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idx = idxY * width + idxX;
+	//数据放入共享内存
+	int shareMemLength = ((width + ADD_BLOCK_SIZE - 1) / ADD_BLOCK_SIZE) \
+						 * ADD_BLOCK_SIZE;
+	//计算里长度最近的2的次方
+	int pow2Length = shareMemLength;
+	if(pow2Length & (pow2Length - 1)){
+		while(pow2Length & (pow2Length - 1)){
+			pow2Length &= pow2Length - 1;
+		}
+	}
+	__shared__ float ori[shareMemLength];
 
-//	const unsigned int idx = blockIdx.x * numCols + threadIdx.x;
+	if(idxY < width)
+		ori[idxY] = gData[idx];
+	else
+		ori[idxY] = -10000000;
+		
+	__syncthreads();
+
+	//先通过reduce来求最大值
+	if(idxY >= pow2Length && idxY < width)
+		ori[idxY - pow2Length] = ori[idxY - pow2Length] > ori[idxY] \
+								 ? ori[idxY- pow2Length] : ori[idxY];
+	__syncthreads();
+
+	for(int activeThreads = pow2Length >> 1; activeThreads; activeThreads >> 1){
+		if(idxY < activeThreads){
+			ori[idxY] = ori[idxY] > ori[idxY] \
+						? ori[idxY + activeThreads] : ori[idxY];
+		}
+		__syncthreads();
+	}
+
+/*
 	gData += blockIdx.x * numCols;
 	target += blockIdx.x * numCols;
 
@@ -87,6 +128,7 @@ __global__ void kSoftmax(float* gData, float* target, unsigned int numCols) {
 	for (unsigned int i = 0; i < numCols; i++){
 		target[i] = target[i] / sum;
 	}
+*/
 }
 
 __global__ void kReciprocal(float* gData, float* target, unsigned int numElements) {

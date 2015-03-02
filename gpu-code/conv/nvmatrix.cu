@@ -270,13 +270,20 @@ void NVMatrix::addVector(NVMatrix* vec, float scaleVec, NVMatrix* target, \
 
 }
 
-void NVMatrix::addRowVector(NVMatrix* vec, \
-         int numBlocks, int numThreadsPerBlock){
+void NVMatrix::addRowVector(NVMatrix* vec){
 	assert(vec->getNumRows() == 1 || vec->getNumCols() == 1);
 	assert(vec->getNumRows() == _numRows || vec->getNumCols() == _numCols);
 	const unsigned int width = _numCols;
 	const unsigned int height = _numRows;
-	kAddRowVector<<<numBlocks, numThreadsPerBlock>>>(_devData, vec->getDevData(), \
+
+	//表达成了矩阵的结构，就分开处理算了,block和thread的x维控制列数
+	const int numBlocksX = DIVUP(width, ADD_BLOCK_SIZE);
+	assert(numBlocksX < NUM_BLOCKS_MAX);
+	const int numBlocksY = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), NUM_BLOCKS_MAX));
+	dim3 gridSize(numBlocksX, numBlocksY, 1); 
+	dim3 blockSize(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
+
+	kAddRowVector<<<gridSize, blockSize>>>(_devData, vec->getDevData(), \
 			_devData, width, height, 1);
 	cudaThreadSynchronize();
 	
@@ -296,25 +303,30 @@ void NVMatrix::subtractFromScalar(float scalar, int numBlocks, \
 
 
 
-void NVMatrix::apply(NVMatrix::FUNCTIONS f, NVMatrix *target, int numBlocks, \
-		int numThreadsPerBlock){
-	dim3 blocks(numBlocks, 1, 1);
-	dim3 threads(numThreadsPerBlock, 1, 1);
+void NVMatrix::apply(NVMatrix::FUNCTIONS f, NVMatrix *target){
+	
+	const unsigned int width = _numCols;
+	const unsigned int height = _numRows;
+	const int numBlocksX = DIVUP(width, ADD_BLOCK_SIZE);
+	assert(numBlocksX < NUM_BLOCKS_MAX);
+	const int numBlocksY = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), NUM_BLOCKS_MAX));
+	dim3 gridSize(numBlocksX, numBlocksY, 1); 
+	dim3 blockSize(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
 
 	if(f == NVMatrix::SOFTMAX){
-		kSoftmax<<<blocks, threads>>>(_devData, target->getDevData(), _numCols);
+		kSoftmax<<<gridSize, blockSize>>>(_devData, target->getDevData(), _numCols);
 	}else if(f == NVMatrix::RECIPROCAL) {
-		kReciprocal<<<blocks, threads>>>(_devData, target->getDevData(), \
+		kReciprocal<<<gridSize, blockSize>>>(_devData, target->getDevData(), \
 				_numElements);
 	}else if(f == NVMatrix::LOG) {
-		kLog<<<blocks, threads>>>(_devData, target->getDevData(), \
+		kLog<<<gridSize, blockSize>>>(_devData, target->getDevData(), \
 				_numCols);
 	}
 	cudaThreadSynchronize();
 }
 
-void NVMatrix::apply(NVMatrix::FUNCTIONS f, int numBlocks, int numThreadsPerBlock) {
-	apply(f, this, numBlocks, numThreadsPerBlock);
+void NVMatrix::apply(NVMatrix::FUNCTIONS f) {
+	apply(f, this);
 }
 
 

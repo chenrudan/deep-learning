@@ -94,12 +94,10 @@ public:
 	void addVector(NVMatrix* vec, int numBlocks, int numThreadsPerBlock);
 	void addVector(NVMatrix* vec, float scaleVec, NVMatrix* target, \
 			int numBlocks, int numThreadsPerBlock);
-	void addRowVector(NVMatrix* vec, \
-	        int numBlocks, int numThreadsPerBlock);
+	void addRowVector(NVMatrix* vec);
 
-	void apply(FUNCTIONS f, NVMatrix* target, int numBlocks, \
-	         int numThreadsPerBlock);
-	void apply(FUNCTIONS f, int numBlocks, int numThreadsPerBlock);
+	void apply(FUNCTIONS f, NVMatrix* target);
+	void apply(FUNCTIONS f);
 	
 	void addSum(NVMatrix* b, NVMatrix* c, float scaleThis, \
 		     float scaleB, float scaleC, int numBlocks, int numThreadsPerBlock);

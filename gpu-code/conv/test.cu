@@ -25,15 +25,16 @@ int main(){
 	cublasHandle_t handle;
 	cublasCreate(&handle);
 	NVMatrix* a = new NVMatrix(m, k);
-	NVMatrix* b = new NVMatrix(k, n);
+	NVMatrix* b = new NVMatrix(1, k);
 	NVMatrix* c = new NVMatrix(m, n);
 
 	a->reValue(28);
 	b->reValue(20);
+	a->showValue("a");
 	
-//	a->addRowVector(b, 16 ,10);
+	a->addRowVector(b, 16 ,10);
 	//a->eltWiseMult(b, c, 16, 16);
-	a->rightMult(b, 1, c, handle);
+//	a->rightMult(b, 1, c, handle);
 //	a->getTranspose(b);
 /*	a->showValue("a");
 	a->apply(NVMatrix::EXP, 16, 1);
@@ -49,7 +50,7 @@ int main(){
 	b->showValue("b");
 	cout << "done1\n";
 	cout << "done2\n";
-	c->showValue("c");
+//	c->showValue("c");
 
 	cublasDestroy(handle);
 
