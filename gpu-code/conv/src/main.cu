@@ -83,7 +83,7 @@ int main(){
 	int numOut = 10;
 	int trainNum = 50000;
 	int validNum = 10000;
-	int minibatchSize = 256;
+	int minibatchSize = 16;
 	int numMinibatches = trainNum / minibatchSize;
 	int numEpoches = 200; 
 	int inChannel = 1;
@@ -109,10 +109,10 @@ int main(){
 	NVMatrix* nvTrainLabel = new NVMatrix(trainNum, 1);
 	NVMatrix* nvValidLabel = new NVMatrix(validNum, 1);
 
-	readData(nvTrainData, "mnist_train.bin", true);
-	readData(nvValidData, "mnist_valid.bin", true);
-	readData(nvTrainLabel, "mnist_label_train.bin", false);
-	readData(nvValidLabel, "mnist_label_valid.bin", false);
+	readData(nvTrainData, "../data/input/mnist_train.bin", true);
+	readData(nvValidData, "../data/input/mnist_valid.bin", true);
+	readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false);
+	readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false);
 	
 	float* trainDataPtr = nvTrainData->getDevData();
 	float* trainLabelPtr = nvTrainLabel->getDevData();
@@ -215,10 +215,10 @@ int main(){
 		t = clock();
 	}
 
-	savePars(hHidVis, "hHidVis_t1.bin");
-	savePars(hHidBiases, "hHidBiases_t1.bin");
-	savePars(hAvgout, "hAvgout_t1.bin");
-	savePars(hOutBiases, "hOutBiases_t1.bin");
+	savePars(hHidVis, "../data/pars/hHidVis_t1.bin");
+	savePars(hHidBiases, "../data/pars/hHidBiases_t1.bin");
+	savePars(hAvgout, "../data/pars/hAvgout_t1.bin");
+	savePars(hOutBiases, "../data/pars/hOutBiases_t1.bin");
 	
 	delete nvTrainData;
 	delete nvTrainLabel;

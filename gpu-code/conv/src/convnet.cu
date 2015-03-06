@@ -47,7 +47,8 @@ ConvNet::ConvNet(Matrix* hHidVis, Matrix* hAvgOut, Matrix* hHidBiases, \
 	cublasCreate(&handle);
 }
 ConvNet::~ConvNet() {
-	/*	delete _hHidVis;
+	/*
+		delete _hHidVis;
 		delete _hHidVisInc;
 		delete _hHidBiases;
 		delete _hHidBiasInc;
@@ -76,7 +77,7 @@ ConvNet::~ConvNet() {
 		delete _dE_dx_h;
 		delete _dE_dw_hk;
 		delete _dE_db_h;
-	 */
+	*/ 
 	cublasDestroy(handle);
 }
 
@@ -85,10 +86,14 @@ void ConvNet::initCuda() {
 	//NVMatrix::initDeviceProps();
 
 	//hidVis大小是16*5*5,bias是5*5
-	this->_hidVis            = new NVMatrix(_hHidVis, true);
-	this->_avgOut            = new NVMatrix(_hAvgOut, true);
-	this->_hidBiases         = new NVMatrix(_hHidBiases, true);
-	this->_outBiases         = new NVMatrix(_hOutBiases, true);
+	this->_hidVis            = new NVMatrix(_hHidVis, true, \
+											NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	this->_avgOut            = new NVMatrix(_hAvgOut, true, \
+											NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	this->_hidBiases         = new NVMatrix(_hHidBiases, true, \
+											NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	this->_outBiases         = new NVMatrix(_hOutBiases, true, \
+											NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
 	this->_y_h               = new NVMatrix(_minibatchSize, \
 			_numFilters * _convResultSize * _convResultSize);
@@ -107,7 +112,6 @@ void ConvNet::initCuda() {
 	this->_dE_db_h           = new NVMatrix(_hidBiases);
 
 	this->_avgOutInc		 = new NVMatrix(_avgOut);
-
 	this->_outBiasInc		 = new NVMatrix(1, _numOut);
 	this->_hidVisInc		 = new NVMatrix(_numFilters, _filterSize * _filterSize);
 	this->_hidBiasInc		 = new NVMatrix(_numFilters, 1);

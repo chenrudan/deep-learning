@@ -21,26 +21,25 @@ private:
 	bool _ownsData;
 	static cudaDeviceProp deviceProps;
 	
-	void _init(unsigned int numRows, unsigned int numCols);
 
 public:	
 	enum FUNCTIONS {LOG, EXP, RECIPROCAL, SOFTMAX};
-    NVMatrix();
-	NVMatrix(int numRows, int numCols);
-	NVMatrix(const Matrix* like, bool copy);
-	NVMatrix(const NVMatrix* like, bool copy);
-	NVMatrix(const NVMatrix* like);
-	NVMatrix(const Matrix* like);
+	enum ALLOCPALCE {ALLOC_ON_GPU_MEMORY, ALLOC_ON_UNIFIED_MEMORY};
+    NVMatrix(NVMatrix::ALLOCPALCE a = ALLOC_ON_GPU_MEMORY);
+	NVMatrix(int numRows, int numCols, \
+			NVMatrix::ALLOCPALCE a = ALLOC_ON_GPU_MEMORY);
+	NVMatrix(const Matrix* like, bool copy, \
+			NVMatrix::ALLOCPALCE a = ALLOC_ON_GPU_MEMORY);
+	NVMatrix(const NVMatrix* like, bool copy, \
+			NVMatrix::ALLOCPALCE a = ALLOC_ON_GPU_MEMORY);
+	NVMatrix(const NVMatrix* like, \
+			NVMatrix::ALLOCPALCE = ALLOC_ON_GPU_MEMORY);
+	NVMatrix(const Matrix* like, \
+			NVMatrix::ALLOCPALCE = ALLOC_ON_GPU_MEMORY);
 	NVMatrix(float* devData, int numRows, int numCols);
 	~NVMatrix();
-/*    inline unsigned int _getDefaultNumThreadsPerBlock() {                                                                                                        
-		return deviceProps.maxThreadsPerBlock;
-	}
-	inline unsigned int _getDefaultNumBlocks() {
-		return std::min(int(ceil(_numElements \
-				/ double(getDefaultNumThreadsPerBlock()))), NUM_BLOCKS_MAX);
-	}
- */
+	void _init(unsigned int numRows, unsigned int numCols, \
+			NVMatrix::ALLOCPALCE a);
 	
 	inline bool isSameDims(const Matrix* m) const {
 		return m->getNumRows() == _numRows && m->getNumCols() == _numCols;

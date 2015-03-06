@@ -2,28 +2,50 @@ GCC = gcc
 CC = g++                                                                        
 NVCC = nvcc
 MPICXX = mpicxx
-NVCCFLAGS= -g -O3 -c 
+CCFLAGS = -c
+NVCCFLAGS = -g -O3 -c 
 
-LDFLAGS = -L/usr/lib/openmpi/lib
-LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpi
-INCLUDES = -I../include -I/usr/lib/openmpi/include 
+LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich
+INCLUDES = -I../include
 
-testMultiGpu:
-	$(NVCC) $(NVCCFLAGS) testMultiGpu.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu convnet.cu convnet_kernel.cu $(INCLUDES)
-	$(NVCC) -o testMultiGpu *.o  $(LDFLAGS) $(LIB)
-#   scp train_ocean1 root@gpu-server2:/home/common/nej/cpluscode/src2
-#	mpirun -np 2 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter ./testMultiGpu
+#CUFILES = $(shell find . -name "*.cu")
+#CCFILES = $(shell find . -name "*.cpp")
 
+#OBJS += $(patsubst %.cpp, %.o, $(CCFILES))
+#OBJS += $(patsubst %.cu, %.o, $(CUFILES))
+
+OBJS = matrix.o nvmatrix.o nvmatrix_kernel.o convnet.o convnet_kernel.o
+
+testMultiGpu: $(OBJS) testMultiGpu.cu
+	$(NVCC) $(NVCCFLAGS) testMultiGpu.cu $(INCLUDES)
+	$(NVCC) -o testMultiGpu testMultiGpu.o $(OBJS) $(LIB)
+#   scp testMultiGpu root@gpu-server1:/home/conv/src2
+	mpirun_rsh -np 2 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter ./testMultiGpu
+
+matrix.o: matrix.cpp
+	$(CC) $(CCFLAGS) $^ $(INCLUDES) 
+
+nvmatrix.o: nvmatrix.cu
+	$(NVCC) $(NVCCFLAGS) $^ $(INCLUDES)
+
+nvmatrix_kernel.o: nvmatrix_kernel.cu
+	$(NVCC) $(NVCCFLAGS) $^ $(INCLUDES)
+	
+convnet.o: convnet.cu
+	$(NVCC) $(NVCCFLAGS) $^ $(INCLUDES)
+	 
+convnet_kernel.o: convnet_kernel.cu
+	$(NVCC) $(NVCCFLAGS) $^ $(INCLUDES)
 
 main: main.cu
-	$(NVCC) -g -o main main.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu convnet.cu convnet_kernel.cu $(LDFLAGS)
+	$(NVCC) -g -o main main.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu convnet.cu convnet_kernel.cu  $(INCLUDES) $(LIB)
 
 test: test.cu
-	$(NVCC) -g -o test test.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu $(LDFLAGS)
+	$(NVCC) -g -o test test.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu
 
 
 testLogistic: testLogistic.cu
-	$(NVCC) -g -o  testLogistic testLogistic.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu convnet.cu convnet_kernel.cu $(INCLUDES) $(LDFLAGS)
+	$(NVCC) -g -o  testLogistic testLogistic.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu convnet.cu convnet_kernel.cu $(INCLUDES) $(LIB)
 
 testpy:
 	THEANO_FLAGS='blas.ldflags=' python logistic_sgd.py 

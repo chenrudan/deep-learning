@@ -13,30 +13,33 @@
 
 using namespace std;
 
-NVMatrix::NVMatrix(){
-	_init(0, 0);
+NVMatrix::NVMatrix(NVMatrix::ALLOCPALCE a){
+	_init(0, 0, a);
 }
-NVMatrix::NVMatrix(int numRows, int numCols){
-	_init(numRows, numCols);
+NVMatrix::NVMatrix(int numRows, int numCols, \
+		NVMatrix::ALLOCPALCE a){
+	_init(numRows, numCols, a);
 }
-NVMatrix::NVMatrix(const Matrix* like, bool copy){
-	_init(like->getNumRows(), like->getNumCols());
+NVMatrix::NVMatrix(const Matrix* like, bool copy, \
+		NVMatrix::ALLOCPALCE a){
+	_init(like->getNumRows(), like->getNumCols(), a);
 	if (copy) {
 		copyFromHost(like);
 	}
 }
-NVMatrix::NVMatrix(const NVMatrix* like, bool copy){
-	_init(like->getNumRows(), like->getNumCols());
+NVMatrix::NVMatrix(const NVMatrix* like, bool copy, \
+		NVMatrix::ALLOCPALCE a){
+	_init(like->getNumRows(), like->getNumCols(), a);
 	if (copy) {
 		copyFromDevice(like);
 	}
 }
 // not copy the data
-NVMatrix::NVMatrix(const Matrix* like) {
-	_init(like->getNumRows(), like->getNumCols());
+NVMatrix::NVMatrix(const Matrix* like, NVMatrix::ALLOCPALCE a) {
+	_init(like->getNumRows(), like->getNumCols(), a);
 }
-NVMatrix::NVMatrix(const NVMatrix* like) {
-	_init(like->getNumRows(), like->getNumCols());
+NVMatrix::NVMatrix(const NVMatrix* like, NVMatrix::ALLOCPALCE a) {
+	_init(like->getNumRows(), like->getNumCols(), a);
 }
 NVMatrix::NVMatrix(float* devData, int numRows, int numCols) {
 	_numRows = numRows;
@@ -52,14 +55,22 @@ NVMatrix::~NVMatrix(){
 	}
 }
 
-void NVMatrix::_init(unsigned int numRows, unsigned int numCols) {
+void NVMatrix::_init(unsigned int numRows, unsigned int numCols, \
+	NVMatrix::ALLOCPALCE a) {
 	_numRows = numRows;
 	_numCols = numCols;
 	_numElements = numRows * numCols;
 	_ownsData = true;
 	if (_numElements > 0) {
-		cudaError_t status = cudaMalloc((void**) &_devData, \
+		cudaError_t status;
+		if(a == ALLOC_ON_GPU_MEMORY){
+			status = cudaMalloc((void**) &_devData, \
 				_numRows * _numCols * sizeof(float));
+		}
+		else if(a == ALLOC_ON_UNIFIED_MEMORY){
+			status = cudaMallocManaged(&_devData, \
+				_numRows * _numCols * sizeof(float));
+		}
 		if (status != cudaSuccess) {
 			fprintf(stderr, "!!!! device memory allocation error\n");
 			exit(EXIT_FAILURE);

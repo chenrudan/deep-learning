@@ -66,6 +66,7 @@ int main(int argc, char** argv){
 	MPI_Init(&argc,&argv);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	MPI_Comm_size(MPI_COMM_WORLD,&numProcess);
+	cout<<"numprocess:"<<numProcess<<endl;
 
 	float epsHidVis = 0.001;
 	float epsHidBias = 0.001;
@@ -84,7 +85,7 @@ int main(int argc, char** argv){
 	int minibatchSize = 1000;
 	int numMinibatches = trainNum / (minibatchSize * numProcess);
 	int numValidBatches = validNum / (minibatchSize * numProcess);
-	int numEpoches = 300; 
+	int numEpoches = 1000; 
 	int inChannel = 1;
 
 
@@ -95,15 +96,28 @@ int main(int argc, char** argv){
 
 	int inSqrt = inSize * inSize;
 
-	NVMatrix* nvTrainData = new NVMatrix(trainNum, inSize * inSize);
-	NVMatrix* nvValidData = new NVMatrix(validNum, inSize * inSize);
-	NVMatrix* nvTrainLabel = new NVMatrix(trainNum, 1);
-	NVMatrix* nvValidLabel = new NVMatrix(validNum, 1);
-	
-	NVMatrix* miniTrainData = new NVMatrix(minibatchSize, inSqrt);
-	NVMatrix* miniTrainLabel = new NVMatrix(minibatchSize, 1);
-	NVMatrix* miniValidData = new NVMatrix(minibatchSize, inSqrt);
-	NVMatrix* miniValidLabel = new NVMatrix(minibatchSize, 1);
+	int hidVisLen = numFilters * filterSize * filterSize;
+	//	int hidBiasLen = numFilters;
+	int avgOutLen = inSqrt * numOut;
+	int outBiasLen = numOut;
+
+	int miniDataLen = minibatchSize * inSqrt;
+	int miniLabelLen = minibatchSize;
+
+	cudaSetDevice(rank%2);
+
+	NVMatrix* nvTrainData;
+	NVMatrix* nvValidData;
+	NVMatrix* nvTrainLabel;
+	NVMatrix* nvValidLabel;
+
+	NVMatrix* miniTrainData;
+	NVMatrix* miniTrainLabel;
+	NVMatrix* miniValidData;
+	NVMatrix* miniValidLabel;
+
+	NVMatrix* avgOut;
+	NVMatrix* outBiases;
 	if(rank == 0){
 		cout << "=========================\n" \
 			<< "train: " << trainNum \
@@ -119,6 +133,19 @@ int main(int argc, char** argv){
 			<< "\nwcAvgOut: " << wcAvgOut \
 			<< "\n========================" << endl;
 
+		nvTrainData = new NVMatrix(trainNum, inSize * inSize, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		nvValidData = new NVMatrix(validNum, inSize * inSize, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		nvTrainLabel = new NVMatrix(trainNum, 1, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		nvValidLabel = new NVMatrix(validNum, 1, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+
+		avgOut = new NVMatrix(inSqrt, numOut, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		outBiases = new NVMatrix(1, numOut, NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+
 		//0号进程来读取输入数据
 		readData(nvTrainData, "../data/input/mnist_train.bin", true);
 		readData(nvValidData, "../data/input/mnist_valid.bin", true);
@@ -131,19 +158,23 @@ int main(int argc, char** argv){
 		validDataPtr = nvValidData->getDevData();
 		validLabelPtr = nvValidLabel->getDevData();
 	}
-
+	else{
+		miniTrainData = new NVMatrix(minibatchSize, inSqrt, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		miniTrainLabel = new NVMatrix(minibatchSize, 1, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		miniValidData = new NVMatrix(minibatchSize, inSqrt, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		miniValidLabel = new NVMatrix(minibatchSize, 1, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);	
+	}
 	//参数全部都需要
-	int hidVisLen = numFilters * filterSize * filterSize;
-	int hidBiasLen = numFilters;
-	int avgOutLen = inSqrt * numOut;
-	int outBiasLen = numOut;
+
 	Matrix* hHidVis = new Matrix(numFilters, filterSize * filterSize);
 	Matrix* hHidBiases = new Matrix(numFilters, 1);
 	Matrix* hAvgout = new Matrix(inSqrt, numOut);
 	Matrix* hOutBiases = new Matrix(1, numOut);
 
-	int miniDataLen = minibatchSize * inSqrt;
-	int miniLabelLen = minibatchSize;
 	//0号进程初始化参数，进行分发
 	if(rank == 0){
 		initW(hHidVis->getData(), hidVisLen);
@@ -156,19 +187,17 @@ int main(int argc, char** argv){
 		//	readPars(hOutBiases, "hOutBiases_t1.bin");
 	}
 	//先只处理一层的logistic
-	NVMatrix* avgOut, *outBiases;
+
 	MPI_Bcast(hAvgout->getData(), avgOutLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hOutBiases->getData(), outBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
-	cudaSetDevice(0);
 
 	ConvNet layer1(hHidVis, hAvgout, hHidBiases, hOutBiases, epsHidVis, epsAvgOut, \
 			epsHidBias, epsOutBias, mom, wcHidVis, wcAvgOut, minibatchSize, \
 			inSize, filterSize, inChannel, numFilters);
-	layer1.initCuda();
-
+	if(rank != 0){
+		layer1.initCuda();
+	}
 	double loglihood = 0;
-	int numError = 0;
 
 	int nPush = 1;
 	int nFetch = 1;
@@ -185,89 +214,115 @@ int main(int argc, char** argv){
 		}
 		for(int batchIdx = 0; batchIdx < numMinibatches; batchIdx++){
 			//读取数据
-			MPI_Scatter(nvTrainData, miniDataLen, MPI_FLOAT, miniTrainData, \
-					miniDataLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
-			//MPI_Scatter(nvTrainLabel, miniLabelLen, MPI_FLOAT, miniTrainLabel, \
-					miniLabelLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
-		/*
+/*
+			MPI_Scatter(nvTrainData->getDevData(), miniDataLen, MPI_FLOAT, \
+					miniTrainData->getDevData(), miniDataLen, MPI_FLOAT, \
+					0, MPI_COMM_WORLD);
+			MPI_Scatter(nvTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, \
+					miniTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, \
+					0, MPI_COMM_WORLD);
 			int error = 0;
-			//Forward pass
-			cout << "done1\n";
-			layer1.computeLogistic(miniTrainData, miniTrainLabel, true);
+			if(rank != 0){
+				//Forward pass
 
-			cout << "done2\n";
-			loglihood = layer1.computeError(miniTrainLabel, error);
-			cout << "done3\n";
+				layer1.computeLogistic(miniTrainData, miniTrainLabel, true);
+
+				loglihood = layer1.computeError(miniTrainLabel, error);
+			}
 			if(rank == 0){
 				nvTrainData->changePtr(numProcess * miniDataLen);
 				nvTrainLabel->changePtr(numProcess * miniLabelLen);
 			}
-			//gather参数，然后scatter
+			//点对点的send，然后再recv
 			avgOut = layer1.getAvgOut();
 			outBiases = layer1.getOutBias();
 			if((batchIdx + 1) % nPush == 0){
-				MPI_Gather(rank*avgOutLen/numProcess + avgOut->getDevData(), \
-						avgOutLen/numProcess, MPI_FLOAT, avgOut->getDevData(), \
-						avgOutLen/numProcess, MPI_FLOAT, 0, MPI_COMM_WORLD);
-				MPI_Gather(rank*outBiasLen/numProcess + outBiases->getDevData(), \
-						outBiasLen/numProcess, MPI_FLOAT, outBiases->getDevData(), \
-						outBiasLen/numProcess, MPI_FLOAT, 0, MPI_COMM_WORLD);
+				if(rank != 0){
+					MPI_Send((rank-1)*avgOutLen/(numProcess-1) + avgOut->getDevData(), \
+							avgOutLen/(numProcess-1), MPI_FLOAT, 0, 0, MPI_COMM_WORLD);
+					MPI_Send((rank-1)*outBiasLen/(numProcess-1) + outBiases->getDevData(), \
+							outBiasLen/(numProcess-1), MPI_FLOAT, 0, 0, MPI_COMM_WORLD);
+				}else{
+					for(int i = 1; i < numProcess; i++){
+					MPI_Recv((rank-1)*avgOutLen/(numProcess-1) + avgOut->getDevData(), \
+							avgOutLen/(numProcess-1), MPI_FLOAT, i, 0, MPI_COMM_WORLD, \
+							MPI_STATUS_IGNORE);
+					MPI_Recv((rank-1)*outBiasLen/(numProcess-1) + outBiases->getDevData(), \
+							outBiasLen/(numProcess-1), MPI_FLOAT, i, 0, MPI_COMM_WORLD, \
+							MPI_STATUS_IGNORE);
+					}
+				}
 			}
 			if((batchIdx + 1) % nFetch == 0){
-				MPI_Bcast(hAvgout->getData(), avgOutLen, MPI_FLOAT, \
-						0, MPI_COMM_WORLD);
-				MPI_Bcast(hOutBiases->getData(), outBiasLen, MPI_FLOAT, \
-						0, MPI_COMM_WORLD);
+				if(rank == 0){
+					for(int i = 1; i < numProcess; i++){
+					MPI_Send(avgOut->getDevData(), avgOutLen, MPI_FLOAT, i, \
+							0, MPI_COMM_WORLD);
+					MPI_Send(outBiases->getDevData(), outBiasLen, MPI_FLOAT, i, \
+							0, MPI_COMM_WORLD);
+					}
+				}else{
+					MPI_Recv(avgOut->getDevData(), avgOutLen, MPI_FLOAT, 0, 0, \
+							MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+					MPI_Recv(outBiases->getDevData(), outBiasLen, MPI_FLOAT, 0, 0, \
+							MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				}
 			}
-
-
+			if(rank == 0){
+				cout << "batchIdx: " << batchIdx << ",error: " \
+					<< (float)error/minibatchSize \
+					<< ",likelihood: "<< loglihood<< endl;
+			}
 
 			if(batchIdx == numMinibatches - 1){
 				int errorValid = 0;
 				float loglihoodValid = 0;
 				for(int validIdx = 0; validIdx < numValidBatches; validIdx++){
-					MPI_Scatter(nvTrainData, miniDataLen, MPI_FLOAT, miniTrainData, \
-							miniDataLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
-					MPI_Scatter(nvTrainLabel, miniLabelLen, MPI_FLOAT, \
-							miniTrainLabel, miniLabelLen, MPI_FLOAT, \
+					MPI_Scatter(nvValidData->getDevData(), miniDataLen, MPI_FLOAT, \
+							miniValidData->getDevData(), miniDataLen, MPI_FLOAT, \
 							0, MPI_COMM_WORLD);
-
-					layer1.computeLogistic(miniValidData, miniValidLabel, false);
-					loglihoodValid = layer1.computeError(miniValidLabel, errorValid);
-
-					if(rank == 0){
+					MPI_Scatter(nvValidLabel->getDevData(), miniLabelLen, MPI_FLOAT, \
+							miniValidLabel->getDevData(), miniLabelLen, MPI_FLOAT, \
+							0, MPI_COMM_WORLD);
+					if(rank != 0){
+						layer1.computeLogistic(miniValidData, miniValidLabel, false);
+						loglihoodValid += layer1.computeError(miniValidLabel, errorValid);
+					}
+					else{
 						nvValidData->changePtr(numProcess * miniDataLen);
 						nvValidLabel->changePtr(numProcess * miniLabelLen);
 					}
 				}
-				MPI_Reduce(&errorValid, &errorValid, 1, MPI_INT, MPI_SUM, \
+				int totalValid;
+				MPI_Reduce(&errorValid, &totalValid, 1, MPI_INT, MPI_SUM, \
 						0, MPI_COMM_WORLD);
 				if(rank == 0){
 					t = clock() - t;
 					cout << " " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
 					t = clock();
 					cout << "epoch: " << epochIdx 
-						<< ",error rate: " << (float)errorValid/validNum  << endl;
+						<< ",error rate: " << (float)totalValid/validNum  \
+						<< ",likelihood: "<< loglihoodValid << endl;
 				}
-			}
-			*/
+			}*/
 		}
 	}
+	//				savePars(hHidVis, "../data/pars/hHidVis_t1.bin");
+	//  			savePars(hHidBiases, "../data/pars/hHidBiases_t1.bin");
+	//				savePars(hAvgout, "../data/pars/hAvgout_t1.bin");
+	//				savePars(hOutBiases, "../data/pars/hOutBiases_t1.bin");
+
 	if(rank == 0){
-		savePars(hHidVis, "../data/pars/hHidVis_t1.bin");
-		savePars(hHidBiases, "../data/pars/hHidBiases_t1.bin");
-		savePars(hAvgout, "../data/pars/hAvgout_t1.bin");
-		savePars(hOutBiases, "../data/pars/hOutBiases_t1.bin");
+		delete nvTrainData;
+		delete nvTrainLabel;
+		delete nvValidData;
+		delete nvValidLabel;
+	}else{
+		delete miniTrainData;
+		delete miniTrainLabel;
+		delete miniValidData;
+		delete miniValidLabel;
 	}
-	delete nvTrainData;
-	delete nvTrainLabel;
-	delete nvValidData;
-	delete nvValidLabel;
-	delete miniTrainData;
-	delete miniTrainLabel;
-	delete miniValidData;
-	delete miniValidLabel;
 
 	MPI_Finalize();
 	return 0;
