@@ -40,13 +40,15 @@ void savePars(Matrix* par, string filename){
 	fout.close();
 }
 
-void readData(NVMatrix* nvData, string filename, bool isData){
+void readData(NVMatrix* nvData, string filename, bool isData, int addZerosInFront = 0){
 	int length = nvData->getNumRows() * nvData->getNumCols();
 	ifstream fin(filename.c_str(), ios::binary);
 	float* data = new float[length];
 	char* readData = new char[length];
-	fin.read(readData, length);
+	fin.read(readData + addZerosInFront, length - addZerosInFront);
 	for(int i = 0; i < length; i++){
+		if(i < addZerosInFront)
+			readData[i] = 0;
 		unsigned char tmp = readData[i];
 		if(isData){
 			data[i] = (int)tmp / 255.0;
@@ -66,7 +68,6 @@ int main(int argc, char** argv){
 	MPI_Init(&argc,&argv);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	MPI_Comm_size(MPI_COMM_WORLD,&numProcess);
-	cout<<"numprocess:"<<numProcess<<endl;
 
 	float epsHidVis = 0.001;
 	float epsHidBias = 0.001;
@@ -133,24 +134,29 @@ int main(int argc, char** argv){
 			<< "\nwcAvgOut: " << wcAvgOut \
 			<< "\n========================" << endl;
 
-		nvTrainData = new NVMatrix(trainNum, inSize * inSize, \
-				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-		nvValidData = new NVMatrix(validNum, inSize * inSize, \
-				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-		nvTrainLabel = new NVMatrix(trainNum, 1, \
-				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-		nvValidLabel = new NVMatrix(validNum, 1, \
-				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		/*
+		 *注意此处，一个线程作为server时，要在文件前面补上一个minibatch的空数据
+		 */
 
+		nvTrainData = new NVMatrix(trainNum + minibatchSize, inSqrt, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		nvValidData = new NVMatrix(validNum + minibatchSize, inSqrt, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		nvTrainLabel = new NVMatrix(trainNum + minibatchSize, 1, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+		nvValidLabel = new NVMatrix(validNum + minibatchSize, 1, \
+				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 		avgOut = new NVMatrix(inSqrt, numOut, \
 				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 		outBiases = new NVMatrix(1, numOut, NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
 		//0号进程来读取输入数据
-		readData(nvTrainData, "../data/input/mnist_train.bin", true);
-		readData(nvValidData, "../data/input/mnist_valid.bin", true);
-		readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false);
-		readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false);
+		readData(nvTrainData, "../data/input/mnist_train.bin", true, miniDataLen);
+		readData(nvValidData, "../data/input/mnist_valid.bin", true, miniDataLen);
+		readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false, \
+								minibatchSize);
+		readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false, \
+								minibatchSize);
 
 		//0号进程移动数据指针
 		trainDataPtr = nvTrainData->getDevData();
@@ -158,7 +164,8 @@ int main(int argc, char** argv){
 		validDataPtr = nvValidData->getDevData();
 		validLabelPtr = nvValidLabel->getDevData();
 	}
-	else{
+//	else{
+		
 		miniTrainData = new NVMatrix(minibatchSize, inSqrt, \
 				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 		miniTrainLabel = new NVMatrix(minibatchSize, 1, \
@@ -167,7 +174,7 @@ int main(int argc, char** argv){
 				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 		miniValidLabel = new NVMatrix(minibatchSize, 1, \
 				NVMatrix::ALLOC_ON_UNIFIED_MEMORY);	
-	}
+//	}
 	//参数全部都需要
 
 	Matrix* hHidVis = new Matrix(numFilters, filterSize * filterSize);
@@ -214,13 +221,23 @@ int main(int argc, char** argv){
 		}
 		for(int batchIdx = 0; batchIdx < numMinibatches; batchIdx++){
 			//读取数据
-/*
-			MPI_Scatter(nvTrainData->getDevData(), miniDataLen, MPI_FLOAT, \
+			//使用send和receive
+			
+		//	MPI_Scatter(nvTrainData->getDevData(), miniDataLen, MPI_FLOAT, \
 					miniTrainData->getDevData(), miniDataLen, MPI_FLOAT, \
 					0, MPI_COMM_WORLD);
-			MPI_Scatter(nvTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, \
+		//	MPI_Scatter(nvTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, \
 					miniTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, \
 					0, MPI_COMM_WORLD);
+//			cout << "rank: " << rank << " done3\n";
+			if(rank == 1){
+				float* tmp = miniTrainData->getDevData();
+				for(int i = 0; i < 100; i++){
+					cout << tmp[i] << "  ";
+				}			
+				cout << endl;
+			}
+
 			int error = 0;
 			if(rank != 0){
 				//Forward pass
@@ -229,9 +246,9 @@ int main(int argc, char** argv){
 
 				loglihood = layer1.computeError(miniTrainLabel, error);
 			}
-			if(rank == 0){
-				nvTrainData->changePtr(numProcess * miniDataLen);
-				nvTrainLabel->changePtr(numProcess * miniLabelLen);
+		/*	if(rank == 0){
+				nvTrainData->changePtr((numProcess-1) * miniDataLen);
+				nvTrainLabel->changePtr((numProcess-1) * miniLabelLen);
 			}
 			//点对点的send，然后再recv
 			avgOut = layer1.getAvgOut();
@@ -289,8 +306,8 @@ int main(int argc, char** argv){
 						loglihoodValid += layer1.computeError(miniValidLabel, errorValid);
 					}
 					else{
-						nvValidData->changePtr(numProcess * miniDataLen);
-						nvValidLabel->changePtr(numProcess * miniLabelLen);
+						nvValidData->changePtr((numProcess - 1) * miniDataLen);
+						nvValidLabel->changePtr((numProcess - 1)* miniLabelLen);
 					}
 				}
 				int totalValid;
@@ -317,12 +334,12 @@ int main(int argc, char** argv){
 		delete nvTrainLabel;
 		delete nvValidData;
 		delete nvValidLabel;
-	}else{
+	}
 		delete miniTrainData;
 		delete miniTrainLabel;
 		delete miniValidData;
 		delete miniValidLabel;
-	}
+	
 
 	MPI_Finalize();
 	return 0;

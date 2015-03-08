@@ -20,7 +20,7 @@ testMultiGpu: $(OBJS) testMultiGpu.cu
 	$(NVCC) $(NVCCFLAGS) testMultiGpu.cu $(INCLUDES)
 	$(NVCC) -o testMultiGpu testMultiGpu.o $(OBJS) $(LIB)
 #   scp testMultiGpu root@gpu-server1:/home/conv/src2
-	mpirun_rsh -np 2 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter ./testMultiGpu
+	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter ./testMultiGpu
 
 matrix.o: matrix.cpp
 	$(CC) $(CCFLAGS) $^ $(INCLUDES) 
@@ -36,6 +36,13 @@ convnet.o: convnet.cu
 	 
 convnet_kernel.o: convnet_kernel.cu
 	$(NVCC) $(NVCCFLAGS) $^ $(INCLUDES)
+
+testGpuSuccess1: $(OBJS) testGpuSuccess1.cu
+	$(NVCC) $(NVCCFLAGS) testGpuSuccess1.cu $(INCLUDES)
+	$(NVCC) -o testGpuSuccess1 testGpuSuccess1.o $(OBJS) $(LIB)
+#   scp testMultiGpu root@gpu-server1:/home/conv/src2
+	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter ./testGpuSuccess1
+
 
 main: main.cu
 	$(NVCC) -g -o main main.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu convnet.cu convnet_kernel.cu  $(INCLUDES) $(LIB)
