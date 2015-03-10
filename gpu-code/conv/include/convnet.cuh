@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-
+#include "utils.h"
 #include "matrix.h"
 #include "nvmatrix.cuh"
 
@@ -33,7 +33,7 @@ private:
 	// ---------------------------
     // Temporary storage
 	// ---------------------------
-    NVMatrix* _y_h; // conv outputs
+  NVMatrix* _y_h; // conv outputs
 	NVMatrix* _y_i; // avg outputs
 	NVMatrix* _y_j; // classification
 	NVMatrix* _dE_dy_j, *_dE_db_j, *_dE_dw_ij;
@@ -61,11 +61,7 @@ private:
 
 public:
 	ConvNet(Matrix* hHidVis, Matrix* hAvgOut, Matrix* hHidBiases, \
-			Matrix* hOutBiases, float epsHidVis, float epsAvgOut, float epsHidBias, \
-			float epsOutBias, float mom, float wcHidVis, float wcAvgOut, \
-			const int minibatchSize, const int inSize, \
-			const int filterSize, const int inChannel, \
-			const int numFilters);
+			Matrix* hOutBiases, pars* netWork);
 	~ConvNet();
 	
 	void initCuda();

@@ -171,9 +171,6 @@ int main(){
 					miniValidData->changePtr(minibatchSize * inSize * inSize);
 					miniValidLabel->changePtr(minibatchSize);
 				}
-	t = clock() - t;
-	cout << " " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
-	t = clock();
 //			cout << "--------valid for epoch "<< epochIdx << "--------\n";
 			cout << "epoch: " << epochIdx 
 //		<< ",total number: " << validNum 
@@ -183,8 +180,8 @@ int main(){
 			}
 		}
 	}
-//	t = clock() - t;
-//	cout << "layer1 uses " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+	t = clock() - t;
+	cout << "layer1 uses " << ((float)t/CLOCKS_PER_SEC)/numEpoches << " seconds. \n";
 	savePars(hHidVis, "../data/pars/hHidVis_t1.bin");
 	savePars(hHidBiases, "../data/pars/hHidBiases_t1.bin");
 	savePars(hAvgout, "../data/pars/hAvgout_t1.bin");

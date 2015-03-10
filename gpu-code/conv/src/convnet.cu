@@ -11,11 +11,7 @@ using namespace std;
 	
 
 ConvNet::ConvNet(Matrix* hHidVis, Matrix* hAvgOut, Matrix* hHidBiases, \
-		Matrix*	hOutBiases,	float epsHidVis, float epsAvgOut, float epsHidBias, \
-		float epsOutBias, float mom, float wcHidVis, float wcAvgOut, \
-		const int minibatchSize, const int inSize, \
-		const int filterSize, const int inChannel, \
-		const int numFilters){
+		Matrix*	hOutBiases,	pars* netWork){
 
 	this->_numFilters            = hHidVis->getNumRows();
 	this->_numOut                = hAvgOut->getNumCols();
@@ -25,25 +21,25 @@ ConvNet::ConvNet(Matrix* hHidVis, Matrix* hAvgOut, Matrix* hHidBiases, \
 	this->_hHidBiases            = hHidBiases;
 	this->_hOutBiases            = hOutBiases;
 	//w_ij的learning rate
-	this->_epsHidVis             = epsHidVis;
+	this->_epsHidVis             = netWork->epsHidVis;
 	//w_hk的learning rate
-	this->_epsAvgOut             = epsAvgOut;
+	this->_epsAvgOut             = netWork->epsAvgOut;
 	//hidden bias的learning rate
-	this->_epsHidBias            = epsHidBias;
+	this->_epsHidBias            = netWork->epsHidBias;
 	//out bias learning rate
-	this->_epsOutBias            = epsOutBias;
+	this->_epsOutBias            = netWork->epsOutBias;
 	//上一次更新的参数控制增长趋势
-	this->_mom                   = mom;
+	this->_mom                   = netWork->mom;
 	//hidden原值的参数
-	this->_wcHidVis              = wcHidVis;
+	this->_wcHidVis              = netWork->wcHidVis;
 	//out原值的参数
-	this->_wcAvgOut              = wcAvgOut;
-	this->_minibatchSize         = minibatchSize;
-	this->_inSize				 = inSize;
-	this->_filterSize			 = filterSize;
-	this->_convResultSize		 = inSize - filterSize + 1;
+	this->_wcAvgOut              = netWork->wcAvgOut;
+	this->_minibatchSize         = netWork->minibatchSize;
+	this->_inSize				 = netWork->inSize;
+	this->_filterSize			 = netWork->filterSize;
+	this->_convResultSize		 = _inSize - _filterSize + 1;
 	this->_poolResultSize		 = this->_convResultSize / AVG_POOL_X;
-	this->_inChannel			 = inChannel;
+	this->_inChannel			 = netWork->inChannel;
 	cublasCreate(&handle);
 }
 ConvNet::~ConvNet() {
