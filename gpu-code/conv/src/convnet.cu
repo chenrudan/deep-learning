@@ -43,15 +43,10 @@ ConvNet::ConvNet(Matrix* hHidVis, Matrix* hAvgOut, Matrix* hHidBiases, \
 	cublasCreate(&handle);
 }
 ConvNet::~ConvNet() {
-	/*
 		delete _hHidVis;
-		delete _hHidVisInc;
 		delete _hHidBiases;
-		delete _hHidBiasInc;
 		delete _hAvgOut;
-		delete _hAvgOutInc;
 		delete _hOutBiases;
-		delete _hOutBiasInc;
 
 		delete _hidVis;
 		delete _hidVisInc;
@@ -73,7 +68,7 @@ ConvNet::~ConvNet() {
 		delete _dE_dx_h;
 		delete _dE_dw_hk;
 		delete _dE_db_h;
-	*/ 
+		cudaFree(_maxPoolPos);
 	cublasDestroy(handle);
 }
 

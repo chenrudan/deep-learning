@@ -79,6 +79,8 @@ inline void readData(NVMatrix* nvData, string filename, bool isData, int addZero
     }
     nvData->copyFromHost(data, length);
     fin.close();
+	delete data;
+	delete readData;
 }
 
 #endif

@@ -20,7 +20,7 @@ testMultiGpu: $(OBJS) testMultiGpu.cu
 	$(NVCC) $(NVCCFLAGS) testMultiGpu.cu $(INCLUDES)
 	$(NVCC) -o testMultiGpu testMultiGpu.o $(OBJS) $(LIB)
 #   scp testMultiGpu root@gpu-server1:/home/conv/src2
-	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter ./testMultiGpu
+#	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter valgrind --leak-check=full ./testMultiGpu
 
 matrix.o: matrix.cpp
 	$(CC) $(CCFLAGS) $^ $(INCLUDES) 
