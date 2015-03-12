@@ -1,12 +1,3 @@
-nvcc -g -O3 -c  testMultiGpu.cu -I../include
-testMultiGpu.cu(178): warning: variable "loglihood" was set but never used
-
-testMultiGpu.cu(178): warning: variable "loglihood" was set but never used
-
-nvcc -o testMultiGpu testMultiGpu.o matrix.o nvmatrix.o nvmatrix_kernel.o convnet.o convnet_kernel.o -lcuda -lcudart -lcublas -lm  -lpthread -lmpich
-mpirun_rsh -np 2 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter ./testMultiGpu
-librdmacm: Fatal: no RDMA devices found
-librdmacm: Fatal: no RDMA devices found
 =========================
 train: 50000
 valid: 10000
@@ -20,2003 +11,992 @@ mom: 0
 wcHidVis: 0
 wcAvgOut: 0
 ========================
- 0.36 seconds. 
-epoch: 0,error rate: 0.1566,likelihood: 4709.69
- 0.35 seconds. 
-epoch: 1,error rate: 0.1357,likelihood: 3482.03
- 0.35 seconds. 
-epoch: 2,error rate: 0.127,likelihood: 2981.81
- 0.35 seconds. 
-epoch: 3,error rate: 0.121,likelihood: 2704.38
- 0.33 seconds. 
-epoch: 4,error rate: 0.1161,likelihood: 2525.41
- 0.34 seconds. 
-epoch: 5,error rate: 0.1123,likelihood: 2399.09
- 0.34 seconds. 
-epoch: 6,error rate: 0.1106,likelihood: 2304.47
- 0.35 seconds. 
-epoch: 7,error rate: 0.1099,likelihood: 2230.53
- 0.33 seconds. 
-epoch: 8,error rate: 0.1077,likelihood: 2170.9
- 0.34 seconds. 
-epoch: 9,error rate: 0.1056,likelihood: 2121.61
- 0.35 seconds. 
-epoch: 10,error rate: 0.104,likelihood: 2080.07
- 0.34 seconds. 
-epoch: 11,error rate: 0.1017,likelihood: 2044.5
- 0.33 seconds. 
-epoch: 12,error rate: 0.1009,likelihood: 2013.63
- 0.35 seconds. 
-epoch: 13,error rate: 0.0996,likelihood: 1986.55
- 0.33 seconds. 
-epoch: 14,error rate: 0.0986,likelihood: 1962.57
- 0.34 seconds. 
-epoch: 15,error rate: 0.0983,likelihood: 1941.15
- 0.34 seconds. 
-epoch: 16,error rate: 0.098,likelihood: 1921.88
- 0.34 seconds. 
-epoch: 17,error rate: 0.0975,likelihood: 1904.44
- 0.34 seconds. 
-epoch: 18,error rate: 0.0969,likelihood: 1888.57
- 0.34 seconds. 
-epoch: 19,error rate: 0.0965,likelihood: 1874.05
- 0.34 seconds. 
-epoch: 20,error rate: 0.0955,likelihood: 1860.72
- 0.35 seconds. 
-epoch: 21,error rate: 0.095,likelihood: 1848.42
- 0.34 seconds. 
-epoch: 22,error rate: 0.0947,likelihood: 1837.03
- 0.34 seconds. 
-epoch: 23,error rate: 0.0947,likelihood: 1826.46
- 0.34 seconds. 
-epoch: 24,error rate: 0.0942,likelihood: 1816.61
- 0.34 seconds. 
-epoch: 25,error rate: 0.0937,likelihood: 1807.41
- 0.34 seconds. 
-epoch: 26,error rate: 0.0934,likelihood: 1798.79
- 0.34 seconds. 
-epoch: 27,error rate: 0.0931,likelihood: 1790.71
- 0.34 seconds. 
-epoch: 28,error rate: 0.0927,likelihood: 1783.1
- 0.33 seconds. 
-epoch: 29,error rate: 0.0924,likelihood: 1775.94
- 0.35 seconds. 
-epoch: 30,error rate: 0.0923,likelihood: 1769.17
- 0.33 seconds. 
-epoch: 31,error rate: 0.0918,likelihood: 1762.78
- 0.34 seconds. 
-epoch: 32,error rate: 0.0918,likelihood: 1756.72
- 0.34 seconds. 
-epoch: 33,error rate: 0.0918,likelihood: 1750.97
- 0.35 seconds. 
-epoch: 34,error rate: 0.0914,likelihood: 1745.51
- 0.34 seconds. 
-epoch: 35,error rate: 0.0912,likelihood: 1740.32
- 0.34 seconds. 
-epoch: 36,error rate: 0.091,likelihood: 1735.37
- 0.34 seconds. 
-epoch: 37,error rate: 0.0909,likelihood: 1730.66
- 0.33 seconds. 
-epoch: 38,error rate: 0.0907,likelihood: 1726.16
- 0.35 seconds. 
-epoch: 39,error rate: 0.0908,likelihood: 1721.86
- 0.34 seconds. 
-epoch: 40,error rate: 0.0903,likelihood: 1717.75
- 0.33 seconds. 
-epoch: 41,error rate: 0.0901,likelihood: 1713.82
- 0.35 seconds. 
-epoch: 42,error rate: 0.09,likelihood: 1710.05
- 0.34 seconds. 
-epoch: 43,error rate: 0.0898,likelihood: 1706.43
- 0.33 seconds. 
-epoch: 44,error rate: 0.0896,likelihood: 1702.97
- 0.35 seconds. 
-epoch: 45,error rate: 0.0896,likelihood: 1699.64
- 0.34 seconds. 
-epoch: 46,error rate: 0.0894,likelihood: 1696.44
- 0.33 seconds. 
-epoch: 47,error rate: 0.0893,likelihood: 1693.36
- 0.35 seconds. 
-epoch: 48,error rate: 0.0892,likelihood: 1690.4
- 0.33 seconds. 
-epoch: 49,error rate: 0.0893,likelihood: 1687.55
- 0.34 seconds. 
-epoch: 50,error rate: 0.0892,likelihood: 1684.81
- 0.34 seconds. 
-epoch: 51,error rate: 0.0892,likelihood: 1682.16
- 0.34 seconds. 
-epoch: 52,error rate: 0.0891,likelihood: 1679.61
- 0.34 seconds. 
-epoch: 53,error rate: 0.0889,likelihood: 1677.15
- 0.35 seconds. 
-epoch: 54,error rate: 0.0886,likelihood: 1674.78
- 0.33 seconds. 
-epoch: 55,error rate: 0.088,likelihood: 1672.48
- 0.34 seconds. 
-epoch: 56,error rate: 0.0878,likelihood: 1670.27
- 0.34 seconds. 
-epoch: 57,error rate: 0.0877,likelihood: 1668.13
- 0.34 seconds. 
-epoch: 58,error rate: 0.0874,likelihood: 1666.05
- 0.35 seconds. 
-epoch: 59,error rate: 0.0874,likelihood: 1664.05
- 0.33 seconds. 
-epoch: 60,error rate: 0.0872,likelihood: 1662.11
- 0.34 seconds. 
-epoch: 61,error rate: 0.087,likelihood: 1660.24
- 0.35 seconds. 
-epoch: 62,error rate: 0.0871,likelihood: 1658.42
- 0.33 seconds. 
-epoch: 63,error rate: 0.087,likelihood: 1656.66
- 0.35 seconds. 
-epoch: 64,error rate: 0.0867,likelihood: 1654.96
- 0.34 seconds. 
-epoch: 65,error rate: 0.0867,likelihood: 1653.3
- 0.34 seconds. 
-epoch: 66,error rate: 0.0867,likelihood: 1651.7
- 0.34 seconds. 
-epoch: 67,error rate: 0.0869,likelihood: 1650.15
- 0.34 seconds. 
-epoch: 68,error rate: 0.0867,likelihood: 1648.64
- 0.34 seconds. 
-epoch: 69,error rate: 0.0867,likelihood: 1647.18
- 0.34 seconds. 
-epoch: 70,error rate: 0.0866,likelihood: 1645.76
- 0.34 seconds. 
-epoch: 71,error rate: 0.0867,likelihood: 1644.38
- 0.34 seconds. 
-epoch: 72,error rate: 0.0865,likelihood: 1643.04
- 0.34 seconds. 
-epoch: 73,error rate: 0.0863,likelihood: 1641.74
- 0.34 seconds. 
-epoch: 74,error rate: 0.0859,likelihood: 1640.48
- 0.34 seconds. 
-epoch: 75,error rate: 0.0858,likelihood: 1639.25
- 0.34 seconds. 
-epoch: 76,error rate: 0.0856,likelihood: 1638.06
- 0.34 seconds. 
-epoch: 77,error rate: 0.0856,likelihood: 1636.9
- 0.34 seconds. 
-epoch: 78,error rate: 0.0855,likelihood: 1635.78
- 0.35 seconds. 
-epoch: 79,error rate: 0.0854,likelihood: 1634.68
- 0.33 seconds. 
-epoch: 80,error rate: 0.0852,likelihood: 1633.62
- 0.34 seconds. 
-epoch: 81,error rate: 0.0851,likelihood: 1632.58
- 0.34 seconds. 
-epoch: 82,error rate: 0.0849,likelihood: 1631.58
- 0.34 seconds. 
-epoch: 83,error rate: 0.0851,likelihood: 1630.6
- 0.34 seconds. 
-epoch: 84,error rate: 0.0848,likelihood: 1629.64
- 0.34 seconds. 
-epoch: 85,error rate: 0.085,likelihood: 1628.71
- 0.34 seconds. 
-epoch: 86,error rate: 0.0851,likelihood: 1627.81
- 0.34 seconds. 
-epoch: 87,error rate: 0.0849,likelihood: 1626.93
- 0.34 seconds. 
-epoch: 88,error rate: 0.085,likelihood: 1626.08
- 0.34 seconds. 
-epoch: 89,error rate: 0.0853,likelihood: 1625.25
- 0.33 seconds. 
-epoch: 90,error rate: 0.0854,likelihood: 1624.44
- 0.34 seconds. 
-epoch: 91,error rate: 0.0853,likelihood: 1623.65
- 0.34 seconds. 
-epoch: 92,error rate: 0.0852,likelihood: 1622.88
- 0.35 seconds. 
-epoch: 93,error rate: 0.0851,likelihood: 1622.13
- 0.33 seconds. 
-epoch: 94,error rate: 0.0851,likelihood: 1621.4
- 0.35 seconds. 
-epoch: 95,error rate: 0.0849,likelihood: 1620.69
- 0.33 seconds. 
-epoch: 96,error rate: 0.0848,likelihood: 1620
- 0.35 seconds. 
-epoch: 97,error rate: 0.0847,likelihood: 1619.32
- 0.33 seconds. 
-epoch: 98,error rate: 0.0846,likelihood: 1618.67
- 0.34 seconds. 
-epoch: 99,error rate: 0.0847,likelihood: 1618.03
- 0.34 seconds. 
-epoch: 100,error rate: 0.0847,likelihood: 1617.4
- 0.35 seconds. 
-epoch: 101,error rate: 0.0847,likelihood: 1616.8
- 0.33 seconds. 
-epoch: 102,error rate: 0.0846,likelihood: 1616.21
- 0.35 seconds. 
-epoch: 103,error rate: 0.0846,likelihood: 1615.63
- 0.34 seconds. 
-epoch: 104,error rate: 0.0845,likelihood: 1615.07
- 0.34 seconds. 
-epoch: 105,error rate: 0.0844,likelihood: 1614.52
- 0.33 seconds. 
-epoch: 106,error rate: 0.0843,likelihood: 1613.99
- 0.34 seconds. 
-epoch: 107,error rate: 0.0841,likelihood: 1613.47
- 0.35 seconds. 
-epoch: 108,error rate: 0.0842,likelihood: 1612.96
- 0.33 seconds. 
-epoch: 109,error rate: 0.084,likelihood: 1612.47
- 0.35 seconds. 
-epoch: 110,error rate: 0.0841,likelihood: 1611.99
- 0.34 seconds. 
-epoch: 111,error rate: 0.084,likelihood: 1611.52
- 0.33 seconds. 
-epoch: 112,error rate: 0.084,likelihood: 1611.06
- 0.34 seconds. 
-epoch: 113,error rate: 0.084,likelihood: 1610.62
- 0.34 seconds. 
-epoch: 114,error rate: 0.0839,likelihood: 1610.19
- 0.34 seconds. 
-epoch: 115,error rate: 0.0837,likelihood: 1609.76
- 0.34 seconds. 
-epoch: 116,error rate: 0.0837,likelihood: 1609.35
- 0.35 seconds. 
-epoch: 117,error rate: 0.0836,likelihood: 1608.95
- 0.33 seconds. 
-epoch: 118,error rate: 0.0836,likelihood: 1608.56
- 0.34 seconds. 
-epoch: 119,error rate: 0.0836,likelihood: 1608.18
- 0.34 seconds. 
-epoch: 120,error rate: 0.0836,likelihood: 1607.81
- 0.33 seconds. 
-epoch: 121,error rate: 0.0836,likelihood: 1607.45
- 0.35 seconds. 
-epoch: 122,error rate: 0.0838,likelihood: 1607.1
- 0.34 seconds. 
-epoch: 123,error rate: 0.0837,likelihood: 1606.76
- 0.34 seconds. 
-epoch: 124,error rate: 0.0837,likelihood: 1606.43
- 0.34 seconds. 
-epoch: 125,error rate: 0.0836,likelihood: 1606.11
- 0.34 seconds. 
-epoch: 126,error rate: 0.0837,likelihood: 1605.79
- 0.34 seconds. 
-epoch: 127,error rate: 0.0838,likelihood: 1605.49
- 0.34 seconds. 
-epoch: 128,error rate: 0.0837,likelihood: 1605.19
- 0.34 seconds. 
-epoch: 129,error rate: 0.0837,likelihood: 1604.9
- 0.34 seconds. 
-epoch: 130,error rate: 0.0837,likelihood: 1604.62
- 0.34 seconds. 
-epoch: 131,error rate: 0.0837,likelihood: 1604.34
- 0.34 seconds. 
-epoch: 132,error rate: 0.0837,likelihood: 1604.08
- 0.34 seconds. 
-epoch: 133,error rate: 0.0837,likelihood: 1603.82
- 0.33 seconds. 
-epoch: 134,error rate: 0.0837,likelihood: 1603.56
- 0.34 seconds. 
-epoch: 135,error rate: 0.0835,likelihood: 1603.32
- 0.34 seconds. 
-epoch: 136,error rate: 0.0833,likelihood: 1603.08
- 0.34 seconds. 
-epoch: 137,error rate: 0.0833,likelihood: 1602.85
- 0.35 seconds. 
-epoch: 138,error rate: 0.0834,likelihood: 1602.63
- 0.33 seconds. 
-epoch: 139,error rate: 0.0834,likelihood: 1602.41
- 0.34 seconds. 
-epoch: 140,error rate: 0.0834,likelihood: 1602.2
- 0.34 seconds. 
-epoch: 141,error rate: 0.0834,likelihood: 1601.99
- 0.34 seconds. 
-epoch: 142,error rate: 0.0834,likelihood: 1601.79
- 0.35 seconds. 
-epoch: 143,error rate: 0.0834,likelihood: 1601.6
- 0.33 seconds. 
-epoch: 144,error rate: 0.0834,likelihood: 1601.41
- 0.34 seconds. 
-epoch: 145,error rate: 0.0834,likelihood: 1601.23
- 0.34 seconds. 
-epoch: 146,error rate: 0.0835,likelihood: 1601.06
- 0.34 seconds. 
-epoch: 147,error rate: 0.0831,likelihood: 1600.89
- 0.34 seconds. 
-epoch: 148,error rate: 0.0832,likelihood: 1600.72
- 0.34 seconds. 
-epoch: 149,error rate: 0.0832,likelihood: 1600.56
- 0.34 seconds. 
-epoch: 150,error rate: 0.0831,likelihood: 1600.41
- 0.34 seconds. 
-epoch: 151,error rate: 0.0831,likelihood: 1600.26
- 0.34 seconds. 
-epoch: 152,error rate: 0.0832,likelihood: 1600.12
- 0.34 seconds. 
-epoch: 153,error rate: 0.0832,likelihood: 1599.98
- 0.34 seconds. 
-epoch: 154,error rate: 0.083,likelihood: 1599.84
- 0.33 seconds. 
-epoch: 155,error rate: 0.0829,likelihood: 1599.71
- 0.35 seconds. 
-epoch: 156,error rate: 0.0828,likelihood: 1599.59
- 0.33 seconds. 
-epoch: 157,error rate: 0.0828,likelihood: 1599.47
- 0.35 seconds. 
-epoch: 158,error rate: 0.0828,likelihood: 1599.35
- 0.34 seconds. 
-epoch: 159,error rate: 0.0829,likelihood: 1599.24
- 0.34 seconds. 
-epoch: 160,error rate: 0.0829,likelihood: 1599.14
- 0.33 seconds. 
-epoch: 161,error rate: 0.0829,likelihood: 1599.03
- 0.35 seconds. 
-epoch: 162,error rate: 0.0829,likelihood: 1598.93
- 0.34 seconds. 
-epoch: 163,error rate: 0.0829,likelihood: 1598.84
- 0.34 seconds. 
-epoch: 164,error rate: 0.0829,likelihood: 1598.75
- 0.33 seconds. 
-epoch: 165,error rate: 0.0828,likelihood: 1598.66
- 0.34 seconds. 
-epoch: 166,error rate: 0.0827,likelihood: 1598.58
- 0.34 seconds. 
-epoch: 167,error rate: 0.0827,likelihood: 1598.5
- 0.35 seconds. 
-epoch: 168,error rate: 0.0827,likelihood: 1598.43
- 0.33 seconds. 
-epoch: 169,error rate: 0.0828,likelihood: 1598.36
- 0.34 seconds. 
-epoch: 170,error rate: 0.0828,likelihood: 1598.29
- 0.35 seconds. 
-epoch: 171,error rate: 0.0827,likelihood: 1598.23
- 0.33 seconds. 
-epoch: 172,error rate: 0.0827,likelihood: 1598.17
- 0.34 seconds. 
-epoch: 173,error rate: 0.0828,likelihood: 1598.11
- 0.34 seconds. 
-epoch: 174,error rate: 0.0829,likelihood: 1598.04
- 0.34 seconds. 
-epoch: 175,error rate: 0.0828,likelihood: 1598
- 0.34 seconds. 
-epoch: 176,error rate: 0.0828,likelihood: 1597.96
- 0.34 seconds. 
-epoch: 177,error rate: 0.0826,likelihood: 1597.91
- 0.33 seconds. 
-epoch: 178,error rate: 0.0826,likelihood: 1597.87
- 0.34 seconds. 
-epoch: 179,error rate: 0.0826,likelihood: 1597.84
- 0.35 seconds. 
-epoch: 180,error rate: 0.0826,likelihood: 1597.8
- 0.34 seconds. 
-epoch: 181,error rate: 0.0827,likelihood: 1597.77
- 0.33 seconds. 
-epoch: 182,error rate: 0.0828,likelihood: 1597.74
- 0.36 seconds. 
-epoch: 183,error rate: 0.0828,likelihood: 1597.72
- 0.32 seconds. 
-epoch: 184,error rate: 0.083,likelihood: 1597.69
- 0.35 seconds. 
-epoch: 185,error rate: 0.083,likelihood: 1597.67
- 0.34 seconds. 
-epoch: 186,error rate: 0.0829,likelihood: 1597.66
- 0.34 seconds. 
-epoch: 187,error rate: 0.0831,likelihood: 1597.64
- 0.34 seconds. 
-epoch: 188,error rate: 0.0832,likelihood: 1597.63
- 0.34 seconds. 
-epoch: 189,error rate: 0.0832,likelihood: 1597.62
- 0.34 seconds. 
-epoch: 190,error rate: 0.0832,likelihood: 1597.61
- 0.33 seconds. 
-epoch: 191,error rate: 0.0835,likelihood: 1597.61
- 0.34 seconds. 
-epoch: 192,error rate: 0.0836,likelihood: 1597.61
- 0.34 seconds. 
-epoch: 193,error rate: 0.0834,likelihood: 1597.61
- 0.34 seconds. 
-epoch: 194,error rate: 0.0833,likelihood: 1597.61
- 0.35 seconds. 
-epoch: 195,error rate: 0.0833,likelihood: 1597.61
- 0.33 seconds. 
-epoch: 196,error rate: 0.0833,likelihood: 1597.62
- 0.34 seconds. 
-epoch: 197,error rate: 0.0833,likelihood: 1597.64
- 0.34 seconds. 
-epoch: 198,error rate: 0.0834,likelihood: 1597.65
- 0.34 seconds. 
-epoch: 199,error rate: 0.0836,likelihood: 1597.66
- 0.34 seconds. 
-epoch: 200,error rate: 0.0835,likelihood: 1597.68
- 0.34 seconds. 
-epoch: 201,error rate: 0.0834,likelihood: 1597.7
- 0.34 seconds. 
-epoch: 202,error rate: 0.0834,likelihood: 1597.72
- 0.34 seconds. 
-epoch: 203,error rate: 0.0835,likelihood: 1597.74
- 0.34 seconds. 
-epoch: 204,error rate: 0.0835,likelihood: 1597.77
- 0.34 seconds. 
-epoch: 205,error rate: 0.0836,likelihood: 1597.8
- 0.34 seconds. 
-epoch: 206,error rate: 0.0837,likelihood: 1597.83
- 0.34 seconds. 
-epoch: 207,error rate: 0.0837,likelihood: 1597.86
- 0.34 seconds. 
-epoch: 208,error rate: 0.0836,likelihood: 1597.89
- 0.33 seconds. 
-epoch: 209,error rate: 0.0836,likelihood: 1597.93
- 0.35 seconds. 
-epoch: 210,error rate: 0.0836,likelihood: 1597.96
- 0.34 seconds. 
-epoch: 211,error rate: 0.0836,likelihood: 1598
- 0.34 seconds. 
-epoch: 212,error rate: 0.0836,likelihood: 1598.04
- 0.34 seconds. 
-epoch: 213,error rate: 0.0835,likelihood: 1598.09
- 0.34 seconds. 
-epoch: 214,error rate: 0.0837,likelihood: 1598.13
- 0.34 seconds. 
-epoch: 215,error rate: 0.0837,likelihood: 1598.18
- 0.33 seconds. 
-epoch: 216,error rate: 0.0837,likelihood: 1598.23
- 0.35 seconds. 
-epoch: 217,error rate: 0.0836,likelihood: 1598.28
- 0.33 seconds. 
-epoch: 218,error rate: 0.0836,likelihood: 1598.33
- 0.34 seconds. 
-epoch: 219,error rate: 0.0837,likelihood: 1598.38
- 0.35 seconds. 
-epoch: 220,error rate: 0.0838,likelihood: 1598.44
- 0.33 seconds. 
-epoch: 221,error rate: 0.0838,likelihood: 1598.49
- 0.34 seconds. 
-epoch: 222,error rate: 0.0838,likelihood: 1598.55
- 0.35 seconds. 
-epoch: 223,error rate: 0.0838,likelihood: 1598.61
- 0.33 seconds. 
-epoch: 224,error rate: 0.0839,likelihood: 1598.67
- 0.34 seconds. 
-epoch: 225,error rate: 0.0838,likelihood: 1598.73
- 0.35 seconds. 
-epoch: 226,error rate: 0.0839,likelihood: 1598.8
- 0.33 seconds. 
-epoch: 227,error rate: 0.0839,likelihood: 1598.86
- 0.34 seconds. 
-epoch: 228,error rate: 0.0839,likelihood: 1598.93
- 0.34 seconds. 
-epoch: 229,error rate: 0.0839,likelihood: 1599
- 0.34 seconds. 
-epoch: 230,error rate: 0.0839,likelihood: 1599.07
- 0.34 seconds. 
-epoch: 231,error rate: 0.0838,likelihood: 1599.14
- 0.34 seconds. 
-epoch: 232,error rate: 0.0838,likelihood: 1599.21
- 0.34 seconds. 
-epoch: 233,error rate: 0.0838,likelihood: 1599.28
- 0.34 seconds. 
-epoch: 234,error rate: 0.0839,likelihood: 1599.36
- 0.34 seconds. 
-epoch: 235,error rate: 0.0837,likelihood: 1599.44
- 0.35 seconds. 
-epoch: 236,error rate: 0.0838,likelihood: 1599.51
- 0.33 seconds. 
-epoch: 237,error rate: 0.0838,likelihood: 1599.59
- 0.34 seconds. 
-epoch: 238,error rate: 0.0838,likelihood: 1599.67
- 0.34 seconds. 
-epoch: 239,error rate: 0.0839,likelihood: 1599.75
- 0.34 seconds. 
-epoch: 240,error rate: 0.084,likelihood: 1599.84
- 0.35 seconds. 
-epoch: 241,error rate: 0.0839,likelihood: 1599.92
- 0.34 seconds. 
-epoch: 242,error rate: 0.0839,likelihood: 1600.01
- 0.33 seconds. 
-epoch: 243,error rate: 0.0839,likelihood: 1600.09
- 0.35 seconds. 
-epoch: 244,error rate: 0.0841,likelihood: 1600.18
- 0.33 seconds. 
-epoch: 245,error rate: 0.0841,likelihood: 1600.27
- 0.35 seconds. 
-epoch: 246,error rate: 0.0841,likelihood: 1600.36
- 0.34 seconds. 
-epoch: 247,error rate: 0.0841,likelihood: 1600.45
- 0.33 seconds. 
-epoch: 248,error rate: 0.0841,likelihood: 1600.54
- 0.34 seconds. 
-epoch: 249,error rate: 0.0841,likelihood: 1600.64
- 0.34 seconds. 
-epoch: 250,error rate: 0.0841,likelihood: 1600.73
- 0.35 seconds. 
-epoch: 251,error rate: 0.0841,likelihood: 1600.82
- 0.33 seconds. 
-epoch: 252,error rate: 0.084,likelihood: 1600.92
- 0.34 seconds. 
-epoch: 253,error rate: 0.084,likelihood: 1601.02
- 0.34 seconds. 
-epoch: 254,error rate: 0.0841,likelihood: 1601.12
- 0.34 seconds. 
-epoch: 255,error rate: 0.0841,likelihood: 1601.22
- 0.34 seconds. 
-epoch: 256,error rate: 0.0841,likelihood: 1601.3
- 0.34 seconds. 
-epoch: 257,error rate: 0.0842,likelihood: 1601.42
- 0.34 seconds. 
-epoch: 258,error rate: 0.0842,likelihood: 1601.52
- 0.34 seconds. 
-epoch: 259,error rate: 0.0842,likelihood: 1601.62
- 0.33 seconds. 
-epoch: 260,error rate: 0.0842,likelihood: 1601.73
- 0.35 seconds. 
-epoch: 261,error rate: 0.0843,likelihood: 1601.83
- 0.33 seconds. 
-epoch: 262,error rate: 0.0843,likelihood: 1601.94
- 0.35 seconds. 
-epoch: 263,error rate: 0.0844,likelihood: 1602.04
- 0.34 seconds. 
-epoch: 264,error rate: 0.0843,likelihood: 1602.15
- 0.34 seconds. 
-epoch: 265,error rate: 0.0842,likelihood: 1602.26
- 0.34 seconds. 
-epoch: 266,error rate: 0.0841,likelihood: 1602.37
- 0.33 seconds. 
-epoch: 267,error rate: 0.084,likelihood: 1602.48
- 0.35 seconds. 
-epoch: 268,error rate: 0.0841,likelihood: 1602.59
- 0.33 seconds. 
-epoch: 269,error rate: 0.0841,likelihood: 1602.7
- 0.34 seconds. 
-epoch: 270,error rate: 0.0842,likelihood: 1602.81
- 0.35 seconds. 
-epoch: 271,error rate: 0.0842,likelihood: 1602.93
- 0.33 seconds. 
-epoch: 272,error rate: 0.0842,likelihood: 1603.04
- 0.34 seconds. 
-epoch: 273,error rate: 0.0842,likelihood: 1603.16
- 0.34 seconds. 
-epoch: 274,error rate: 0.0841,likelihood: 1603.27
- 0.35 seconds. 
-epoch: 275,error rate: 0.0841,likelihood: 1603.39
- 0.33 seconds. 
-epoch: 276,error rate: 0.0841,likelihood: 1603.51
- 0.35 seconds. 
-epoch: 277,error rate: 0.084,likelihood: 1603.63
- 0.33 seconds. 
-epoch: 278,error rate: 0.084,likelihood: 1603.74
- 0.34 seconds. 
-epoch: 279,error rate: 0.084,likelihood: 1603.86
- 0.34 seconds. 
-epoch: 280,error rate: 0.0841,likelihood: 1603.98
- 0.34 seconds. 
-epoch: 281,error rate: 0.0842,likelihood: 1604.1
- 0.34 seconds. 
-epoch: 282,error rate: 0.0843,likelihood: 1604.23
- 0.34 seconds. 
-epoch: 283,error rate: 0.0843,likelihood: 1604.35
- 0.34 seconds. 
-epoch: 284,error rate: 0.0844,likelihood: 1604.47
- 0.34 seconds. 
-epoch: 285,error rate: 0.0845,likelihood: 1604.59
- 0.33 seconds. 
-epoch: 286,error rate: 0.0844,likelihood: 1604.72
- 0.35 seconds. 
-epoch: 287,error rate: 0.0845,likelihood: 1604.84
- 0.34 seconds. 
-epoch: 288,error rate: 0.0846,likelihood: 1604.97
- 0.34 seconds. 
-epoch: 289,error rate: 0.0846,likelihood: 1605.1
- 0.33 seconds. 
-epoch: 290,error rate: 0.0847,likelihood: 1605.22
- 0.34 seconds. 
-epoch: 291,error rate: 0.0847,likelihood: 1605.35
- 0.34 seconds. 
-epoch: 292,error rate: 0.0847,likelihood: 1605.48
- 0.34 seconds. 
-epoch: 293,error rate: 0.0848,likelihood: 1605.61
- 0.34 seconds. 
-epoch: 294,error rate: 0.0848,likelihood: 1605.74
- 0.34 seconds. 
-epoch: 295,error rate: 0.0848,likelihood: 1605.87
- 0.35 seconds. 
-epoch: 296,error rate: 0.0848,likelihood: 1606
- 0.33 seconds. 
-epoch: 297,error rate: 0.0848,likelihood: 1606.13
- 0.34 seconds. 
-epoch: 298,error rate: 0.0847,likelihood: 1606.26
- 0.34 seconds. 
-epoch: 299,error rate: 0.0847,likelihood: 1606.41
- 0.34 seconds. 
-epoch: 300,error rate: 0.0847,likelihood: 1606.53
- 0.35 seconds. 
-epoch: 301,error rate: 0.0847,likelihood: 1606.66
- 0.33 seconds. 
-epoch: 302,error rate: 0.0847,likelihood: 1606.79
- 0.34 seconds. 
-epoch: 303,error rate: 0.0848,likelihood: 1606.93
- 0.34 seconds. 
-epoch: 304,error rate: 0.0847,likelihood: 1607.06
- 0.34 seconds. 
-epoch: 305,error rate: 0.0848,likelihood: 1607.2
- 0.34 seconds. 
-epoch: 306,error rate: 0.0848,likelihood: 1607.33
- 0.34 seconds. 
-epoch: 307,error rate: 0.0846,likelihood: 1607.47
- 0.33 seconds. 
-epoch: 308,error rate: 0.0845,likelihood: 1607.61
- 0.35 seconds. 
-epoch: 309,error rate: 0.0845,likelihood: 1607.74
- 0.35 seconds. 
-epoch: 310,error rate: 0.0845,likelihood: 1607.88
- 0.33 seconds. 
-epoch: 311,error rate: 0.0845,likelihood: 1608.02
- 0.34 seconds. 
-epoch: 312,error rate: 0.0845,likelihood: 1608.16
- 0.33 seconds. 
-epoch: 313,error rate: 0.0845,likelihood: 1608.3
- 0.34 seconds. 
-epoch: 314,error rate: 0.0845,likelihood: 1608.44
- 0.35 seconds. 
-epoch: 315,error rate: 0.0845,likelihood: 1608.58
- 0.33 seconds. 
-epoch: 316,error rate: 0.0845,likelihood: 1608.72
- 0.35 seconds. 
-epoch: 317,error rate: 0.0845,likelihood: 1608.86
- 0.34 seconds. 
-epoch: 318,error rate: 0.0844,likelihood: 1609
- 0.34 seconds. 
-epoch: 319,error rate: 0.0844,likelihood: 1609.14
- 0.33 seconds. 
-epoch: 320,error rate: 0.0844,likelihood: 1609.29
- 0.35 seconds. 
-epoch: 321,error rate: 0.0844,likelihood: 1609.43
- 0.33 seconds. 
-epoch: 322,error rate: 0.0843,likelihood: 1609.57
- 0.35 seconds. 
-epoch: 323,error rate: 0.0843,likelihood: 1609.72
- 0.33 seconds. 
-epoch: 324,error rate: 0.0844,likelihood: 1609.86
- 0.35 seconds. 
-epoch: 325,error rate: 0.0844,likelihood: 1610.01
- 0.33 seconds. 
-epoch: 326,error rate: 0.0843,likelihood: 1610.15
- 0.34 seconds. 
-epoch: 327,error rate: 0.0843,likelihood: 1610.3
- 0.34 seconds. 
-epoch: 328,error rate: 0.0844,likelihood: 1610.44
- 0.34 seconds. 
-epoch: 329,error rate: 0.0846,likelihood: 1610.59
- 0.34 seconds. 
-epoch: 330,error rate: 0.0846,likelihood: 1610.73
- 0.35 seconds. 
-epoch: 331,error rate: 0.0846,likelihood: 1610.88
- 0.33 seconds. 
-epoch: 332,error rate: 0.0847,likelihood: 1611.03
- 0.34 seconds. 
-epoch: 333,error rate: 0.0847,likelihood: 1611.18
- 0.34 seconds. 
-epoch: 334,error rate: 0.0846,likelihood: 1611.32
- 0.34 seconds. 
-epoch: 335,error rate: 0.0845,likelihood: 1611.47
- 0.34 seconds. 
-epoch: 336,error rate: 0.0845,likelihood: 1611.62
- 0.34 seconds. 
-epoch: 337,error rate: 0.0845,likelihood: 1611.77
- 0.34 seconds. 
-epoch: 338,error rate: 0.0845,likelihood: 1611.92
- 0.34 seconds. 
-epoch: 339,error rate: 0.0845,likelihood: 1612.07
- 0.34 seconds. 
-epoch: 340,error rate: 0.0846,likelihood: 1612.22
- 0.34 seconds. 
-epoch: 341,error rate: 0.0846,likelihood: 1612.37
- 0.34 seconds. 
-epoch: 342,error rate: 0.0846,likelihood: 1612.52
- 0.34 seconds. 
-epoch: 343,error rate: 0.0845,likelihood: 1612.67
- 0.34 seconds. 
-epoch: 344,error rate: 0.0845,likelihood: 1612.82
- 0.34 seconds. 
-epoch: 345,error rate: 0.0845,likelihood: 1612.97
- 0.34 seconds. 
-epoch: 346,error rate: 0.0845,likelihood: 1613.11
- 0.33 seconds. 
-epoch: 347,error rate: 0.0844,likelihood: 1613.28
- 0.35 seconds. 
-epoch: 348,error rate: 0.0846,likelihood: 1613.43
- 0.33 seconds. 
-epoch: 349,error rate: 0.0847,likelihood: 1613.58
- 0.34 seconds. 
-epoch: 350,error rate: 0.0847,likelihood: 1613.74
- 0.35 seconds. 
-epoch: 351,error rate: 0.0847,likelihood: 1613.89
- 0.34 seconds. 
-epoch: 352,error rate: 0.0847,likelihood: 1614.04
- 0.33 seconds. 
-epoch: 353,error rate: 0.0848,likelihood: 1614.2
- 0.35 seconds. 
-epoch: 354,error rate: 0.0848,likelihood: 1614.35
- 0.33 seconds. 
-epoch: 355,error rate: 0.0848,likelihood: 1614.51
- 0.34 seconds. 
-epoch: 356,error rate: 0.0848,likelihood: 1614.66
- 0.34 seconds. 
-epoch: 357,error rate: 0.0849,likelihood: 1614.82
- 0.34 seconds. 
-epoch: 358,error rate: 0.0848,likelihood: 1614.97
- 0.34 seconds. 
-epoch: 359,error rate: 0.0848,likelihood: 1615.13
- 0.35 seconds. 
-epoch: 360,error rate: 0.0848,likelihood: 1615.28
- 0.33 seconds. 
-epoch: 361,error rate: 0.0848,likelihood: 1615.44
- 0.33 seconds. 
-epoch: 362,error rate: 0.0848,likelihood: 1615.6
- 0.35 seconds. 
-epoch: 363,error rate: 0.0847,likelihood: 1615.75
- 0.33 seconds. 
-epoch: 364,error rate: 0.0847,likelihood: 1615.91
- 0.34 seconds. 
-epoch: 365,error rate: 0.0848,likelihood: 1616.07
- 0.34 seconds. 
-epoch: 366,error rate: 0.0848,likelihood: 1616.23
- 0.35 seconds. 
-epoch: 367,error rate: 0.0846,likelihood: 1616.38
- 0.34 seconds. 
-epoch: 368,error rate: 0.0844,likelihood: 1616.54
- 0.34 seconds. 
-epoch: 369,error rate: 0.0844,likelihood: 1616.7
- 0.34 seconds. 
-epoch: 370,error rate: 0.0844,likelihood: 1616.86
- 0.33 seconds. 
-epoch: 371,error rate: 0.0844,likelihood: 1617.02
- 0.35 seconds. 
-epoch: 372,error rate: 0.0844,likelihood: 1617.17
- 0.34 seconds. 
-epoch: 373,error rate: 0.0844,likelihood: 1617.33
- 0.33 seconds. 
-epoch: 374,error rate: 0.0844,likelihood: 1617.49
- 0.35 seconds. 
-epoch: 375,error rate: 0.0843,likelihood: 1617.65
- 0.34 seconds. 
-epoch: 376,error rate: 0.0843,likelihood: 1617.81
- 0.34 seconds. 
-epoch: 377,error rate: 0.0843,likelihood: 1617.97
- 0.33 seconds. 
-epoch: 378,error rate: 0.0843,likelihood: 1618.13
- 0.35 seconds. 
-epoch: 379,error rate: 0.0845,likelihood: 1618.29
- 0.33 seconds. 
-epoch: 380,error rate: 0.0845,likelihood: 1618.45
- 0.34 seconds. 
-epoch: 381,error rate: 0.0845,likelihood: 1618.61
- 0.34 seconds. 
-epoch: 382,error rate: 0.0846,likelihood: 1618.78
- 0.34 seconds. 
-epoch: 383,error rate: 0.0846,likelihood: 1618.94
- 0.34 seconds. 
-epoch: 384,error rate: 0.0846,likelihood: 1619.1
- 0.34 seconds. 
-epoch: 385,error rate: 0.0846,likelihood: 1619.26
- 0.34 seconds. 
-epoch: 386,error rate: 0.0846,likelihood: 1619.42
- 0.34 seconds. 
-epoch: 387,error rate: 0.0846,likelihood: 1619.58
- 0.34 seconds. 
-epoch: 388,error rate: 0.0846,likelihood: 1619.74
- 0.34 seconds. 
-epoch: 389,error rate: 0.0846,likelihood: 1619.91
- 0.34 seconds. 
-epoch: 390,error rate: 0.0846,likelihood: 1620.07
- 0.34 seconds. 
-epoch: 391,error rate: 0.0846,likelihood: 1620.23
- 0.34 seconds. 
-epoch: 392,error rate: 0.0847,likelihood: 1620.39
- 0.34 seconds. 
-epoch: 393,error rate: 0.0847,likelihood: 1620.56
- 0.33 seconds. 
-epoch: 394,error rate: 0.0847,likelihood: 1620.72
- 0.35 seconds. 
-epoch: 395,error rate: 0.0847,likelihood: 1620.88
- 0.34 seconds. 
-epoch: 396,error rate: 0.0848,likelihood: 1621.05
- 0.34 seconds. 
-epoch: 397,error rate: 0.0848,likelihood: 1621.21
- 0.33 seconds. 
-epoch: 398,error rate: 0.0848,likelihood: 1621.37
- 0.35 seconds. 
-epoch: 399,error rate: 0.0848,likelihood: 1621.54
- 0.34 seconds. 
-epoch: 400,error rate: 0.0848,likelihood: 1621.7
- 0.33 seconds. 
-epoch: 401,error rate: 0.0848,likelihood: 1621.87
- 0.35 seconds. 
-epoch: 402,error rate: 0.0849,likelihood: 1622.03
- 0.33 seconds. 
-epoch: 403,error rate: 0.0848,likelihood: 1622.2
- 0.35 seconds. 
-epoch: 404,error rate: 0.0847,likelihood: 1622.36
- 0.33 seconds. 
-epoch: 405,error rate: 0.0847,likelihood: 1622.53
- 0.34 seconds. 
-epoch: 406,error rate: 0.0847,likelihood: 1622.69
- 0.33 seconds. 
-epoch: 407,error rate: 0.0847,likelihood: 1622.86
- 0.35 seconds. 
-epoch: 408,error rate: 0.0847,likelihood: 1623.02
- 0.34 seconds. 
-epoch: 409,error rate: 0.0846,likelihood: 1623.19
- 0.34 seconds. 
-epoch: 410,error rate: 0.0846,likelihood: 1623.35
- 0.33 seconds. 
-epoch: 411,error rate: 0.0846,likelihood: 1623.52
- 0.35 seconds. 
-epoch: 412,error rate: 0.0846,likelihood: 1623.68
- 0.33 seconds. 
-epoch: 413,error rate: 0.0845,likelihood: 1623.85
- 0.35 seconds. 
-epoch: 414,error rate: 0.0845,likelihood: 1624.02
- 0.34 seconds. 
-epoch: 415,error rate: 0.0845,likelihood: 1624.18
- 0.34 seconds. 
-epoch: 416,error rate: 0.0844,likelihood: 1624.35
- 0.34 seconds. 
-epoch: 417,error rate: 0.0844,likelihood: 1624.51
- 0.34 seconds. 
-epoch: 418,error rate: 0.0844,likelihood: 1624.68
- 0.34 seconds. 
-epoch: 419,error rate: 0.0844,likelihood: 1624.85
- 0.34 seconds. 
-epoch: 420,error rate: 0.0844,likelihood: 1625.01
- 0.34 seconds. 
-epoch: 421,error rate: 0.0845,likelihood: 1625.18
- 0.33 seconds. 
-epoch: 422,error rate: 0.0845,likelihood: 1625.35
- 0.35 seconds. 
-epoch: 423,error rate: 0.0846,likelihood: 1625.52
- 0.34 seconds. 
-epoch: 424,error rate: 0.0846,likelihood: 1625.68
- 0.33 seconds. 
-epoch: 425,error rate: 0.0846,likelihood: 1625.85
- 0.35 seconds. 
-epoch: 426,error rate: 0.0846,likelihood: 1626.02
- 0.34 seconds. 
-epoch: 427,error rate: 0.0845,likelihood: 1626.19
- 0.33 seconds. 
-epoch: 428,error rate: 0.0845,likelihood: 1626.35
- 0.34 seconds. 
-epoch: 429,error rate: 0.0845,likelihood: 1626.52
- 0.35 seconds. 
-epoch: 430,error rate: 0.0845,likelihood: 1626.69
- 0.33 seconds. 
-epoch: 431,error rate: 0.0845,likelihood: 1626.86
- 0.34 seconds. 
-epoch: 432,error rate: 0.0845,likelihood: 1627.03
- 0.34 seconds. 
-epoch: 433,error rate: 0.0844,likelihood: 1627.19
- 0.34 seconds. 
-epoch: 434,error rate: 0.0844,likelihood: 1627.36
- 0.35 seconds. 
-epoch: 435,error rate: 0.0844,likelihood: 1627.53
- 0.33 seconds. 
-epoch: 436,error rate: 0.0844,likelihood: 1627.7
- 0.35 seconds. 
-epoch: 437,error rate: 0.0845,likelihood: 1627.87
- 0.34 seconds. 
-epoch: 438,error rate: 0.0845,likelihood: 1628.04
- 0.33 seconds. 
-epoch: 439,error rate: 0.0845,likelihood: 1628.2
- 0.34 seconds. 
-epoch: 440,error rate: 0.0845,likelihood: 1628.37
- 0.35 seconds. 
-epoch: 441,error rate: 0.0846,likelihood: 1628.54
- 0.34 seconds. 
-epoch: 442,error rate: 0.0846,likelihood: 1628.71
- 0.34 seconds. 
-epoch: 443,error rate: 0.0845,likelihood: 1628.88
- 0.34 seconds. 
-epoch: 444,error rate: 0.0847,likelihood: 1629.05
- 0.34 seconds. 
-epoch: 445,error rate: 0.0847,likelihood: 1629.22
- 0.33 seconds. 
-epoch: 446,error rate: 0.0847,likelihood: 1629.39
- 0.35 seconds. 
-epoch: 447,error rate: 0.0847,likelihood: 1629.56
- 0.34 seconds. 
-epoch: 448,error rate: 0.0847,likelihood: 1629.73
- 0.33 seconds. 
-epoch: 449,error rate: 0.0847,likelihood: 1629.9
- 0.34 seconds. 
-epoch: 450,error rate: 0.0847,likelihood: 1630.07
- 0.34 seconds. 
-epoch: 451,error rate: 0.0849,likelihood: 1630.24
- 0.34 seconds. 
-epoch: 452,error rate: 0.0849,likelihood: 1630.41
- 0.34 seconds. 
-epoch: 453,error rate: 0.0849,likelihood: 1630.58
- 0.34 seconds. 
-epoch: 454,error rate: 0.0849,likelihood: 1630.75
- 0.34 seconds. 
-epoch: 455,error rate: 0.0849,likelihood: 1630.92
- 0.34 seconds. 
-epoch: 456,error rate: 0.0848,likelihood: 1631.09
- 0.34 seconds. 
-epoch: 457,error rate: 0.0849,likelihood: 1631.26
- 0.34 seconds. 
-epoch: 458,error rate: 0.085,likelihood: 1631.43
- 0.34 seconds. 
-epoch: 459,error rate: 0.0851,likelihood: 1631.6
- 0.34 seconds. 
-epoch: 460,error rate: 0.0851,likelihood: 1631.77
- 0.34 seconds. 
-epoch: 461,error rate: 0.0853,likelihood: 1631.94
- 0.34 seconds. 
-epoch: 462,error rate: 0.0853,likelihood: 1632.11
- 0.34 seconds. 
-epoch: 463,error rate: 0.0853,likelihood: 1632.28
- 0.34 seconds. 
-epoch: 464,error rate: 0.0854,likelihood: 1632.45
- 0.35 seconds. 
-epoch: 465,error rate: 0.0855,likelihood: 1632.62
- 0.33 seconds. 
-epoch: 466,error rate: 0.0855,likelihood: 1632.79
- 0.34 seconds. 
-epoch: 467,error rate: 0.0855,likelihood: 1632.96
- 0.34 seconds. 
-epoch: 468,error rate: 0.0855,likelihood: 1633.13
- 0.34 seconds. 
-epoch: 469,error rate: 0.0855,likelihood: 1633.3
- 0.33 seconds. 
-epoch: 470,error rate: 0.0855,likelihood: 1633.47
- 0.35 seconds. 
-epoch: 471,error rate: 0.0856,likelihood: 1633.65
- 0.34 seconds. 
-epoch: 472,error rate: 0.0856,likelihood: 1633.82
- 0.34 seconds. 
-epoch: 473,error rate: 0.0856,likelihood: 1633.99
- 0.33 seconds. 
-epoch: 474,error rate: 0.0856,likelihood: 1634.16
- 0.35 seconds. 
-epoch: 475,error rate: 0.0856,likelihood: 1634.33
- 0.34 seconds. 
-epoch: 476,error rate: 0.0858,likelihood: 1634.5
- 0.33 seconds. 
-epoch: 477,error rate: 0.0858,likelihood: 1634.67
- 0.35 seconds. 
-epoch: 478,error rate: 0.0858,likelihood: 1634.84
- 0.34 seconds. 
-epoch: 479,error rate: 0.0858,likelihood: 1635.02
- 0.34 seconds. 
-epoch: 480,error rate: 0.0859,likelihood: 1635.19
- 0.34 seconds. 
-epoch: 481,error rate: 0.086,likelihood: 1635.36
- 0.33 seconds. 
-epoch: 482,error rate: 0.0861,likelihood: 1635.53
- 0.35 seconds. 
-epoch: 483,error rate: 0.0861,likelihood: 1635.7
- 0.34 seconds. 
-epoch: 484,error rate: 0.0861,likelihood: 1635.87
- 0.33 seconds. 
-epoch: 485,error rate: 0.0861,likelihood: 1636.05
- 0.34 seconds. 
-epoch: 486,error rate: 0.086,likelihood: 1636.22
- 0.35 seconds. 
-epoch: 487,error rate: 0.086,likelihood: 1636.39
- 0.33 seconds. 
-epoch: 488,error rate: 0.086,likelihood: 1636.56
- 0.34 seconds. 
-epoch: 489,error rate: 0.086,likelihood: 1636.73
- 0.34 seconds. 
-epoch: 490,error rate: 0.0861,likelihood: 1636.91
- 0.35 seconds. 
-epoch: 491,error rate: 0.0862,likelihood: 1637.08
- 0.33 seconds. 
-epoch: 492,error rate: 0.0863,likelihood: 1637.25
- 0.34 seconds. 
-epoch: 493,error rate: 0.0863,likelihood: 1637.42
- 0.34 seconds. 
-epoch: 494,error rate: 0.0863,likelihood: 1637.59
- 0.34 seconds. 
-epoch: 495,error rate: 0.0862,likelihood: 1637.77
- 0.34 seconds. 
-epoch: 496,error rate: 0.0863,likelihood: 1637.94
- 0.34 seconds. 
-epoch: 497,error rate: 0.0863,likelihood: 1638.11
- 0.34 seconds. 
-epoch: 498,error rate: 0.0863,likelihood: 1638.28
- 0.34 seconds. 
-epoch: 499,error rate: 0.0864,likelihood: 1638.45
- 0.34 seconds. 
-epoch: 500,error rate: 0.0865,likelihood: 1638.63
- 0.34 seconds. 
-epoch: 501,error rate: 0.0865,likelihood: 1638.8
- 0.34 seconds. 
-epoch: 502,error rate: 0.0863,likelihood: 1638.97
- 0.34 seconds. 
-epoch: 503,error rate: 0.0863,likelihood: 1639.14
- 0.34 seconds. 
-epoch: 504,error rate: 0.0863,likelihood: 1639.34
- 0.34 seconds. 
-epoch: 505,error rate: 0.0863,likelihood: 1639.49
- 0.34 seconds. 
-epoch: 506,error rate: 0.0863,likelihood: 1639.66
- 0.34 seconds. 
-epoch: 507,error rate: 0.0862,likelihood: 1639.83
- 0.33 seconds. 
-epoch: 508,error rate: 0.0862,likelihood: 1640
- 0.34 seconds. 
-epoch: 509,error rate: 0.0861,likelihood: 1640.18
- 0.34 seconds. 
-epoch: 510,error rate: 0.086,likelihood: 1640.35
- 0.35 seconds. 
-epoch: 511,error rate: 0.086,likelihood: 1640.52
- 0.34 seconds. 
-epoch: 512,error rate: 0.0859,likelihood: 1640.69
- 0.34 seconds. 
-epoch: 513,error rate: 0.0859,likelihood: 1640.87
- 0.33 seconds. 
-epoch: 514,error rate: 0.0859,likelihood: 1641.04
- 0.35 seconds. 
-epoch: 515,error rate: 0.0859,likelihood: 1641.21
- 0.34 seconds. 
-epoch: 516,error rate: 0.0862,likelihood: 1641.38
- 0.34 seconds. 
-epoch: 517,error rate: 0.0862,likelihood: 1641.56
- 0.33 seconds. 
-epoch: 518,error rate: 0.0862,likelihood: 1641.73
- 0.34 seconds. 
-epoch: 519,error rate: 0.0862,likelihood: 1641.9
- 0.35 seconds. 
-epoch: 520,error rate: 0.0863,likelihood: 1642.08
- 0.33 seconds. 
-epoch: 521,error rate: 0.0864,likelihood: 1642.25
- 0.35 seconds. 
-epoch: 522,error rate: 0.0864,likelihood: 1642.42
- 0.34 seconds. 
-epoch: 523,error rate: 0.0865,likelihood: 1642.59
- 0.33 seconds. 
-epoch: 524,error rate: 0.0865,likelihood: 1642.77
- 0.34 seconds. 
-epoch: 525,error rate: 0.0865,likelihood: 1642.94
- 0.34 seconds. 
-epoch: 526,error rate: 0.0865,likelihood: 1643.11
- 0.34 seconds. 
-epoch: 527,error rate: 0.0865,likelihood: 1643.27
- 0.34 seconds. 
-epoch: 528,error rate: 0.0864,likelihood: 1643.46
- 0.35 seconds. 
-epoch: 529,error rate: 0.0864,likelihood: 1643.63
- 0.33 seconds. 
-epoch: 530,error rate: 0.0864,likelihood: 1643.81
- 0.35 seconds. 
-epoch: 531,error rate: 0.0864,likelihood: 1643.98
- 0.33 seconds. 
-epoch: 532,error rate: 0.0864,likelihood: 1644.15
- 0.34 seconds. 
-epoch: 533,error rate: 0.0864,likelihood: 1644.32
- 0.35 seconds. 
-epoch: 534,error rate: 0.0865,likelihood: 1644.49
- 0.34 seconds. 
-epoch: 535,error rate: 0.0865,likelihood: 1644.67
- 0.34 seconds. 
-epoch: 536,error rate: 0.0866,likelihood: 1644.84
- 0.33 seconds. 
-epoch: 537,error rate: 0.0867,likelihood: 1645.01
- 0.34 seconds. 
-epoch: 538,error rate: 0.0867,likelihood: 1645.19
- 0.35 seconds. 
-epoch: 539,error rate: 0.0867,likelihood: 1645.36
- 0.33 seconds. 
-epoch: 540,error rate: 0.0867,likelihood: 1645.53
- 0.35 seconds. 
-epoch: 541,error rate: 0.0867,likelihood: 1645.7
- 0.34 seconds. 
-epoch: 542,error rate: 0.0868,likelihood: 1645.88
- 0.34 seconds. 
-epoch: 543,error rate: 0.0868,likelihood: 1646.05
- 0.34 seconds. 
-epoch: 544,error rate: 0.0869,likelihood: 1646.25
- 0.34 seconds. 
-epoch: 545,error rate: 0.0869,likelihood: 1646.4
- 0.33 seconds. 
-epoch: 546,error rate: 0.0869,likelihood: 1646.57
- 0.34 seconds. 
-epoch: 547,error rate: 0.0869,likelihood: 1646.74
- 0.34 seconds. 
-epoch: 548,error rate: 0.087,likelihood: 1646.91
- 0.35 seconds. 
-epoch: 549,error rate: 0.0871,likelihood: 1647.09
- 0.34 seconds. 
-epoch: 550,error rate: 0.087,likelihood: 1647.26
- 0.33 seconds. 
-epoch: 551,error rate: 0.0871,likelihood: 1647.43
- 0.34 seconds. 
-epoch: 552,error rate: 0.0871,likelihood: 1647.61
- 0.34 seconds. 
-epoch: 553,error rate: 0.0871,likelihood: 1647.78
- 0.34 seconds. 
-epoch: 554,error rate: 0.087,likelihood: 1647.95
- 0.35 seconds. 
-epoch: 555,error rate: 0.0872,likelihood: 1648.12
- 0.33 seconds. 
-epoch: 556,error rate: 0.0873,likelihood: 1648.3
- 0.34 seconds. 
-epoch: 557,error rate: 0.0873,likelihood: 1648.47
- 0.35 seconds. 
-epoch: 558,error rate: 0.0874,likelihood: 1648.64
- 0.33 seconds. 
-epoch: 559,error rate: 0.0874,likelihood: 1648.82
- 0.34 seconds. 
-epoch: 560,error rate: 0.0873,likelihood: 1648.99
- 0.34 seconds. 
-epoch: 561,error rate: 0.0873,likelihood: 1649.16
- 0.34 seconds. 
-epoch: 562,error rate: 0.0873,likelihood: 1649.33
- 0.34 seconds. 
-epoch: 563,error rate: 0.0874,likelihood: 1649.54
- 0.34 seconds. 
-epoch: 564,error rate: 0.0873,likelihood: 1649.68
- 0.34 seconds. 
-epoch: 565,error rate: 0.0873,likelihood: 1649.85
- 0.34 seconds. 
-epoch: 566,error rate: 0.0873,likelihood: 1650.03
- 0.34 seconds. 
-epoch: 567,error rate: 0.0873,likelihood: 1650.2
- 0.34 seconds. 
-epoch: 568,error rate: 0.0874,likelihood: 1650.37
- 0.34 seconds. 
-epoch: 569,error rate: 0.0875,likelihood: 1650.54
- 0.34 seconds. 
-epoch: 570,error rate: 0.0875,likelihood: 1650.72
- 0.33 seconds. 
-epoch: 571,error rate: 0.0874,likelihood: 1650.89
- 0.35 seconds. 
-epoch: 572,error rate: 0.0874,likelihood: 1651.06
- 0.34 seconds. 
-epoch: 573,error rate: 0.0874,likelihood: 1651.24
- 0.34 seconds. 
-epoch: 574,error rate: 0.0875,likelihood: 1651.41
- 0.33 seconds. 
-epoch: 575,error rate: 0.0875,likelihood: 1651.58
- 0.35 seconds. 
-epoch: 576,error rate: 0.0875,likelihood: 1651.75
- 0.33 seconds. 
-epoch: 577,error rate: 0.0875,likelihood: 1651.93
- 0.34 seconds. 
-epoch: 578,error rate: 0.0875,likelihood: 1652.1
- 0.35 seconds. 
-epoch: 579,error rate: 0.0875,likelihood: 1652.27
- 0.33 seconds. 
-epoch: 580,error rate: 0.0875,likelihood: 1652.45
- 0.35 seconds. 
-epoch: 581,error rate: 0.0875,likelihood: 1652.62
- 0.33 seconds. 
-epoch: 582,error rate: 0.0876,likelihood: 1652.79
- 0.34 seconds. 
-epoch: 583,error rate: 0.0876,likelihood: 1652.96
- 0.34 seconds. 
-epoch: 584,error rate: 0.0876,likelihood: 1653.14
- 0.35 seconds. 
-epoch: 585,error rate: 0.0876,likelihood: 1653.31
- 0.33 seconds. 
-epoch: 586,error rate: 0.0877,likelihood: 1653.48
- 0.34 seconds. 
-epoch: 587,error rate: 0.0877,likelihood: 1653.65
- 0.34 seconds. 
-epoch: 588,error rate: 0.0877,likelihood: 1653.83
- 0.35 seconds. 
-epoch: 589,error rate: 0.0877,likelihood: 1654
- 0.34 seconds. 
-epoch: 590,error rate: 0.0877,likelihood: 1654.17
- 0.34 seconds. 
-epoch: 591,error rate: 0.0877,likelihood: 1654.34
- 0.34 seconds. 
-epoch: 592,error rate: 0.0877,likelihood: 1654.51
- 0.34 seconds. 
-epoch: 593,error rate: 0.0877,likelihood: 1654.69
- 0.33 seconds. 
-epoch: 594,error rate: 0.0877,likelihood: 1654.86
- 0.35 seconds. 
-epoch: 595,error rate: 0.0877,likelihood: 1655.03
- 0.34 seconds. 
-epoch: 596,error rate: 0.0877,likelihood: 1655.21
- 0.33 seconds. 
-epoch: 597,error rate: 0.0877,likelihood: 1655.38
- 0.34 seconds. 
-epoch: 598,error rate: 0.0877,likelihood: 1655.54
- 0.35 seconds. 
-epoch: 599,error rate: 0.0878,likelihood: 1655.72
- 0.34 seconds. 
-epoch: 600,error rate: 0.0878,likelihood: 1655.9
- 0.34 seconds. 
-epoch: 601,error rate: 0.0878,likelihood: 1656.07
- 0.34 seconds. 
-epoch: 602,error rate: 0.0878,likelihood: 1656.24
- 0.33 seconds. 
-epoch: 603,error rate: 0.0878,likelihood: 1656.41
- 0.34 seconds. 
-epoch: 604,error rate: 0.0878,likelihood: 1656.59
- 0.35 seconds. 
-epoch: 605,error rate: 0.0878,likelihood: 1656.76
- 0.33 seconds. 
-epoch: 606,error rate: 0.0879,likelihood: 1656.93
- 0.35 seconds. 
-epoch: 607,error rate: 0.0881,likelihood: 1657.1
- 0.33 seconds. 
-epoch: 608,error rate: 0.088,likelihood: 1657.27
- 0.34 seconds. 
-epoch: 609,error rate: 0.088,likelihood: 1657.45
- 0.34 seconds. 
-epoch: 610,error rate: 0.088,likelihood: 1657.62
- 0.35 seconds. 
-epoch: 611,error rate: 0.088,likelihood: 1657.79
- 0.33 seconds. 
-epoch: 612,error rate: 0.088,likelihood: 1657.96
- 0.34 seconds. 
-epoch: 613,error rate: 0.088,likelihood: 1658.14
- 0.34 seconds. 
-epoch: 614,error rate: 0.088,likelihood: 1658.31
- 0.34 seconds. 
-epoch: 615,error rate: 0.0879,likelihood: 1658.48
- 0.34 seconds. 
-epoch: 616,error rate: 0.088,likelihood: 1658.65
- 0.34 seconds. 
-epoch: 617,error rate: 0.088,likelihood: 1658.82
- 0.34 seconds. 
-epoch: 618,error rate: 0.088,likelihood: 1659
- 0.34 seconds. 
-epoch: 619,error rate: 0.088,likelihood: 1659.17
- 0.34 seconds. 
-epoch: 620,error rate: 0.088,likelihood: 1659.34
- 0.33 seconds. 
-epoch: 621,error rate: 0.088,likelihood: 1659.51
- 0.35 seconds. 
-epoch: 622,error rate: 0.088,likelihood: 1659.68
- 0.35 seconds. 
-epoch: 623,error rate: 0.0881,likelihood: 1659.86
- 0.33 seconds. 
-epoch: 624,error rate: 0.088,likelihood: 1660.03
- 0.34 seconds. 
-epoch: 625,error rate: 0.088,likelihood: 1660.2
- 0.34 seconds. 
-epoch: 626,error rate: 0.0881,likelihood: 1660.37
- 0.33 seconds. 
-epoch: 627,error rate: 0.0881,likelihood: 1660.54
- 0.35 seconds. 
-epoch: 628,error rate: 0.0882,likelihood: 1660.71
- 0.34 seconds. 
-epoch: 629,error rate: 0.0881,likelihood: 1660.89
- 0.34 seconds. 
-epoch: 630,error rate: 0.0881,likelihood: 1661.06
- 0.34 seconds. 
-epoch: 631,error rate: 0.0881,likelihood: 1661.23
- 0.34 seconds. 
-epoch: 632,error rate: 0.0881,likelihood: 1661.4
- 0.34 seconds. 
-epoch: 633,error rate: 0.0881,likelihood: 1661.57
- 0.34 seconds. 
-epoch: 634,error rate: 0.088,likelihood: 1661.74
- 0.33 seconds. 
-epoch: 635,error rate: 0.088,likelihood: 1661.92
- 0.35 seconds. 
-epoch: 636,error rate: 0.088,likelihood: 1662.09
- 0.34 seconds. 
-epoch: 637,error rate: 0.0881,likelihood: 1662.26
- 0.33 seconds. 
-epoch: 638,error rate: 0.0881,likelihood: 1662.43
- 0.34 seconds. 
-epoch: 639,error rate: 0.088,likelihood: 1662.6
- 0.35 seconds. 
-epoch: 640,error rate: 0.088,likelihood: 1662.77
- 0.33 seconds. 
-epoch: 641,error rate: 0.088,likelihood: 1662.95
- 0.35 seconds. 
-epoch: 642,error rate: 0.088,likelihood: 1663.12
- 0.33 seconds. 
-epoch: 643,error rate: 0.088,likelihood: 1663.29
- 0.34 seconds. 
-epoch: 644,error rate: 0.088,likelihood: 1663.5
- 0.34 seconds. 
-epoch: 645,error rate: 0.0879,likelihood: 1663.62
- 0.34 seconds. 
-epoch: 646,error rate: 0.0879,likelihood: 1663.8
- 0.34 seconds. 
-epoch: 647,error rate: 0.0879,likelihood: 1663.97
- 0.34 seconds. 
-epoch: 648,error rate: 0.0879,likelihood: 1664.15
- 0.34 seconds. 
-epoch: 649,error rate: 0.088,likelihood: 1664.32
- 0.34 seconds. 
-epoch: 650,error rate: 0.0881,likelihood: 1664.49
- 0.34 seconds. 
-epoch: 651,error rate: 0.0881,likelihood: 1664.66
- 0.34 seconds. 
-epoch: 652,error rate: 0.0881,likelihood: 1664.83
- 0.34 seconds. 
-epoch: 653,error rate: 0.0881,likelihood: 1665
- 0.34 seconds. 
-epoch: 654,error rate: 0.0881,likelihood: 1665.17
- 0.34 seconds. 
-epoch: 655,error rate: 0.0882,likelihood: 1665.34
- 0.34 seconds. 
-epoch: 656,error rate: 0.0882,likelihood: 1665.51
- 0.34 seconds. 
-epoch: 657,error rate: 0.0882,likelihood: 1665.69
- 0.34 seconds. 
-epoch: 658,error rate: 0.0882,likelihood: 1665.86
- 0.34 seconds. 
-epoch: 659,error rate: 0.0882,likelihood: 1666.03
- 0.33 seconds. 
-epoch: 660,error rate: 0.0882,likelihood: 1666.2
- 0.35 seconds. 
-epoch: 661,error rate: 0.0882,likelihood: 1666.37
- 0.33 seconds. 
-epoch: 662,error rate: 0.0883,likelihood: 1666.54
- 0.34 seconds. 
-epoch: 663,error rate: 0.0883,likelihood: 1666.71
- 0.35 seconds. 
-epoch: 664,error rate: 0.0883,likelihood: 1666.88
- 0.34 seconds. 
-epoch: 665,error rate: 0.0883,likelihood: 1667.05
- 0.33 seconds. 
-epoch: 666,error rate: 0.0884,likelihood: 1667.22
- 0.34 seconds. 
-epoch: 667,error rate: 0.0885,likelihood: 1667.39
- 0.35 seconds. 
-epoch: 668,error rate: 0.0885,likelihood: 1667.56
- 0.34 seconds. 
-epoch: 669,error rate: 0.0885,likelihood: 1667.74
- 0.34 seconds. 
-epoch: 670,error rate: 0.0885,likelihood: 1667.91
- 0.33 seconds. 
-epoch: 671,error rate: 0.0884,likelihood: 1668.08
- 0.34 seconds. 
-epoch: 672,error rate: 0.0885,likelihood: 1668.25
- 0.35 seconds. 
-epoch: 673,error rate: 0.0885,likelihood: 1668.42
- 0.34 seconds. 
-epoch: 674,error rate: 0.0885,likelihood: 1668.59
- 0.33 seconds. 
-epoch: 675,error rate: 0.0885,likelihood: 1668.76
- 0.33 seconds. 
-epoch: 676,error rate: 0.0885,likelihood: 1668.93
- 0.35 seconds. 
-epoch: 677,error rate: 0.0885,likelihood: 1669.1
- 0.34 seconds. 
-epoch: 678,error rate: 0.0885,likelihood: 1669.27
- 0.34 seconds. 
-epoch: 679,error rate: 0.0885,likelihood: 1669.44
- 0.34 seconds. 
-epoch: 680,error rate: 0.0885,likelihood: 1669.61
- 0.34 seconds. 
-epoch: 681,error rate: 0.0885,likelihood: 1669.78
- 0.34 seconds. 
-epoch: 682,error rate: 0.0885,likelihood: 1669.95
- 0.34 seconds. 
-epoch: 683,error rate: 0.0886,likelihood: 1670.12
- 0.33 seconds. 
-epoch: 684,error rate: 0.0886,likelihood: 1670.29
- 0.35 seconds. 
-epoch: 685,error rate: 0.0886,likelihood: 1670.46
- 0.33 seconds. 
-epoch: 686,error rate: 0.0886,likelihood: 1670.63
- 0.34 seconds. 
-epoch: 687,error rate: 0.0886,likelihood: 1670.8
- 0.35 seconds. 
-epoch: 688,error rate: 0.0886,likelihood: 1670.97
- 0.34 seconds. 
-epoch: 689,error rate: 0.0886,likelihood: 1671.14
- 0.33 seconds. 
-epoch: 690,error rate: 0.0886,likelihood: 1671.31
- 0.35 seconds. 
-epoch: 691,error rate: 0.0886,likelihood: 1671.48
- 0.33 seconds. 
-epoch: 692,error rate: 0.0886,likelihood: 1671.69
- 0.34 seconds. 
-epoch: 693,error rate: 0.0886,likelihood: 1671.82
- 0.34 seconds. 
-epoch: 694,error rate: 0.0886,likelihood: 1671.99
- 0.34 seconds. 
-epoch: 695,error rate: 0.0886,likelihood: 1672.16
- 0.34 seconds. 
-epoch: 696,error rate: 0.0886,likelihood: 1672.33
- 0.35 seconds. 
-epoch: 697,error rate: 0.0886,likelihood: 1672.5
- 0.33 seconds. 
-epoch: 698,error rate: 0.0887,likelihood: 1672.67
- 0.34 seconds. 
-epoch: 699,error rate: 0.0887,likelihood: 1672.84
- 0.34 seconds. 
-epoch: 700,error rate: 0.0887,likelihood: 1673.01
- 0.34 seconds. 
-epoch: 701,error rate: 0.0887,likelihood: 1673.18
- 0.34 seconds. 
-epoch: 702,error rate: 0.0887,likelihood: 1673.35
- 0.34 seconds. 
-epoch: 703,error rate: 0.0888,likelihood: 1673.52
- 0.33 seconds. 
-epoch: 704,error rate: 0.0888,likelihood: 1673.69
- 0.35 seconds. 
-epoch: 705,error rate: 0.0888,likelihood: 1673.86
- 0.34 seconds. 
-epoch: 706,error rate: 0.0888,likelihood: 1674.03
- 0.33 seconds. 
-epoch: 707,error rate: 0.0888,likelihood: 1674.19
- 0.34 seconds. 
-epoch: 708,error rate: 0.0889,likelihood: 1674.39
- 0.35 seconds. 
-epoch: 709,error rate: 0.0888,likelihood: 1674.53
- 0.33 seconds. 
-epoch: 710,error rate: 0.0887,likelihood: 1674.7
- 0.35 seconds. 
-epoch: 711,error rate: 0.0887,likelihood: 1674.87
- 0.34 seconds. 
-epoch: 712,error rate: 0.0887,likelihood: 1675.04
- 0.33 seconds. 
-epoch: 713,error rate: 0.0887,likelihood: 1675.21
- 0.35 seconds. 
-epoch: 714,error rate: 0.0887,likelihood: 1675.38
- 0.34 seconds. 
-epoch: 715,error rate: 0.0889,likelihood: 1675.55
- 0.34 seconds. 
-epoch: 716,error rate: 0.0889,likelihood: 1675.72
- 0.34 seconds. 
-epoch: 717,error rate: 0.0889,likelihood: 1675.89
- 0.33 seconds. 
-epoch: 718,error rate: 0.0889,likelihood: 1676.06
- 0.35 seconds. 
-epoch: 719,error rate: 0.0889,likelihood: 1676.22
- 0.34 seconds. 
-epoch: 720,error rate: 0.0889,likelihood: 1676.39
- 0.34 seconds. 
-epoch: 721,error rate: 0.0889,likelihood: 1676.56
- 0.33 seconds. 
-epoch: 722,error rate: 0.0889,likelihood: 1676.73
- 0.35 seconds. 
-epoch: 723,error rate: 0.0889,likelihood: 1676.9
- 0.33 seconds. 
-epoch: 724,error rate: 0.0889,likelihood: 1677.07
- 0.35 seconds. 
-epoch: 725,error rate: 0.0889,likelihood: 1677.24
- 0.33 seconds. 
-epoch: 726,error rate: 0.0891,likelihood: 1677.41
- 0.35 seconds. 
-epoch: 727,error rate: 0.0892,likelihood: 1677.57
- 0.33 seconds. 
-epoch: 728,error rate: 0.0892,likelihood: 1677.74
- 0.34 seconds. 
-epoch: 729,error rate: 0.0892,likelihood: 1677.91
- 0.34 seconds. 
-epoch: 730,error rate: 0.0892,likelihood: 1678.08
- 0.34 seconds. 
-epoch: 731,error rate: 0.0892,likelihood: 1678.25
- 0.34 seconds. 
-epoch: 732,error rate: 0.0892,likelihood: 1678.42
- 0.34 seconds. 
-epoch: 733,error rate: 0.0892,likelihood: 1678.58
- 0.34 seconds. 
-epoch: 734,error rate: 0.0892,likelihood: 1678.75
- 0.34 seconds. 
-epoch: 735,error rate: 0.0892,likelihood: 1678.92
- 0.34 seconds. 
-epoch: 736,error rate: 0.0892,likelihood: 1679.09
- 0.34 seconds. 
-epoch: 737,error rate: 0.0893,likelihood: 1679.26
- 0.33 seconds. 
-epoch: 738,error rate: 0.0893,likelihood: 1679.47
- 0.35 seconds. 
-epoch: 739,error rate: 0.0892,likelihood: 1679.59
- 0.34 seconds. 
-epoch: 740,error rate: 0.0892,likelihood: 1679.76
- 0.33 seconds. 
-epoch: 741,error rate: 0.0892,likelihood: 1679.97
- 0.35 seconds. 
-epoch: 742,error rate: 0.0892,likelihood: 1680.1
- 0.34 seconds. 
-epoch: 743,error rate: 0.0893,likelihood: 1680.27
- 0.33 seconds. 
-epoch: 744,error rate: 0.0893,likelihood: 1680.43
- 0.34 seconds. 
-epoch: 745,error rate: 0.0893,likelihood: 1680.6
- 0.34 seconds. 
-epoch: 746,error rate: 0.0893,likelihood: 1680.77
- 0.35 seconds. 
-epoch: 747,error rate: 0.0892,likelihood: 1680.94
- 0.33 seconds. 
-epoch: 748,error rate: 0.0892,likelihood: 1681.11
- 0.34 seconds. 
-epoch: 749,error rate: 0.0892,likelihood: 1681.27
- 0.34 seconds. 
-epoch: 750,error rate: 0.0892,likelihood: 1681.44
- 0.34 seconds. 
-epoch: 751,error rate: 0.0892,likelihood: 1681.61
- 0.34 seconds. 
-epoch: 752,error rate: 0.0893,likelihood: 1681.78
- 0.34 seconds. 
-epoch: 753,error rate: 0.0894,likelihood: 1681.94
- 0.34 seconds. 
-epoch: 754,error rate: 0.0894,likelihood: 1682.11
- 0.34 seconds. 
-epoch: 755,error rate: 0.0894,likelihood: 1682.28
- 0.34 seconds. 
-epoch: 756,error rate: 0.0894,likelihood: 1682.45
- 0.34 seconds. 
-epoch: 757,error rate: 0.0894,likelihood: 1682.61
- 0.34 seconds. 
-epoch: 758,error rate: 0.0894,likelihood: 1682.78
- 0.34 seconds. 
-epoch: 759,error rate: 0.0894,likelihood: 1682.95
- 0.34 seconds. 
-epoch: 760,error rate: 0.0895,likelihood: 1683.12
- 0.33 seconds. 
-epoch: 761,error rate: 0.0895,likelihood: 1683.28
- 0.35 seconds. 
-epoch: 762,error rate: 0.0895,likelihood: 1683.45
- 0.33 seconds. 
-epoch: 763,error rate: 0.0897,likelihood: 1683.62
- 0.35 seconds. 
-epoch: 764,error rate: 0.0896,likelihood: 1683.78
- 0.33 seconds. 
-epoch: 765,error rate: 0.0896,likelihood: 1683.95
- 0.35 seconds. 
-epoch: 766,error rate: 0.0896,likelihood: 1684.12
- 0.34 seconds. 
-epoch: 767,error rate: 0.0896,likelihood: 1684.29
- 0.34 seconds. 
-epoch: 768,error rate: 0.0896,likelihood: 1684.45
- 0.34 seconds. 
-epoch: 769,error rate: 0.0896,likelihood: 1684.62
- 0.34 seconds. 
-epoch: 770,error rate: 0.0896,likelihood: 1684.79
- 0.34 seconds. 
-epoch: 771,error rate: 0.0897,likelihood: 1684.95
- 0.35 seconds. 
-epoch: 772,error rate: 0.0896,likelihood: 1685.12
- 0.33 seconds. 
-epoch: 773,error rate: 0.0896,likelihood: 1685.29
- 0.34 seconds. 
-epoch: 774,error rate: 0.0896,likelihood: 1685.45
- 0.34 seconds. 
-epoch: 775,error rate: 0.0896,likelihood: 1685.62
- 0.34 seconds. 
-epoch: 776,error rate: 0.0896,likelihood: 1685.79
- 0.34 seconds. 
-epoch: 777,error rate: 0.0896,likelihood: 1685.95
- 0.34 seconds. 
-epoch: 778,error rate: 0.0896,likelihood: 1686.12
- 0.33 seconds. 
-epoch: 779,error rate: 0.0896,likelihood: 1686.29
- 0.35 seconds. 
-epoch: 780,error rate: 0.0896,likelihood: 1686.45
- 0.34 seconds. 
-epoch: 781,error rate: 0.0896,likelihood: 1686.62
- 0.34 seconds. 
-epoch: 782,error rate: 0.0896,likelihood: 1686.79
- 0.34 seconds. 
-epoch: 783,error rate: 0.0896,likelihood: 1686.95
- 0.33 seconds. 
-epoch: 784,error rate: 0.0896,likelihood: 1687.12
- 0.35 seconds. 
-epoch: 785,error rate: 0.0896,likelihood: 1687.29
- 0.34 seconds. 
-epoch: 786,error rate: 0.0896,likelihood: 1687.45
- 0.33 seconds. 
-epoch: 787,error rate: 0.0896,likelihood: 1687.62
- 0.34 seconds. 
-epoch: 788,error rate: 0.0896,likelihood: 1687.78
- 0.34 seconds. 
-epoch: 789,error rate: 0.0896,likelihood: 1687.95
- 0.34 seconds. 
-epoch: 790,error rate: 0.0896,likelihood: 1688.12
- 0.34 seconds. 
-epoch: 791,error rate: 0.0896,likelihood: 1688.28
- 0.34 seconds. 
-epoch: 792,error rate: 0.0896,likelihood: 1688.45
- 0.34 seconds. 
-epoch: 793,error rate: 0.0896,likelihood: 1688.61
- 0.34 seconds. 
-epoch: 794,error rate: 0.0897,likelihood: 1688.78
- 0.34 seconds. 
-epoch: 795,error rate: 0.0896,likelihood: 1688.95
- 0.35 seconds. 
-epoch: 796,error rate: 0.0896,likelihood: 1689.11
- 0.33 seconds. 
-epoch: 797,error rate: 0.0896,likelihood: 1689.28
- 0.35 seconds. 
-epoch: 798,error rate: 0.0897,likelihood: 1689.44
- 0.33 seconds. 
-epoch: 799,error rate: 0.0897,likelihood: 1689.61
- 0.34 seconds. 
-epoch: 800,error rate: 0.0897,likelihood: 1689.78
- 0.34 seconds. 
-epoch: 801,error rate: 0.0897,likelihood: 1689.94
- 0.34 seconds. 
-epoch: 802,error rate: 0.0897,likelihood: 1690.11
- 0.34 seconds. 
-epoch: 803,error rate: 0.0897,likelihood: 1690.27
- 0.34 seconds. 
-epoch: 804,error rate: 0.0897,likelihood: 1690.44
- 0.34 seconds. 
-epoch: 805,error rate: 0.0897,likelihood: 1690.6
- 0.34 seconds. 
-epoch: 806,error rate: 0.0897,likelihood: 1690.77
- 0.34 seconds. 
-epoch: 807,error rate: 0.0897,likelihood: 1690.93
- 0.34 seconds. 
-epoch: 808,error rate: 0.0897,likelihood: 1691.1
- 0.34 seconds. 
-epoch: 809,error rate: 0.0897,likelihood: 1691.26
- 0.34 seconds. 
-epoch: 810,error rate: 0.0897,likelihood: 1691.43
- 0.34 seconds. 
-epoch: 811,error rate: 0.0897,likelihood: 1691.6
- 0.34 seconds. 
-epoch: 812,error rate: 0.0897,likelihood: 1691.76
- 0.34 seconds. 
-epoch: 813,error rate: 0.0897,likelihood: 1691.93
- 0.33 seconds. 
-epoch: 814,error rate: 0.0897,likelihood: 1692.09
- 0.34 seconds. 
-epoch: 815,error rate: 0.0899,likelihood: 1692.26
- 0.34 seconds. 
-epoch: 816,error rate: 0.09,likelihood: 1692.42
- 0.35 seconds. 
-epoch: 817,error rate: 0.09,likelihood: 1692.59
- 0.33 seconds. 
-epoch: 818,error rate: 0.09,likelihood: 1692.75
- 0.34 seconds. 
-epoch: 819,error rate: 0.09,likelihood: 1692.92
- 0.35 seconds. 
-epoch: 820,error rate: 0.09,likelihood: 1693.08
- 0.34 seconds. 
-epoch: 821,error rate: 0.09,likelihood: 1693.24
- 0.34 seconds. 
-epoch: 822,error rate: 0.0901,likelihood: 1693.41
- 0.34 seconds. 
-epoch: 823,error rate: 0.0901,likelihood: 1693.57
- 0.34 seconds. 
-epoch: 824,error rate: 0.0901,likelihood: 1693.74
- 0.33 seconds. 
-epoch: 825,error rate: 0.0901,likelihood: 1693.9
- 0.35 seconds. 
-epoch: 826,error rate: 0.0901,likelihood: 1694.07
- 0.33 seconds. 
-epoch: 827,error rate: 0.0901,likelihood: 1694.23
- 0.34 seconds. 
-epoch: 828,error rate: 0.0901,likelihood: 1694.4
- 0.34 seconds. 
-epoch: 829,error rate: 0.0901,likelihood: 1694.56
- 0.34 seconds. 
-epoch: 830,error rate: 0.09,likelihood: 1694.73
- 0.34 seconds. 
-epoch: 831,error rate: 0.09,likelihood: 1694.89
- 0.34 seconds. 
-epoch: 832,error rate: 0.09,likelihood: 1695.06
- 0.35 seconds. 
-epoch: 833,error rate: 0.09,likelihood: 1695.22
- 0.34 seconds. 
-epoch: 834,error rate: 0.09,likelihood: 1695.38
- 0.34 seconds. 
-epoch: 835,error rate: 0.0901,likelihood: 1695.55
- 0.34 seconds. 
-epoch: 836,error rate: 0.0901,likelihood: 1695.71
- 0.33 seconds. 
-epoch: 837,error rate: 0.09,likelihood: 1695.88
- 0.34 seconds. 
-epoch: 838,error rate: 0.09,likelihood: 1696.04
- 0.34 seconds. 
-epoch: 839,error rate: 0.0899,likelihood: 1696.2
- 0.34 seconds. 
-epoch: 840,error rate: 0.0899,likelihood: 1696.37
- 0.34 seconds. 
-epoch: 841,error rate: 0.0899,likelihood: 1696.53
- 0.34 seconds. 
-epoch: 842,error rate: 0.0899,likelihood: 1696.7
- 0.34 seconds. 
-epoch: 843,error rate: 0.0899,likelihood: 1696.86
- 0.34 seconds. 
-epoch: 844,error rate: 0.09,likelihood: 1697.02
- 0.35 seconds. 
-epoch: 845,error rate: 0.09,likelihood: 1697.19
- 0.33 seconds. 
-epoch: 846,error rate: 0.0901,likelihood: 1697.35
- 0.34 seconds. 
-epoch: 847,error rate: 0.0901,likelihood: 1697.52
- 0.34 seconds. 
-epoch: 848,error rate: 0.0901,likelihood: 1697.68
- 0.34 seconds. 
-epoch: 849,error rate: 0.0901,likelihood: 1697.84
- 0.35 seconds. 
-epoch: 850,error rate: 0.0901,likelihood: 1698.01
- 0.33 seconds. 
-epoch: 851,error rate: 0.0901,likelihood: 1698.17
- 0.34 seconds. 
-epoch: 852,error rate: 0.0901,likelihood: 1698.33
- 0.34 seconds. 
-epoch: 853,error rate: 0.0901,likelihood: 1698.5
- 0.34 seconds. 
-epoch: 854,error rate: 0.0901,likelihood: 1698.66
- 0.34 seconds. 
-epoch: 855,error rate: 0.0901,likelihood: 1698.82
- 0.34 seconds. 
-epoch: 856,error rate: 0.0901,likelihood: 1698.99
- 0.34 seconds. 
-epoch: 857,error rate: 0.0903,likelihood: 1699.15
- 0.34 seconds. 
-epoch: 858,error rate: 0.0903,likelihood: 1699.31
- 0.34 seconds. 
-epoch: 859,error rate: 0.0903,likelihood: 1699.48
- 0.35 seconds. 
-epoch: 860,error rate: 0.0903,likelihood: 1699.64
- 0.33 seconds. 
-epoch: 861,error rate: 0.0905,likelihood: 1699.8
- 0.34 seconds. 
-epoch: 862,error rate: 0.0903,likelihood: 1699.97
- 0.34 seconds. 
-epoch: 863,error rate: 0.0903,likelihood: 1700.13
- 0.34 seconds. 
-epoch: 864,error rate: 0.0903,likelihood: 1700.29
- 0.34 seconds. 
-epoch: 865,error rate: 0.0903,likelihood: 1700.46
- 0.34 seconds. 
-epoch: 866,error rate: 0.0903,likelihood: 1700.62
- 0.34 seconds. 
-epoch: 867,error rate: 0.0903,likelihood: 1700.78
- 0.34 seconds. 
-epoch: 868,error rate: 0.0902,likelihood: 1700.94
- 0.34 seconds. 
-epoch: 869,error rate: 0.0901,likelihood: 1701.11
- 0.34 seconds. 
-epoch: 870,error rate: 0.0901,likelihood: 1701.27
- 0.34 seconds. 
-epoch: 871,error rate: 0.0901,likelihood: 1701.43
- 0.33 seconds. 
-epoch: 872,error rate: 0.0901,likelihood: 1701.59
- 0.35 seconds. 
-epoch: 873,error rate: 0.0901,likelihood: 1701.76
- 0.34 seconds. 
-epoch: 874,error rate: 0.0901,likelihood: 1701.92
- 0.33 seconds. 
-epoch: 875,error rate: 0.0901,likelihood: 1702.08
- 0.35 seconds. 
-epoch: 876,error rate: 0.0901,likelihood: 1702.25
- 0.34 seconds. 
-epoch: 877,error rate: 0.0901,likelihood: 1702.41
- 0.34 seconds. 
-epoch: 878,error rate: 0.0901,likelihood: 1702.57
- 0.34 seconds. 
-epoch: 879,error rate: 0.0901,likelihood: 1702.73
- 0.34 seconds. 
-epoch: 880,error rate: 0.0901,likelihood: 1702.9
- 0.34 seconds. 
-epoch: 881,error rate: 0.0901,likelihood: 1703.06
- 0.34 seconds. 
-epoch: 882,error rate: 0.0901,likelihood: 1703.22
- 0.33 seconds. 
-epoch: 883,error rate: 0.0901,likelihood: 1703.38
- 0.34 seconds. 
-epoch: 884,error rate: 0.0901,likelihood: 1703.54
- 0.34 seconds. 
-epoch: 885,error rate: 0.0901,likelihood: 1703.71
- 0.34 seconds. 
-epoch: 886,error rate: 0.0901,likelihood: 1703.87
- 0.34 seconds. 
-epoch: 887,error rate: 0.0901,likelihood: 1704.03
- 0.34 seconds. 
-epoch: 888,error rate: 0.0901,likelihood: 1704.19
- 0.34 seconds. 
-epoch: 889,error rate: 0.0901,likelihood: 1704.36
- 0.34 seconds. 
-epoch: 890,error rate: 0.0901,likelihood: 1704.52
- 0.35 seconds. 
-epoch: 891,error rate: 0.0901,likelihood: 1704.68
- 0.33 seconds. 
-epoch: 892,error rate: 0.0901,likelihood: 1704.84
- 0.34 seconds. 
-epoch: 893,error rate: 0.0901,likelihood: 1705
- 0.34 seconds. 
-epoch: 894,error rate: 0.0901,likelihood: 1705.16
- 0.34 seconds. 
-epoch: 895,error rate: 0.0901,likelihood: 1705.33
- 0.34 seconds. 
-epoch: 896,error rate: 0.0901,likelihood: 1705.49
- 0.34 seconds. 
-epoch: 897,error rate: 0.09,likelihood: 1705.65
- 0.34 seconds. 
-epoch: 898,error rate: 0.0901,likelihood: 1705.81
- 0.34 seconds. 
-epoch: 899,error rate: 0.0901,likelihood: 1705.97
- 0.34 seconds. 
-epoch: 900,error rate: 0.0901,likelihood: 1706.13
- 0.34 seconds. 
-epoch: 901,error rate: 0.0901,likelihood: 1706.3
- 0.33 seconds. 
-epoch: 902,error rate: 0.0902,likelihood: 1706.45
- 0.35 seconds. 
-epoch: 903,error rate: 0.0902,likelihood: 1706.62
- 0.33 seconds. 
-epoch: 904,error rate: 0.0902,likelihood: 1706.78
- 0.36 seconds. 
-epoch: 905,error rate: 0.0902,likelihood: 1706.94
- 0.33 seconds. 
-epoch: 906,error rate: 0.0902,likelihood: 1707.1
- 0.33 seconds. 
-epoch: 907,error rate: 0.0902,likelihood: 1707.26
- 0.35 seconds. 
-epoch: 908,error rate: 0.0902,likelihood: 1707.42
- 0.34 seconds. 
-epoch: 909,error rate: 0.0902,likelihood: 1707.59
- 0.34 seconds. 
-epoch: 910,error rate: 0.0902,likelihood: 1707.75
- 0.34 seconds. 
-epoch: 911,error rate: 0.0902,likelihood: 1707.91
- 0.34 seconds. 
-epoch: 912,error rate: 0.0902,likelihood: 1708.07
- 0.34 seconds. 
-epoch: 913,error rate: 0.0902,likelihood: 1708.23
- 0.33 seconds. 
-epoch: 914,error rate: 0.0902,likelihood: 1708.39
- 0.34 seconds. 
-epoch: 915,error rate: 0.0902,likelihood: 1708.55
- 0.34 seconds. 
-epoch: 916,error rate: 0.0902,likelihood: 1708.71
- 0.34 seconds. 
-epoch: 917,error rate: 0.0902,likelihood: 1708.87
- 0.35 seconds. 
-epoch: 918,error rate: 0.0902,likelihood: 1709.03
- 0.33 seconds. 
-epoch: 919,error rate: 0.0902,likelihood: 1709.19
- 0.34 seconds. 
-epoch: 920,error rate: 0.0902,likelihood: 1709.36
- 0.35 seconds. 
-epoch: 921,error rate: 0.0902,likelihood: 1709.52
- 0.33 seconds. 
-epoch: 922,error rate: 0.0901,likelihood: 1709.68
- 0.35 seconds. 
-epoch: 923,error rate: 0.09,likelihood: 1709.84
- 0.33 seconds. 
-epoch: 924,error rate: 0.09,likelihood: 1710
- 0.34 seconds. 
-epoch: 925,error rate: 0.0901,likelihood: 1710.16
- 0.34 seconds. 
-epoch: 926,error rate: 0.0899,likelihood: 1710.32
- 0.34 seconds. 
-epoch: 927,error rate: 0.0899,likelihood: 1710.48
- 0.34 seconds. 
-epoch: 928,error rate: 0.0899,likelihood: 1710.64
- 0.34 seconds. 
-epoch: 929,error rate: 0.0899,likelihood: 1710.8
- 0.34 seconds. 
-epoch: 930,error rate: 0.0899,likelihood: 1710.96
- 0.34 seconds. 
-epoch: 931,error rate: 0.0899,likelihood: 1711.12
- 0.34 seconds. 
-epoch: 932,error rate: 0.0899,likelihood: 1711.28
- 0.34 seconds. 
-epoch: 933,error rate: 0.0899,likelihood: 1711.44
- 0.34 seconds. 
-epoch: 934,error rate: 0.0898,likelihood: 1711.6
- 0.35 seconds. 
-epoch: 935,error rate: 0.0898,likelihood: 1711.76
- 0.33 seconds. 
-epoch: 936,error rate: 0.0897,likelihood: 1711.89
- 0.34 seconds. 
-epoch: 937,error rate: 0.0897,likelihood: 1712.08
- 0.34 seconds. 
-epoch: 938,error rate: 0.0897,likelihood: 1712.24
- 0.34 seconds. 
-epoch: 939,error rate: 0.0897,likelihood: 1712.4
- 0.34 seconds. 
-epoch: 940,error rate: 0.0897,likelihood: 1712.56
- 0.34 seconds. 
-epoch: 941,error rate: 0.0897,likelihood: 1712.72
- 0.34 seconds. 
-epoch: 942,error rate: 0.0897,likelihood: 1712.88
- 0.34 seconds. 
-epoch: 943,error rate: 0.0897,likelihood: 1713.04
- 0.35 seconds. 
-epoch: 944,error rate: 0.0897,likelihood: 1713.2
- 0.34 seconds. 
-epoch: 945,error rate: 0.0898,likelihood: 1713.36
- 0.33 seconds. 
-epoch: 946,error rate: 0.0898,likelihood: 1713.52
- 0.34 seconds. 
-epoch: 947,error rate: 0.0899,likelihood: 1713.68
- 0.34 seconds. 
-epoch: 948,error rate: 0.0899,likelihood: 1713.84
- 0.35 seconds. 
-epoch: 949,error rate: 0.09,likelihood: 1714
- 0.33 seconds. 
-epoch: 950,error rate: 0.09,likelihood: 1714.16
- 0.34 seconds. 
-epoch: 951,error rate: 0.09,likelihood: 1714.32
- 0.34 seconds. 
-epoch: 952,error rate: 0.09,likelihood: 1714.48
- 0.34 seconds. 
-epoch: 953,error rate: 0.0901,likelihood: 1714.63
- 0.35 seconds. 
-epoch: 954,error rate: 0.0901,likelihood: 1714.79
- 0.34 seconds. 
-epoch: 955,error rate: 0.0901,likelihood: 1714.95
- 0.34 seconds. 
-epoch: 956,error rate: 0.0899,likelihood: 1715.11
- 0.33 seconds. 
-epoch: 957,error rate: 0.0899,likelihood: 1715.27
- 0.34 seconds. 
-epoch: 958,error rate: 0.09,likelihood: 1715.43
- 0.34 seconds. 
-epoch: 959,error rate: 0.09,likelihood: 1715.59
- 0.35 seconds. 
-epoch: 960,error rate: 0.09,likelihood: 1715.75
- 0.33 seconds. 
-epoch: 961,error rate: 0.09,likelihood: 1715.91
- 0.34 seconds. 
-epoch: 962,error rate: 0.0898,likelihood: 1716.06
- 0.35 seconds. 
-epoch: 963,error rate: 0.0897,likelihood: 1716.23
- 0.34 seconds. 
-epoch: 964,error rate: 0.0897,likelihood: 1716.38
- 0.33 seconds. 
-epoch: 965,error rate: 0.0897,likelihood: 1716.54
- 0.34 seconds. 
-epoch: 966,error rate: 0.0897,likelihood: 1716.7
- 0.35 seconds. 
-epoch: 967,error rate: 0.0897,likelihood: 1716.86
- 0.34 seconds. 
-epoch: 968,error rate: 0.0897,likelihood: 1717.02
- 0.34 seconds. 
-epoch: 969,error rate: 0.0897,likelihood: 1717.18
- 0.34 seconds. 
-epoch: 970,error rate: 0.0897,likelihood: 1717.34
- 0.34 seconds. 
-epoch: 971,error rate: 0.0897,likelihood: 1717.5
- 0.34 seconds. 
-epoch: 972,error rate: 0.0897,likelihood: 1717.65
- 0.34 seconds. 
-epoch: 973,error rate: 0.0897,likelihood: 1717.81
- 0.33 seconds. 
-epoch: 974,error rate: 0.0897,likelihood: 1717.97
- 0.34 seconds. 
-epoch: 975,error rate: 0.0897,likelihood: 1718.13
- 0.35 seconds. 
-epoch: 976,error rate: 0.0897,likelihood: 1718.29
- 0.33 seconds. 
-epoch: 977,error rate: 0.0897,likelihood: 1718.45
- 0.35 seconds. 
-epoch: 978,error rate: 0.0897,likelihood: 1718.6
- 0.34 seconds. 
-epoch: 979,error rate: 0.0897,likelihood: 1718.76
- 0.33 seconds. 
-epoch: 980,error rate: 0.0897,likelihood: 1718.92
- 0.34 seconds. 
-epoch: 981,error rate: 0.0898,likelihood: 1719.08
- 0.35 seconds. 
-epoch: 982,error rate: 0.0898,likelihood: 1719.24
- 0.34 seconds. 
-epoch: 983,error rate: 0.0898,likelihood: 1719.39
- 0.33 seconds. 
-epoch: 984,error rate: 0.0898,likelihood: 1719.55
- 0.35 seconds. 
-epoch: 985,error rate: 0.0898,likelihood: 1719.68
- 0.33 seconds. 
-epoch: 986,error rate: 0.0898,likelihood: 1719.87
- 0.34 seconds. 
-epoch: 987,error rate: 0.0898,likelihood: 1720.03
- 0.35 seconds. 
-epoch: 988,error rate: 0.0898,likelihood: 1720.18
- 0.34 seconds. 
-epoch: 989,error rate: 0.0898,likelihood: 1720.34
- 0.33 seconds. 
-epoch: 990,error rate: 0.0898,likelihood: 1720.5
- 0.35 seconds. 
-epoch: 991,error rate: 0.0898,likelihood: 1720.66
- 0.34 seconds. 
-epoch: 992,error rate: 0.0898,likelihood: 1720.82
- 0.33 seconds. 
-epoch: 993,error rate: 0.0898,likelihood: 1720.98
- 0.34 seconds. 
-epoch: 994,error rate: 0.0898,likelihood: 1721.13
- 0.34 seconds. 
-epoch: 995,error rate: 0.0898,likelihood: 1721.29
- 0.35 seconds. 
-epoch: 996,error rate: 0.09,likelihood: 1721.45
- 0.34 seconds. 
-epoch: 997,error rate: 0.0899,likelihood: 1721.61
- 0.33 seconds. 
-epoch: 998,error rate: 0.0899,likelihood: 1721.76
- 0.35 seconds. 
-epoch: 999,error rate: 0.0899,likelihood: 1721.92
+endl??????????????
+0:2:1:784000
+0:1:1:784000
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:13
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:14
+     1:receive pixel  epochIdx:1     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:19
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:20
+     1:receive pixel  epochIdx:1     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:24
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:0
+     1:receive pixel  epochIdx:2     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:4
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:5
+     1:receive pixel  epochIdx:2     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:10
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:11
+     2:receive pixel  epochIdx:2     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:11
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:12
+     1:receive pixel  epochIdx:2     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:16
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:17
+     1:receive pixel  epochIdx:2     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:21
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:22
+     1:receive pixel  epochIdx:3     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:4
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:5
+     2:receive pixel  epochIdx:3     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:1
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:2
+     1:receive pixel  epochIdx:3     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:18
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:19
+     1:receive pixel  epochIdx:3     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:23
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:24
+     1:receive pixel  epochIdx:4     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:7
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:8
+     2:receive pixel  epochIdx:4     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:15
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:16
+     1:receive pixel  epochIdx:4     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:9
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:10
+     2:receive pixel  epochIdx:5     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:18
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:19
+     1:receive pixel  epochIdx:5     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:23
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:24
+     1:receive pixel  epochIdx:6     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:7
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:8
+     1:receive pixel  epochIdx:6     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:12
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:13
+     1:receive pixel  epochIdx:6     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:4
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:5
+     1:receive pixel  epochIdx:7     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:9
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:10
+     1:receive pixel  epochIdx:7     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:23
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:24
+     2:receive pixel  epochIdx:7     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:7
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:8
+     2:receive pixel  epochIdx:8     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:12
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:13
+     2:receive pixel  epochIdx:8     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:2
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:3
+     2:receive pixel  epochIdx:8     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:7
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:8
+     2:receive pixel  epochIdx:9     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:3
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:4
+     1:receive pixel  epochIdx:9     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:14
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:15
+     2:receive pixel  epochIdx:9     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:12
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:13
+     1:receive pixel  epochIdx:9     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:24
