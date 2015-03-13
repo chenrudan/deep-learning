@@ -7,7 +7,7 @@
 #include <time.h>
 #include <cmath>
 #include <pthread.h>
-#include "mpi.h"/*{{{*/
+#include "mpi.h"
 #include "utils.h"
 #include "matrix.h"
 #include "nvmatrix.cuh"
@@ -16,20 +16,20 @@
 
 using namespace std;
 
-enum threadState{THREADWORK, THREADSTOP, THREADEND};
-enum swapInfo{SWAP_PIXEL_TRAIN, SWAP_PIXEL_TRAIN_REQUEST, \
-			  	SWAP_PIXEL_VALID, SWAP_PIXEL_VALID_REQUEST, \
-			  	SWAP_LABEL_TRAIN, SWAP_LABEL_TRAIN_REQUEST, \
-				SWAP_LABEL_VALID, SWAP_LABEL_VALID_REQUEST, \
-				SWAP_AVGOUT_PUSH, SWAP_AVGOUT_PUSH_REQUEST, \
-				SWAP_AVGOUT_FETCH, SWAP_AVGOUT_FETCH_REQUEST, \
-				SWAP_BIAS_PUSH, SWAP_BIAS_PUSH_REQUEST, \
-				SWAP_BIAS_FETCH, SWAP_BIAS_FETCH_REQUEST};
+enum swapInfo{SWAP_PIXEL_TRAIN, SWAP_PIXEL_TRAIN_REQUEST,\
+	SWAP_PIXEL_VALID, SWAP_PIXEL_VALID_REQUEST, \
+		SWAP_LABEL_TRAIN, SWAP_LABEL_TRAIN_REQUEST, \
+		SWAP_LABEL_VALID, SWAP_LABEL_VALID_REQUEST, \
+		SWAP_AVGOUT_PUSH, SWAP_AVGOUT_PUSH_REQUEST, \
+		SWAP_AVGOUT_FETCH, SWAP_AVGOUT_FETCH_REQUEST, \
+		SWAP_BIAS_PUSH, SWAP_BIAS_PUSH_REQUEST, \
+		SWAP_BIAS_FETCH, SWAP_BIAS_FETCH_REQUEST};
 
 typedef struct _ThreadControlMSG{
 	int sendPid;
 	int recvPid;
-	enum threadState myState;
+	//传递batchIdx
+	int myState;
 	enum swapInfo mySwap; 
 	float* data;
 	bool isMoveDataPos;
@@ -40,7 +40,11 @@ typedef struct _ThreadControlMSG{
 	_ThreadControlMSG():isMoveDataPos(false) {}
 } ThreadControlMSG, *pThreadControlMSG;
 
+int rank;
+int numProcess;
 pthread_mutex_t mutexS;
+
+#define THREAD_END 10000
 
 void* watchState(void* msg){
 	pThreadControlMSG myMsg = (pThreadControlMSG)msg;
@@ -48,42 +52,38 @@ void* watchState(void* msg){
 	MPI_Request req;
 	MPI_Status status;
 	int numCompute = 0;
-cout << myMsg->sendPid << ":" << myMsg->recvPid << ":" << myMsg->isSender \
-	<< ":" << myMsg->transLen << endl;
-	while(true){
-//		pthread_mutex_lock(&mutexS);
+	while(myMsg->myState != THREAD_END){
+		pthread_mutex_lock(&mutexS);
 		if(myMsg->isSender)
-			MPI_Recv(&myMsg->myState, 1, MPI_INT, myMsg->recvPid, myMsg->mySwap+1, \
-					MPI_COMM_WORLD, &status);
+			MPI_Recv(&myMsg->myState, 1, MPI_INT, myMsg->recvPid, \
+					myMsg->mySwap + 1, MPI_COMM_WORLD, &status);
 		else
-			MPI_Recv(&myMsg->myState, 1, MPI_INT, myMsg->sendPid, myMsg->mySwap+1, \
+			MPI_Recv(&myMsg->myState, 1, MPI_INT, myMsg->sendPid, \
+					myMsg->mySwap + 1, MPI_COMM_WORLD, &status);
+	cout <<rank << ":recv:" << myMsg->recvPid << ":" << myMsg->myState \
+				<< ":"<< myMsg->transLen<< endl;
+		if(myMsg->isSender){
+			MPI_Send(myData, myMsg->transLen, MPI_FLOAT, myMsg->recvPid, \
+					myMsg->mySwap + myMsg->myState * (numProcess - 1), \
+					MPI_COMM_WORLD);
+		}
+		else
+			MPI_Recv(myData, myMsg->transLen, MPI_FLOAT, myMsg->sendPid, \
+					myMsg->mySwap + myMsg->myState * (numProcess - 1), \
 					MPI_COMM_WORLD, &status);
-cout << myMsg->recvPid << ":recv  " << myMsg->mySwap << endl;
-//		pthread_mutex_unlock(&mutexS);
-		if(myMsg->myState != THREADSTOP){
-//			pthread_mutex_lock(&mutexS);
-			if(myMsg->isSender){
-				MPI_Send(myData, myMsg->transLen, MPI_FLOAT, myMsg->recvPid, \
-						myMsg->mySwap, MPI_COMM_WORLD);
-			}
-			else
-				MPI_Recv(myData, myMsg->transLen, MPI_FLOAT, myMsg->sendPid, \
-					myMsg->mySwap, MPI_COMM_WORLD, &status);
-cout << myMsg->recvPid << ":send  " << myMsg->mySwap << endl;
-//			pthread_mutex_unlock(&mutexS);
-			if(myMsg->isMoveDataPos){
-				if(numCompute < myMsg->moveTime - 1){
-					numCompute++;
-					myData += myMsg->moveLen;
-				}else{
-					//input数据回到起始位置
-					numCompute = 0;
-					myData = myMsg->data;
-				}
+		pthread_mutex_unlock(&mutexS);
+cout << rank << ":send:" << myMsg->recvPid <<":"<< myMsg->myState \
+			<< ":"<< myMsg->transLen<< endl;
+		if(myMsg->isMoveDataPos){
+			if(myMsg->myState < (myMsg->moveTime - 1)){
+				numCompute++;
+				myData += myMsg->moveLen;
+			}else{
+				//input数据回到起始位置
+				numCompute = 0;
+				myData = myMsg->data;
 			}
 		}
-		if(myMsg->myState == THREADEND)
-			break;	
 	}
 	pthread_exit(0);
 }
@@ -115,7 +115,7 @@ void createAndRun(pthread_t* tid, pThreadControlMSG tMSG, const int numProcess, 
 		tMSG[i].mySwap = mySwap;
 		tMSG[i].transLen = transLen;
 		int error = pthread_create(&tid[i], NULL, \
-						watchState, (void*)&tMSG[i]);
+				watchState, (void*)&tMSG[i]);
 		if(error){
 			cout << "Error - pthread_create() return code: " << error << endl;
 			exit(EXIT_FAILURE);
@@ -124,11 +124,6 @@ void createAndRun(pthread_t* tid, pThreadControlMSG tMSG, const int numProcess, 
 }
 
 void managerNode(pars* logistic){
-
-	int rank;
-	int numProcess;
-	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	MPI_Comm_size(MPI_COMM_WORLD,&numProcess);
 
 	int inSqrt = logistic->inSize * logistic->inSize;
 	int hidVisLen = logistic->numFilters * logistic->filterSize \
@@ -193,34 +188,35 @@ void managerNode(pars* logistic){
 
 	clock_t t;
 	t = clock();
-	
+
 
 	pthread_mutex_init(&mutexS, NULL);
-	int openTimes = 2;
+	int openTimes = 1;
 	pthread_t openThread[openTimes * (numProcess - 1)];
-	pThreadControlMSG* tMSG = new pThreadControlMSG[openTimes];
-	for(int i = 0; i < openTimes; i++)
-		tMSG[i] = new ThreadControlMSG[numProcess - 1];
+	pthread_t openThread1[openTimes * (numProcess - 1)];
+	pThreadControlMSG tMSG = new ThreadControlMSG[openTimes * (numProcess - 1)];
+	pThreadControlMSG tMSG1 = new ThreadControlMSG[openTimes * (numProcess - 1)];
 
-	createAndRun(openThread, tMSG[0], numProcess, nvTrainData->getDevData(), \
-								miniDataLen, SWAP_PIXEL_TRAIN, \
-								true, true, logistic->numMinibatches);	
-	createAndRun(openThread + 2, tMSG[1], numProcess, nvTrainLabel->getDevData(), \
-								miniLabelLen, SWAP_LABEL_TRAIN, \
-								true, true, logistic->numMinibatches);
-/*	//接收更新的参数
-	createAndRun(openThread[2], tMSG[2], numProcess, avgOut->getDevData(), \
-								avgOutLen, SWAP_AVGOUT_PUSH, false);	
-	createAndRun(openThread[3], tMSG[3], numProcess, outBiases->getDevData(), \
-								outBiasLen, SWAP_BIAS_PUSH, false);	
-	//发送参数
-	createAndRun(openThread[4], tMSG[4], numProcess, avgOut->getDevData(), \
-								avgOutLen, SWAP_AVGOUT_FETCH);	
-	createAndRun(openThread[5], tMSG[5], numProcess, outBiases->getDevData(), \
-								outBiasLen, SWAP_BIAS_FETCH);	
-*/
+	createAndRun(openThread1, tMSG1, numProcess, nvTrainData->getDevData(), \
+			miniDataLen, SWAP_PIXEL_TRAIN, \
+			true, true, logistic->numMinibatches);	
+	createAndRun(openThread, tMSG, numProcess, nvTrainLabel->getDevData(), \
+			miniLabelLen, SWAP_LABEL_TRAIN, \
+			true, true, logistic->numMinibatches);
+	//接收更新的参数
+//	createAndRun(openThread + 4, tMSG[2], numProcess, avgOut->getDevData(), \
+			avgOutLen, SWAP_AVGOUT_PUSH, false);	
+//	createAndRun(openThread + 6, tMSG[3], numProcess, outBiases->getDevData(), \
+			outBiasLen, SWAP_BIAS_PUSH, false);	
+	/*	//发送参数
+		createAndRun(openThread[4], tMSG[4], numProcess, avgOut->getDevData(), \
+		avgOutLen, SWAP_AVGOUT_FETCH);	
+		createAndRun(openThread[5], tMSG[5], numProcess, outBiases->getDevData(), \
+		outBiasLen, SWAP_BIAS_FETCH);	
+	 */
 	for(int i = 0; i < openTimes * (numProcess - 1); i++){
 		pthread_join(openThread[i], NULL);
+		pthread_join(openThread1[i], NULL);
 	}
 
 	t = clock() - t;
@@ -230,8 +226,6 @@ void managerNode(pars* logistic){
 	//				savePars(hAvgout, "../data/pars/hAvgout_t1.bin");
 	//				savePars(hOutBiases, "../data/pars/hOutBiases_t1.bin");	
 
-	for(int i = 0; i < openTimes; i++)
-		delete[] tMSG[i];
 	delete[] tMSG;
 
 
@@ -251,12 +245,12 @@ void managerNode(pars* logistic){
 }
 
 void workerNode(pars* logistic){
-
-	int rank;
-	int numProcess;
-	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	MPI_Comm_size(MPI_COMM_WORLD,&numProcess);
-
+	/*
+	   int rank;
+	   int numProcess;
+	   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	   MPI_Comm_size(MPI_COMM_WORLD,&numProcess);
+	 */
 	int inSqrt = logistic->inSize * logistic->inSize;
 
 	//int hidVisLen = logistic->numFilters * logistic->filterSize \
@@ -292,51 +286,49 @@ void workerNode(pars* logistic){
 	ConvNet layer1(hHidVis, hAvgout, hHidBiases, hOutBiases, logistic);
 	layer1.initCuda();
 	//	double loglihood = 0;
-	
 
-	int openTimes = 2;
-	enum threadState notifyMainPro[openTimes];
-	for(int i = 0; i < openTimes; i++)
-		notifyMainPro[i] = THREADWORK;
-	
 	MPI_Request reqs[2];
 	MPI_Status status[2];
+
+	int passMsg[2];	
 
 	for(int epochIdx = 0; epochIdx < logistic->numEpoches; epochIdx++){
 		int error = 0;	
 		for(int batchIdx = 0; batchIdx < logistic->numMinibatches; batchIdx++){
-
-			if(epochIdx == logistic->numEpoches - 1 \
-						&& batchIdx == logistic->numMinibatches -1){
-				for(int i = 0; i < openTimes; i++)
-					notifyMainPro[i] = THREADEND;
+			passMsg[0] = batchIdx;
+			passMsg[1] = batchIdx;
+			if(epochIdx == logistic->numEpoches - 1 && \
+					batchIdx == logistic->numMinibatches - 1){
+				passMsg[0] = THREAD_END;			
+				passMsg[1] = THREAD_END;			
 			}
-			
-			MPI_Send(&notifyMainPro[0], 1, MPI_INT, 0, SWAP_PIXEL_TRAIN_REQUEST, \
-					MPI_COMM_WORLD);
-			MPI_Send(&notifyMainPro[1], 1, MPI_INT, 0, SWAP_LABEL_TRAIN_REQUEST, \
-					MPI_COMM_WORLD);
-	cout << "     " << rank  << ":send " \
-			<< " epochIdx:" << epochIdx \
-			<< "     batchIdx:" << batchIdx << endl;
 
-			MPI_Recv(nvTrainData->getDevData(), miniDataLen, MPI_FLOAT, 0, \
-					SWAP_PIXEL_TRAIN, MPI_COMM_WORLD, &status[0]);
-	cout << "     " << rank  << ":receive pixel " \
-			<< " epochIdx:" << epochIdx \
-			<< "     batchIdx:" << batchIdx << endl;
+			MPI_Send(&passMsg[1], 1, MPI_INT, 0, SWAP_LABEL_TRAIN_REQUEST, \
+					MPI_COMM_WORLD);
 			MPI_Recv(nvTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, 0, \
-					SWAP_LABEL_TRAIN, MPI_COMM_WORLD, &status[1]);		
-	cout << "     " << rank  << ":receive label " \
-			<< " epochIdx:" << epochIdx \
-			<< "     batchIdx:" << batchIdx << endl;
-//			MPI_Irecv(nvTrainData->getDevData(), miniDataLen, MPI_FLOAT, 0, \
-					SWAP_PIXEL_TRAIN, MPI_COMM_WORLD, &reqs[0]);
-//			MPI_Wait(&reqs[0], MPI_STATUS_IGNORE);
-//if(rank == 2)
-//			MPI_Irecv(nvTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, 0, \
-					SWAP_LABEL_TRAIN, MPI_COMM_WORLD, &reqs[1]);
-//			MPI_Wait(&reqs[1], MPI_STATUS_IGNORE);
+					SWAP_LABEL_TRAIN + passMsg[1] * (numProcess - 1), \
+					MPI_COMM_WORLD, &status[1]);		
+//			if(rank == 1)
+				cout << rank  << ":receive label:" \
+					<< ":" << passMsg[0]  \
+					<<":" << miniLabelLen<< endl;
+
+			MPI_Send(&passMsg[0], 1, MPI_INT, 0, SWAP_PIXEL_TRAIN_REQUEST, \
+					MPI_COMM_WORLD);
+			MPI_Recv(nvTrainData->getDevData(), miniDataLen, MPI_FLOAT, 0, \
+					SWAP_PIXEL_TRAIN + passMsg[0] * (numProcess - 1), \
+					MPI_COMM_WORLD, &status[0]);
+//			if(rank == 1)
+				cout << rank  << ":receive pixel:" \
+					<< ":" << passMsg[0]  \
+					<<":" << miniDataLen<< endl;
+			//			MPI_Irecv(nvTrainData->getDevData(), miniDataLen, MPI_FLOAT, 0, \
+			SWAP_PIXEL_TRAIN, MPI_COMM_WORLD, &reqs[0]);
+			//			MPI_Wait(&reqs[0], MPI_STATUS_IGNORE);
+			//if(rank == 2)
+			//			MPI_Irecv(nvTrainLabel->getDevData(), miniLabelLen, MPI_FLOAT, 0, \
+			SWAP_LABEL_TRAIN, MPI_COMM_WORLD, &reqs[1]);
+			//			MPI_Wait(&reqs[1], MPI_STATUS_IGNORE);
 
 
 
@@ -345,68 +337,68 @@ void workerNode(pars* logistic){
 
 			avgOut = layer1.getAvgOut();
 			outBiases = layer1.getOutBias();
-/*
-			if((batchIdx + 1) % logistic->nPush == 0){
-				MPI_Send(&notifyMainPro, 1, MPI_INT, 0, SWAP_AVGOUT_PUSH, \
+/*			if((batchIdx + 1) % logistic->nPush == 0){
+				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_AVGOUT_PUSH_REQUEST, \
 						MPI_COMM_WORLD);
-				MPI_Send(&notifyMainPro, 1, MPI_INT, 0, SWAP_BIAS_PUSH, \
+				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_BIAS_PUSH_REQUEST, \
 						MPI_COMM_WORLD);
 				MPI_Send((rank-1)*avgOutLen/(numProcess-1) \
 						+ avgOut->getDevData(), avgOutLen/(numProcess-1), \
-						MPI_FLOAT, 0, SWAP_AVGOUT_PUSH, MPI_COMM_WORLD);
+						MPI_FLOAT, 0, SWAP_AVGOUT_PUSH + 2 * batchIdx, MPI_COMM_WORLD);
 				MPI_Send((rank-1)*outBiasLen/(numProcess-1) \
 						+ outBiases->getDevData(), outBiasLen/(numProcess-1), \
 						MPI_FLOAT, 0, SWAP_BIAS_PUSH, MPI_COMM_WORLD);
-//				MPI_Isend((rank-1)*avgOutLen/(numProcess-1) \
-						+ avgOut->getDevData(), avgOutLen/(numProcess-1), \
-						MPI_FLOAT, 0, SWAP_AVGOUT_PUSH, MPI_COMM_WORLD, &reqs[0]);
-//				MPI_Isend((rank-1)*outBiasLen/(numProcess-1) \
-						+ outBiases->getDevData(), outBiasLen/(numProcess-1), \
-						MPI_FLOAT, 0, SWAP_BIAS_PUSH, MPI_COMM_WORLD, &reqs[1]);
+				//				MPI_Isend((rank-1)*avgOutLen/(numProcess-1) \
+				+ avgOut->getDevData(), avgOutLen/(numProcess-1), \
+					MPI_FLOAT, 0, SWAP_AVGOUT_PUSH, MPI_COMM_WORLD, &reqs[0]);
+				//				MPI_Isend((rank-1)*outBiasLen/(numProcess-1) \
+				+ outBiases->getDevData(), outBiasLen/(numProcess-1), \
+					MPI_FLOAT, 0, SWAP_BIAS_PUSH, MPI_COMM_WORLD, &reqs[1]);
 			}
-			if((batchIdx + 1) % logistic->nFetch == 0){
-				MPI_Send(&notifyMainPro, 1, MPI_INT, 0, SWAP_AVGOUT_FETCH, \
-						MPI_COMM_WORLD);
-				MPI_Send(&notifyMainPro, 1, MPI_INT, 0, SWAP_BIAS_FETCH, \
-						MPI_COMM_WORLD);
-				MPI_Recv(avgOut->getDevData(), avgOutLen, MPI_FLOAT, 0, \
-						SWAP_AVGOUT_FETCH, MPI_COMM_WORLD, &status);
-				MPI_Recv(outBiases->getDevData(), outBiasLen, MPI_FLOAT, \
-						0, SWAP_BIAS_FETCH, MPI_COMM_WORLD, &status);
+*/			/*
+			   if((batchIdx + 1) % logistic->nFetch == 0){
+			   MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_AVGOUT_FETCH, \
+			   MPI_COMM_WORLD);
+			   MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_BIAS_FETCH, \
+			   MPI_COMM_WORLD);
+			   MPI_Recv(avgOut->getDevData(), avgOutLen, MPI_FLOAT, 0, \
+			   SWAP_AVGOUT_FETCH, MPI_COMM_WORLD, &status);
+			   MPI_Recv(outBiases->getDevData(), outBiasLen, MPI_FLOAT, \
+			   0, SWAP_BIAS_FETCH, MPI_COMM_WORLD, &status);
 			//	MPI_Irecv(avgOut->getDevData(), avgOutLen, MPI_FLOAT, 0, \
-						SWAP_AVGOUT_FETCH, MPI_COMM_WORLD, &reqs[0]);
+			SWAP_AVGOUT_FETCH, MPI_COMM_WORLD, &reqs[0]);
 			//	MPI_Irecv(outBiases->getDevData(), outBiasLen, MPI_FLOAT, \
-						0, SWAP_BIAS_FETCH, MPI_COMM_WORLD, &reqs[1]);
+			0, SWAP_BIAS_FETCH, MPI_COMM_WORLD, &reqs[1]);
 			//	MPI_Waitall(2, reqs, status);
 			}*/
 		}
-//			if(rank == 1){
-//			cout << "epochIdx: " << epochIdx << ",error: " \
-//			<< (float)error*2/logistic->trainNum << endl;
-//			<< ",likelihood: "<< loglihood<< endl;
-//		}
+		//			if(rank == 1){
+		//			cout << "epochIdx: " << epochIdx << ",error: " \
+		//			<< (float)error*2/logistic->trainNum << endl;
+		//			<< ",likelihood: "<< loglihood<< endl;
+		//		}
 	}
 
 
-/*		int errorValid = 0;
-		float loglihoodValid = 0;
-		for(int validIdx = 0; validIdx < logistic->numValidBatches; validIdx++){
+	/*		int errorValid = 0;
+			float loglihoodValid = 0;
+			for(int validIdx = 0; validIdx < logistic->numValidBatches; validIdx++){
 			MPI_Irecv(nvValidData->getDevData(), miniDataLen, \
-					MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &req);
+			MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &req);
 			MPI_Wait(&req,&status);
 			MPI_Irecv(nvValidLabel->getDevData(), miniLabelLen, \
-					MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &req);
+			MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &req);
 			MPI_Wait(&req,&status);
 
 			layer1.computeLogistic(nvValidData, nvValidLabel, false);
 			loglihoodValid += layer1.computeError(nvValidLabel, \
-					errorValid);
+			errorValid);
 
-		}
-		int totalValid;
-		MPI_Reduce(&errorValid, &totalValid, 1, MPI_INT, MPI_SUM, \
-				0, MPI_COMM_WORLD);
-*/
+			}
+			int totalValid;
+			MPI_Reduce(&errorValid, &totalValid, 1, MPI_INT, MPI_SUM, \
+			0, MPI_COMM_WORLD);
+	 */
 	delete nvTrainData;
 	delete nvTrainLabel;
 	delete nvValidData;
@@ -415,8 +407,8 @@ void workerNode(pars* logistic){
 
 int main(int argc, char** argv){
 
-	int rank;
-	int numProcess;
+	//	int rank;
+	//	int numProcess;
 
 	int prov;
 	MPI_Init_thread(&argc,&argv,MPI_THREAD_MULTIPLE, &prov);
