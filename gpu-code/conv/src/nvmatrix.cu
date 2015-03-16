@@ -179,6 +179,11 @@ bool NVMatrix::resize(const Matrix* like) {
 	return r;
 }
 
+float* NVMatrix::slice(float* &out, int rowStart){
+	out = _devData + rowStart * _numCols;
+	return out;
+}
+
 void NVMatrix::checkBounds(int startRow, int endRow, int startCol, \
 		int endCol) const {
 	assert(startRow >= 0 && startRow <= _numRows);

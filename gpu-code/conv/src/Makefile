@@ -21,6 +21,7 @@ testMultiGpu: $(OBJS) testMultiGpu.cu
 	$(NVCC) -o testMultiGpu testMultiGpu.o $(OBJS) $(LIB)
 #   scp testMultiGpu root@gpu-server1:/home/conv/src2
 #	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter valgrind --leak-check=full ./testMultiGpu
+#mpirun_rsh -np 3 -hostfile hostfile MV2_ENABLE_AFFINITY=0 ./testMultiGpu
 
 matrix.o: matrix.cpp
 	$(CC) $(CCFLAGS) $^ $(INCLUDES) 
@@ -36,6 +37,11 @@ convnet.o: convnet.cu
 	 
 convnet_kernel.o: convnet_kernel.cu
 	$(NVCC) $(NVCCFLAGS) $^ $(INCLUDES)
+
+testGpu2Pro: $(OBJS) testGpu2Pro.cu
+	$(NVCC) $(NVCCFLAGS) testGpu2Pro.cu $(INCLUDES)
+	$(NVCC) -o testGpu2Pro testGpu2Pro.o $(OBJS) $(LIB)
+	mpirun_rsh -np 2 -hostfile hostfile MV2_ENABLE_AFFINITY=0 ./testGpu2Pro
 
 testGpuSuccess1: $(OBJS) testGpuSuccess1.cu
 	$(NVCC) $(NVCCFLAGS) testGpuSuccess1.cu $(INCLUDES)
