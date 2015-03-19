@@ -12,6 +12,7 @@
 #include "convnet.cuh"
 #include "convnet_kernel.cuh"
 #include "utils.h"
+#include "logistic.cuh"
 
 using namespace std;
 
@@ -92,7 +93,8 @@ int main(){
 //	readPars(hAvgout, "hAvgout_t1.bin");
 //	readPars(hOutBiases, "hOutBiases_t1.bin");
 
-	ConvNet layer1(hHidVis, hAvgout, hHidBiases, hOutBiases, logistic);
+	//ConvNet layer1(hHidVis, hAvgout, hHidBiases, hOutBiases, logistic);
+	Logistic layer1(hAvgout, hOutBiases, logistic);
 	layer1.initCuda();
 
 	double loglihood = 0;
@@ -112,9 +114,14 @@ int main(){
 			
 			int error = 0;
 			//Forward pass
-			layer1.computeLogistic(miniTrainData, miniTrainLabel, true);
+			
+			layer1.computeClassOutputs(miniTrainData);
+            layer1.computeDerivs(miniTrainData, miniTrainLabel);
+            layer1.updatePars();
+            layer1.computeError(miniTrainLabel, error);
+	//		layer1.computeLogistic(miniTrainData, miniTrainLabel, true);
 
-			loglihood = layer1.computeError(miniTrainLabel, error);
+	//		loglihood = layer1.computeError(miniTrainLabel, error);
 			miniTrainData->changePtr(logistic->minibatchSize * logistic->inSize * logistic->inSize);
 			miniTrainLabel->changePtr(logistic->minibatchSize);
 
@@ -125,9 +132,11 @@ int main(){
 				float loglihoodValid = 0;
 				for(int validIdx = 0; validIdx < logistic->validNum / logistic->minibatchSize; validIdx++){
 
-					layer1.computeLogistic(miniValidData, miniValidLabel, false);
-					loglihoodValid = layer1.computeError(miniValidLabel, errorValid);
-					
+	//				layer1.computeLogistic(miniValidData, miniValidLabel, false);
+	//				loglihoodValid = layer1.computeError(miniValidLabel, errorValid)		
+					layer1.computeClassOutputs(miniValidData);
+                    layer1.computeError(miniValidLabel, errorValid);
+
 					miniValidData->changePtr(logistic->minibatchSize * logistic->inSize * logistic->inSize);
 					miniValidLabel->changePtr(logistic->minibatchSize);
 				}

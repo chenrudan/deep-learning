@@ -23,6 +23,7 @@ typedef struct Pars{
     int filterSize;
     int numFilters;
     int numOut;
+	int convResultSize;
     int trainNum;
     int validNum;
     int minibatchSize;

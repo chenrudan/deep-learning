@@ -1,5 +1,5 @@
 /*
- * filename:testMultiGpu.cu
+ * filename:testgpu4.cu
  */
 
 #include <iostream>
@@ -13,6 +13,8 @@
 #include "nvmatrix.cuh"
 #include "convnet.cuh"
 #include "convnet_kernel.cuh"
+#include "logistic.cuh"
+#include "logistic_kernel.cuh"
 
 using namespace std;
 
@@ -99,9 +101,6 @@ void createAndRun(pthread_t* tid, pThreadControlMSG tMSG, float* data, \
 void managerNode(pars* logistic){
 
 	int inSqrt = logistic->inSize * logistic->inSize;
-	int hidVisLen = logistic->numFilters * logistic->filterSize \
-					* logistic->filterSize;
-	//	int hidBiasLen = numFilters;
 	int avgOutLen = inSqrt * logistic->numOut;
 	int outBiasLen = logistic->numOut;
 
@@ -110,19 +109,19 @@ void managerNode(pars* logistic){
 	int proValidDataLen = logistic->validNum * inSqrt / (numProcess - 1);
 	int proValidLabelLen = logistic->validNum / (numProcess - 1);
 
-	NVMatrix* nvTrainData = new NVMatrix(logistic->trainNum, inSqrt);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	NVMatrix* nvValidData = new NVMatrix(logistic->validNum, inSqrt);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	NVMatrix* nvTrainLabel = new NVMatrix(logistic->trainNum, 1);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	NVMatrix* nvValidLabel = new NVMatrix(logistic->validNum, 1);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* nvTrainData = new NVMatrix(logistic->trainNum, inSqrt,  
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* nvValidData = new NVMatrix(logistic->validNum, inSqrt, \
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* nvTrainLabel = new NVMatrix(logistic->trainNum, 1, \
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* nvValidLabel = new NVMatrix(logistic->validNum, 1, \
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
-	NVMatrix* avgOut = new NVMatrix(inSqrt, logistic->numOut);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	NVMatrix* outBiases = new NVMatrix(1, logistic->numOut);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* avgOut = new NVMatrix(inSqrt, logistic->numOut, \
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* outBiases = new NVMatrix(1, logistic->numOut, \
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
 	cout << "=========================\n" \
 		<< "train: " << logistic->trainNum \
@@ -143,15 +142,10 @@ void managerNode(pars* logistic){
 	readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false);
 	readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false);
 
-	Matrix* hHidVis = new Matrix(logistic->numFilters, logistic->filterSize \
-			* logistic->filterSize);
-	Matrix* hHidBiases = new Matrix(logistic->numFilters, 1);
 	Matrix* hAvgout = new Matrix(inSqrt, logistic->numOut);
 	Matrix* hOutBiases = new Matrix(1, logistic->numOut);
 
 	//0号进程初始化参数，进行分发
-	initW(hHidVis->getData(), hidVisLen);
-	memset(hHidBiases->getData(), 0, sizeof(float) * logistic->numFilters);
 	memset(hAvgout->getData(), 0, sizeof(float) * avgOutLen);
 	memset(hOutBiases->getData(), 0, sizeof(float) * logistic->numOut);
 	//	readPars(hHidVis, "hHidVis_t1.bin");
@@ -209,8 +203,6 @@ void managerNode(pars* logistic){
 	delete avgOut;
 	delete outBiases;
 
-	delete hHidVis;
-	delete hHidBiases;
 	delete hAvgout;
 	delete hOutBiases;
 
@@ -237,15 +229,13 @@ void workerNode(pars* logistic){
 	NVMatrix* outBiases;
 
 	NVMatrix* nvTrainData = new NVMatrix(logistic->trainNum / (numProcess - 1), \
-			inSqrt);
-//			inSqrt, NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+			inSqrt, NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 	NVMatrix* nvValidData = new NVMatrix(logistic->validNum / (numProcess - 1), \
-			inSqrt);
-//			inSqrt, NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	NVMatrix* nvTrainLabel = new NVMatrix(logistic->trainNum / (numProcess - 1), 1);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	NVMatrix* nvValidLabel = new NVMatrix(logistic->validNum / (numProcess - 1), 1);
-//			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+			inSqrt, NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* nvTrainLabel = new NVMatrix(logistic->trainNum / (numProcess - 1), 1, \
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	NVMatrix* nvValidLabel = new NVMatrix(logistic->validNum / (numProcess - 1), 1, \
+			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
 	NVMatrix* miniData = new NVMatrix(nvTrainData->getDevData(), \
 			logistic->minibatchSize, inSqrt);
@@ -261,7 +251,7 @@ void workerNode(pars* logistic){
 	MPI_Bcast(hAvgout->getData(), avgOutLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hOutBiases->getData(), outBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-	ConvNet layer1(hHidVis, hAvgout, hHidBiases, hOutBiases, logistic);
+	Logistic layer1(hAvgout, hOutBiases, logistic);
 	layer1.initCuda();
 	//	double loglihood = 0;
 
@@ -291,18 +281,22 @@ void workerNode(pars* logistic){
 									miniDataLen * batchIdx);
 			miniLabel->changePtrFromStart(nvTrainLabel->getDevData(), \
 									miniLabelLen * batchIdx);
-			
-			layer1.computeLogistic(miniData, miniLabel, true);
+		
+			layer1.computeClassOutputs(miniData);	
+			layer1.computeDerivs(miniData, miniLabel);
+			layer1.updatePars();
 			layer1.computeError(miniLabel, error);
 
 			avgOut = layer1.getAvgOut();
 			outBiases = layer1.getOutBias();
 
 			if((batchIdx + 1) % logistic->nPush == 0){
-				if(epochIdx == logistic->numEpoches - 1 \
-						&& ((batchIdx + logistic->nPush) > logistic->numMinibatches))
+				if(epochIdx == logistic->numEpoches - 1){
+					if((batchIdx + logistic->nPush) >= logistic->numMinibatches \
+						|| batchIdx == logistic->numMinibatches - 1)
 					passMsg = THREAD_END;
-				else
+				}
+				else 
 					passMsg = batchIdx;
 				MPI_Send(&passMsg, 1, MPI_INT, 0, \
 						SWAP_AVGOUT_PUSH*100, \
@@ -329,10 +323,12 @@ void workerNode(pars* logistic){
 			}
 
 			if((batchIdx + 1) % logistic->nFetch == 0){
-				if((epochIdx == logistic->numEpoches - 1) && \
-						((batchIdx + logistic->nFetch) > logistic->numMinibatches)){
+				if(epochIdx == logistic->numEpoches - 1){
+					if((batchIdx + logistic->nFetch) >= logistic->numMinibatches \
+						|| batchIdx == logistic->numMinibatches - 1)
 					passMsg = THREAD_END;
-				}else
+				}
+				else
 					passMsg = batchIdx;
 				MPI_Send(&passMsg, 1, MPI_INT, 0, \
 						SWAP_AVGOUT_FETCH*100, \
@@ -359,9 +355,11 @@ void workerNode(pars* logistic){
 					miniLabel->changePtrFromStart(nvValidLabel->getDevData(), \
 									miniLabelLen * validIdx);
 
-					layer1.computeLogistic(miniData, miniLabel, false);
-					loglihoodValid += layer1.computeError(miniLabel, \
-							errorValid);
+					layer1.computeClassOutputs(miniData);
+					
+	
+					loglihoodValid += layer1.computeError(miniLabel, errorValid);
+
 				}
 				int totalValid = errorValid;
 				if(numProcess > 2){
@@ -376,12 +374,11 @@ void workerNode(pars* logistic){
 				}
 				if(rank == 1)
 					cout << "epochIdx: " << epochIdx << ",error: " \
-						<< (float)totalValid/logistic->validNum << endl;
-					//					<< ",likelihood: "<< loglihood<< endl;
-			}
+						<< (float)totalValid/logistic->validNum \
+										<< ",likelihood: "<< loglihoodValid<< endl;
+	 		}
 		}
-//					cout << "epochIdx: " << epochIdx << ",error: " \
-						<< (float)error*(numProcess-1)/logistic->trainNum << endl;
+
 
 	}
 
@@ -415,17 +412,12 @@ int main(int argc, char** argv){
 
 	pars* logistic = new pars;
 
-	logistic->epsHidVis = 0.001;
-	logistic->epsHidBias = 0.001;
 	logistic->epsAvgOut = 0.13;
 	logistic->epsOutBias = 0.13;
 	logistic->mom = 0;
-	logistic->wcHidVis = 0;
 	logistic->wcAvgOut = 0;
 	logistic->inSize = 28;
 	logistic->inChannel = 1;
-	logistic->filterSize = 5;
-	logistic->numFilters = 16;
 	logistic->numOut = 10;
 	logistic->trainNum = 50000;
 	logistic->validNum = 10000;
@@ -434,8 +426,8 @@ int main(int argc, char** argv){
 			* (numProcess - 1));
 	logistic->numValidBatches = logistic->validNum / (logistic->minibatchSize \
 			* (numProcess - 1));
-	logistic->numEpoches = 200; 
-	logistic->nPush = 3;
+	logistic->numEpoches = 100; 
+	logistic->nPush = 2;
 	logistic->nFetch = 4;
 	
 

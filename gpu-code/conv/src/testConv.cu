@@ -3,109 +3,216 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <time.h>
+#include <cmath>
 
 #include "matrix.h"
 #include "nvmatrix.cuh"
 #include "convnet.cuh"
 #include "convnet_kernel.cuh"
+#include "utils.h"
+#include "logistic.cuh"
 
 using namespace std;
 
+int numProcess;
+int rank;
+
+
 int main(){
-	
-	float epsHidVis = 0.1;
-	float epsHidBias = 0.1;
-	float epsAvgOut = 0.1;
-	float epsOutBias = 0.1;
-	float mom = 0.005;
-	float wcHidVis = 0.001;
-	float wcAvgOut = 0.001;
-	
-	int inSize = 28;
-	int filterSize = 5;
-	int numFilters = 16;
-	int numOut = 10;
-	int inNum = 16;
-	int minibatchSize = 16;
-	int numMinibatches = inNum / minibatchSize;
-	int inChannel = 1;
+/*
+	int prov;
+    MPI_Init_thread(&argc,&argv,MPI_THREAD_MULTIPLE, &prov);
+    if (prov < MPI_THREAD_MULTIPLE)
+    {   
+        printf("Error: the MPI library doesn't provide the required thread level\n");
+        MPI_Abort(MPI_COMM_WORLD, 0); 
+    }   
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&numProcess);
 
-	float *data = new float[minibatchSize * inSize * inSize];
-	float *label = new float[minibatchSize];
-	float *weightHI = new float[numFilters * filterSize * filterSize];
-	float *biasHI = new float[numFilters];
-	float *weightPO = new float[numFilters * POOL_FORWARD_SIZE \
-					  * POOL_FORWARD_SIZE * numOut];
-	float *biasPO = new float[numOut];
-	
-	for(int i = 0; i < minibatchSize; i++){
-		for(int j = 0; j < inSize; j++){
-			for(int k = 0; k < inSize; k++){
-				data[i * inSize * inSize + j * inSize + k] = 1;
-			}
-		}
-		label[i] = 1;
-	}
-	cout << "done1\n";
-	for(int i = 0; i < numFilters; i++){
-		for(int j = 0; j < filterSize * filterSize; j++){
-			weightHI[i *filterSize * filterSize + j] = 1;
-		}
-		biasHI[i] = 1;
-	}
-	cout << "done2\n";
-	int lenPO = numFilters*POOL_FORWARD_SIZE*POOL_FORWARD_SIZE;;
-	for(int i=0; i<lenPO; i++){
-		for(int j = 0; j < numOut; j++){
-			weightPO[i * numOut + j] = 1;
-		//	cout << weightPO[i * numOut + j] << " ";
-			biasPO[j] = 1;
-		}
-		//cout << endl;
-	}
-	cout << "done3\n";
-	
-	Matrix* inData = new Matrix(data, minibatchSize, inSize * inSize);
-	NVMatrix* nvData = new NVMatrix(*inData, true);
-	Matrix* inLabel = new Matrix(label, minibatchSize, 1);
-	NVMatrix* nvLabel = new NVMatrix(*inLabel, true);
+    //检测有几个gpu
+    int numGpus;
+    cudaGetDeviceCount(&numGpus);
+    cudaSetDevice(rank%numGpus);
+*/	
+	pars* cnn = new pars;
+	pars* logistic = new pars;
 
-	Matrix* hHidVis = new Matrix(weightHI, numFilters, filterSize * filterSize);
-	Matrix* hHidBiases = new Matrix(biasHI, numFilters, 1);
-	Matrix* hAvgout = new Matrix(weightPO, lenPO, numOut);
-	Matrix* hOutBiases = new Matrix(biasPO, 1, numOut);
+    cnn->epsHidVis = 0.1;
+   	cnn->epsHidBias = 0.1;
+    cnn->mom = 0;
+    cnn->wcHidVis = 0;
+    cnn->inSize = 28; 
+    cnn->inChannel = 1;
+    cnn->filterSize = 5;
+    cnn->numFilters = 16; 
+    cnn->trainNum = 50000;
+    cnn->validNum = 10000;
+    cnn->minibatchSize = 1000;
+    cnn->numMinibatches = cnn->trainNum / cnn->minibatchSize;
+    cnn->numValidBatches = cnn->validNum / cnn->minibatchSize;
+    cnn->numEpoches = 20; 
+    cnn->nPush = 1;
+    cnn->nFetch = 1;
 
+    logistic->wcAvgOut = 0;
+    logistic->epsAvgOut = 0.1;
+    logistic->epsOutBias = 0.1;
+    logistic->mom = 0;
+    logistic->numOut = 10; 
+	logistic->minibatchSize = 1000;
 
-	ConvNet train(hHidVis, hAvgout, hHidBiases, hOutBiases, epsHidVis, epsAvgOut, \
-			epsHidBias, epsOutBias, mom, wcHidVis, wcAvgOut, minibatchSize, \
-			inSize, filterSize, inChannel, numFilters);
-	cout << "done4\n";
+/*
+	if(rank == 0){ 
+        managerNode(cnn);
+    }   
+    else{
+        workerNode(cnn);
+    } 	
+*/
 
 	clock_t t;
 	t = clock();
+
+	cout << "=========================\n" \
+		 << "train: " << cnn->trainNum \
+		 << "\nvalid: " << cnn->validNum \
+		 << "\nfiltersize: " << cnn->filterSize \
+		 << "\nnumFilters: " << cnn->numFilters \
+		 << "\nepsHidVis: " << cnn->epsHidVis \
+		 << "\nepsHidBias: " << cnn->epsHidBias \
+		 << "\nepsAvgOut: " << cnn->epsAvgOut \
+		 << "\nepsOutBias: " << cnn->epsOutBias \
+		 << "\nmom: " << cnn->mom \
+		 << "\nwcHidVis: " << cnn->wcHidVis \
+		 << "\nwcAvgOut: " << cnn->wcAvgOut << endl;
+	
+	NVMatrix* nvTrainData = new NVMatrix(cnn->trainNum, cnn->inSize * cnn->inSize);
+	NVMatrix* nvValidData = new NVMatrix(cnn->validNum, cnn->inSize * cnn->inSize);
+	NVMatrix* nvTrainLabel = new NVMatrix(cnn->trainNum, 1);
+	NVMatrix* nvValidLabel = new NVMatrix(cnn->validNum, 1);
+
+	readData(nvTrainData, "../data/input/mnist_train.bin", true);
+	readData(nvValidData, "../data/input/mnist_valid.bin", true);
+	readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false);
+	readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false);
+	
+	float* trainDataPtr = nvTrainData->getDevData();
+	float* trainLabelPtr = nvTrainLabel->getDevData();
+	float* validDataPtr = nvValidData->getDevData();
+	float* validLabelPtr = nvValidLabel->getDevData();
+
+	NVMatrix* miniTrainData = new NVMatrix(cnn->minibatchSize, cnn->inSize * cnn->inSize);
+	NVMatrix* miniTrainLabel = new NVMatrix(cnn->minibatchSize, 1);
+	NVMatrix* miniValidData = new NVMatrix(cnn->minibatchSize, cnn->inSize * cnn->inSize);
+	NVMatrix* miniValidLabel = new NVMatrix(cnn->minibatchSize, 1);
+
+
+	int lenPO = cnn->numFilters * POOL_FORWARD_SIZE * POOL_FORWARD_SIZE;
+	Matrix* hHidVis = new Matrix(cnn->numFilters, cnn->filterSize * cnn->filterSize);
+	Matrix* hHidBiases = new Matrix(cnn->numFilters, 1);
+	Matrix* hAvgout = new Matrix(lenPO, logistic->numOut);
+	Matrix* hOutBiases = new Matrix(1, logistic->numOut);
+
+	initW(hHidVis->getData(), cnn->numFilters * cnn->filterSize * cnn->filterSize);
+	memset(hHidBiases->getData(), 0, sizeof(float) * cnn->numFilters);
+	memset(hAvgout->getData(), 0, sizeof(float) * lenPO * logistic->numOut);
+	memset(hOutBiases->getData(), 0, sizeof(float) * logistic->numOut);
+	
+//	readPars(hHidVis, "hHidVis_t1.bin");
+//	readPars(hHidBiases, "hHidBiases_t1.bin");
+//	readPars(hAvgout, "hAvgout_t1.bin");
+//	readPars(hOutBiases, "hOutBiases_t1.bin");
+
+	ConvNet layer1(hHidVis, hHidBiases, cnn);
+	layer1.initCuda();
+	Logistic layer2(hAvgout, hOutBiases, logistic);
+	layer2.initCuda();
+
+	NVMatrix* avgOut;
+	NVMatrix* dE_dy_j;
+	NVMatrix* y_i;
+
 	double loglihood = 0;
 	int numError = 0;
 
-	for(int i = 0; i < numMinibatches; i++){
-		//读取数据
-		/*
-		 * Forward pass
-		 */
-		train.initCuda();
-		train.computeConvOutputs(nvData);
-		train.computeAvgOutputs();
-		train.computeClassOutputs();
-		loglihood = train.computeError(inLabel, numError);
-		train.computeDerivs(nvData, nvLabel);
-		train.updatePars();
+	for(int epochIdx = 0; epochIdx < cnn->numEpoches; epochIdx++){
+		miniTrainData->setPtr(trainDataPtr);
+		miniTrainLabel->setPtr(trainLabelPtr);
+		miniValidData->setPtr(validDataPtr);
+		miniValidLabel->setPtr(validLabelPtr);
+		for(int batchIdx = 0; batchIdx < cnn->numMinibatches; batchIdx++){
+			//读取数据
+			int error = 0;
+			//Forward pass
+			layer1.computeConvOutputs(miniTrainData);
+			layer1.computeMaxOutputs();
+			y_i = layer1.getYI();
+			layer2.computeClassOutputs(y_i);
+			loglihood = layer2.computeError(miniTrainLabel, error);
+			dE_dy_j = layer2.getDEDYJ();
+			avgOut = layer2.getAvgOut();
+			layer2.computeDerivs(y_i, miniTrainLabel);
+			layer1.computeDerivs(miniTrainData, dE_dy_j, avgOut);
+			layer1.updatePars();
+			layer2.updatePars();
+			
+			miniTrainData->changePtr(cnn->minibatchSize * cnn->inSize * cnn->inSize * cnn->inChannel);
+			miniTrainLabel->changePtr(cnn->minibatchSize);
+			numError += error;
+			if(batchIdx == cnn->numMinibatches - 1){
+				int errorValid = 0;
+				float loglihoodValid = 0;
+				for(int validIdx = 0; validIdx < cnn->validNum / cnn->minibatchSize; \
+							validIdx++){
 
-	cout << "done5\n";
-		
+					layer1.computeConvOutputs(miniValidData);
+					layer1.computeMaxOutputs();
+					y_i = layer1.getYI();
+					layer2.computeClassOutputs(y_i);
+					loglihoodValid = layer2.computeError(miniValidLabel, errorValid);
+					
+					miniValidData->changePtr(cnn->minibatchSize * cnn->inSize * cnn->inSize * cnn->inChannel);
+					miniValidLabel->changePtr(cnn->minibatchSize);
+			}
+		//	layer1.transfarLowerAvgOut();
+			cout << "--------valid for epoch "<< epochIdx << "--------\n";
+			cout << "epoch: " << epochIdx \
+				<< ",error rate: " << (float)errorValid/cnn->validNum  \
+				<< ",negitive likelihood: " << loglihoodValid/cnn->validNum << endl;
+			}
+		}
+		t = clock() - t;
+		cout << "epoch: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
+		t = clock();
 	}
-	cout << "error rate: " << (float)numError / inNum << endl;
-	t = clock() - t;
-	cout << "This train uses " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
 
+//	savePars(hHidVis, "../data/pars/hHidVis_t1.bin");
+//	savePars(hHidBiases, "../data/pars/hHidBiases_t1.bin");
+//	savePars(hAvgout, "../data/pars/hAvgout_t1.bin");
+//	savePars(hOutBiases, "../data/pars/hOutBiases_t1.bin");
+	
+	delete nvTrainData;
+	delete nvTrainLabel;
+	delete nvValidData;
+	delete nvValidLabel;
+	delete miniTrainData;
+	delete miniTrainLabel;
+	delete miniValidData;
+	delete miniValidLabel;
+
+	delete cnn;
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+

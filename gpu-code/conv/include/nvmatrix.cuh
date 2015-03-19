@@ -65,6 +65,9 @@ public:
 	inline void changePtr(const int add) {
 		_devData = _devData + add;
 	}
+	inline void changePtrFromStart(float* start, const int add) {
+		_devData = start + add;
+	}
 	inline void setPtr(float* start) {
 		_devData = start;
 	}
@@ -82,6 +85,7 @@ public:
 	bool resize(int numRows, int numCols);                                  
 	bool resize(const NVMatrix* like);
 	bool resize(const Matrix* like);
+	float* slice(float* &out, int rowStart);
 
 	void checkBounds(int startRow, int endRow, int startCol, int endCol) const;
 	NVMatrix* getTranspose();
