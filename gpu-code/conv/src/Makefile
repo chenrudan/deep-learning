@@ -3,9 +3,9 @@ CC = g++
 NVCC = nvcc
 MPICXX = mpicxx
 CCFLAGS = -c
-NVCCFLAGS = -g -O3 -c 
+NVCCFLAGS = -g -O3 -c -Xcompiler -fopenmp
 
-LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich
+LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp 
 INCLUDES = -I../include
 
 #CUFILES = $(shell find . -name "*.cu")
@@ -51,6 +51,7 @@ logistic_kernel.o: logistic_kernel.cu
 main: $(OBJS) main.cu
 	$(NVCC) $(NVCCFLAGS) main.cu $(INCLUDES)
 	$(NVCC) -o main main.o $(OBJS) $(LIB)
+
 	
 testGpuSuccess4: $(OBJS) testGpuSuccess4.cu
 	$(NVCC) $(NVCCFLAGS) testGpuSuccess4.cu $(INCLUDES)
@@ -75,4 +76,4 @@ testpy:
 	THEANO_FLAGS='blas.ldflags=' python logistic_sgd.py 
 
 cleanall:
-	rm -rf *.o main test nohup.out testLogistic testMultiGpu
+	rm -rf *.o 

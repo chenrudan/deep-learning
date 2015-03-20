@@ -26,8 +26,6 @@ Logistic::Logistic(Matrix* hAvgOut, Matrix* hOutBiases, pars* netWork){
 	this->_wcAvgOut              = netWork->wcAvgOut;
 
 	this->_minibatchSize         = netWork->minibatchSize;
-	this->_inSize                = netWork->inSize;
-	this->_inChannel             = netWork->inChannel;
 
 	cublasCreate(&handle);
 }
@@ -81,7 +79,6 @@ double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
 	Matrix* y_j_CPU = new Matrix(_y_j->getNumRows(), _y_j->getNumCols());
 	_y_j->copyToHost(y_j_CPU);
 	Matrix* correctProbs = new Matrix(_y_j->getNumRows(), 1);
-
 	NVMatrix* maxPosOfOutGpu = new NVMatrix(_y_j->getNumRows(), 1);
 	_y_j->maxPosInRow(maxPosOfOutGpu);
 	Matrix* maxPosCpu = new Matrix(_y_j->getNumRows(), 1);
@@ -128,7 +125,7 @@ void Logistic::updatePars(){
 			-_epsAvgOut / _minibatchSize);
 	_avgOut->add(_avgOutInc, 1, 1);
 
-	_outBiasInc->add(_dE_db_j, _mom, -_epsHidBias / _minibatchSize);
+	_outBiasInc->add(_dE_db_j, _mom, -_epsOutBias / _minibatchSize);
 	_outBiases->add(_outBiasInc, 1, 1);
 }
 
