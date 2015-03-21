@@ -58,10 +58,8 @@ void ConvNet::initCuda() {
 	//NVMatrix::initDeviceProps();
 
 	//hidVis大小是16*5*5,bias是5*5
-	this->_hidVis            = new NVMatrix(_hHidVis, true, \
-											NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_hidBiases         = new NVMatrix(_hHidBiases, true, \
-											NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	this->_hidVis            = new NVMatrix(_hHidVis, true);
+	this->_hidBiases         = new NVMatrix(_hHidBiases, true);
 
 	this->_y_h               = new NVMatrix(_minibatchSize, \
 			_numFilters * _convResultSize * _convResultSize);
@@ -93,13 +91,24 @@ void ConvNet::computeConvOutputs(NVMatrix* miniData){
 	//16*16
 	dim3 blocks = dim3(_minibatchSize, _numFilters);
 	//28*5，此处需要改变，低效
-	dim3 threads = dim3(_convResultSize, _convResultSize);
-	int filConvtimes = _filterSize / _convResultSize;
-	int imgConvtimes = _inSize / _convResultSize;
+
+	dim3 threads = dim3(32, \
+						32, _inChannel);
+//	dim3 threads = dim3(_convResultSize, _convResultSize);
+
+    int filConvtimes = _filterSize / _convResultSize;
+    int imgConvtimes = _inSize / _convResultSize;
+
+	miniData->reValue(1.0f);
+	_hidVis->reValue(1.0f);
+	_y_h->reValue(0.0f);
 	convolution_forward<<<blocks, threads>>>(miniData->getDevData(), \
 			_hidVis->getDevData(), _hidBiases->getDevData(), _y_h->getDevData(), \
 			filConvtimes, imgConvtimes);
 	cudaThreadSynchronize();
+//	miniData->showValue("minidata");
+//	_hidVis->showValue("hidvis");
+	_y_h->showValue("yh");
 	//	cutilCheckMsg("Kernel execution failed");
 }
 

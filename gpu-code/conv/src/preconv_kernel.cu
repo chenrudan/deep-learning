@@ -21,47 +21,34 @@ __device__ float logistic(float x) {
 __global__ void convolution_forward(const float* imgs, const float* filters, \
 		const float* biases, float* targets, const int filConvtimes, \
 		const int imgConvtimes) {
-	int imgPixs = IMG_SIZE * IMG_SIZE * IMG_CHANNEL;
+	int imgPixs = IMG_SIZE * IMG_SIZE;
 	int filPixs = FILTER_SIZE * FILTER_SIZE;
 	int convPixs = CONV_FORWARD_SIZE * CONV_FORWARD_SIZE;
+	//一个block计算一张图与一个featuremap的卷积，开辟了28个线程，每个线程算28个值
+	//放在shared memory里面的数据，featuremap的参数是要共享的
 	
-	//block有三维，一个block计算一张图与一个featuremap的卷积
-	//每一个thread计算一个点的值，然后再用atcomic加为一个点
-	//thread大小是convOur*filtersize，24*5
-
-	__shared__ float shConv[CONV_FORWARD_SIZE][CONV_FORWARD_SIZE];	
-/*
-	__shared__ float shImg[IMG_CHANNEL][IMG_SIZE][IMG_SIZE];
+//	__shared__ struct conv tmp;
+//	__device__ float* value = new float[filPixs];
+//	tmp.data = value;
+	__shared__ float shImg[IMG_SIZE][IMG_SIZE];
 	__shared__ float shFilter[FILTER_SIZE][FILTER_SIZE];
 	__shared__ float shBias;
 
-	//shBias赋值
-	if(threadIdx.x + threadIdx.y == 0) {
-		shBias = biases[filtIdx];
-	}
-*/
 	const int imgIdx = blockIdx.x;
 	const int filtIdx = blockIdx.y;
 	const int numFilters = gridDim.y;
+
+	//只是给shBias找个机会赋值而已
+	if(threadIdx.x + threadIdx.y == 0) {
+		shBias = biases[filtIdx];
+	}
 	
-//	const int convRow = threadIdx.x / FILTER_SIZE;
-//	const int convCol = threadIdx.y / FILTER_SIZE;
-	const int convRow = 1;
-	const int convCol = 1;
-	const int filtRow = threadIdx.x % FILTER_SIZE;
-	const int filtCol = threadIdx.y % FILTER_SIZE;
 	//为了得到需要计算的image和filter和target的数据起始点
 	imgs += imgIdx * imgPixs;
 	filters += filtIdx * filPixs;
 	targets += imgIdx * numFilters * convPixs + filtIdx * convPixs \
-		//		+ threadIdx.x * CONV_FORWARD_SIZE + threadIdx.y;
-			   + convRow * CONV_FORWARD_SIZE \
-				+ convCol;
-	const int myImgPos =  IMG_SIZE * IMG_SIZE * threadIdx.z \
-							+ (convRow + filtRow) * IMG_SIZE + (convCol + filtCol);  
-	const int myFiltPos = filtRow * FILTER_SIZE + filtCol;
+			   + threadIdx.y * CONV_FORWARD_SIZE + threadIdx.x;
 
-/*
 	//多线程复制数据到sm里面
 	for(int i = 0; i < imgConvtimes + 1; i++){
 		for(int j = 0; j < imgConvtimes + 1; j++){
@@ -83,25 +70,20 @@ __global__ void convolution_forward(const float* imgs, const float* filters, \
 	}
 
 	__syncthreads();
+
 	float *myShImg = &shImg[0][0];
 	myShImg += threadIdx.y * IMG_SIZE + threadIdx.x;
-*/
-/*
-	//先不考虑用shared memory
-	if(threadIdx.y / FILTER_SIZE == 0 && threadIdx.x / FILTER_SIZE == 0)
-		targets[0] = biases[filtIdx];
+	float prod = shBias;
 
-	float prod = imgs[myImgPos] * filters[myFiltPos]; 
-	
-	__syncthreads();
-	atomicAdd(&shConv[convRow][convCol], prod);
-	__syncthreads();
-*/
-	//targets[0] = logistic(prod);
-	if((threadIdx.x == 0) && (threadIdx.y == 0)){
-//		targets[0] = shConv[convRow][convCol];
-		targets[0] = 2;
+	for(int i = 0; i < FILTER_SIZE; i++){
+		for(int j = 0; j < FILTER_SIZE; j++){
+			prod += shFilter[i][j] * myShImg[i * IMG_SIZE + j];
+		}
 	}
+	__syncthreads();
+
+	targets[0] = logistic(prod);
+	//targets[0] = prod;
 }
 
 __global__ void avg_pooling(float* convOutputs, float* targets){

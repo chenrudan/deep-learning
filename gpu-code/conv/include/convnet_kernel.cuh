@@ -5,6 +5,7 @@
 #ifndef CONVNET_KERNEL_CUH_
 #define CONVNET_KERNEL_CUH_
 
+#define IMG_CHANNEL			1
 #define IMG_SIZE			28
 #define FILTER_SIZE			5
 #define CONV_FORWARD_SIZE   24

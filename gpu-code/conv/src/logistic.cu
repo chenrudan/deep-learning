@@ -48,10 +48,8 @@ Logistic::~Logistic() {
 
 void Logistic::initCuda() {
 
-	this->_avgOut            = new NVMatrix(_hAvgOut, true, \
-			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_outBiases         = new NVMatrix(_hOutBiases, true, \
-			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	this->_avgOut            = new NVMatrix(_hAvgOut, true);
+	this->_outBiases         = new NVMatrix(_hOutBiases, true);
 
 	this->_y_j               = new NVMatrix(_minibatchSize, _numOut);
 

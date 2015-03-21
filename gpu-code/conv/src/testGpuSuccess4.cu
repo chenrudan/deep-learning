@@ -354,7 +354,6 @@ void workerNode(pars* logistic){
 									miniDataLen * validIdx);
 					miniLabel->changePtrFromStart(nvValidLabel->getDevData(), \
 									miniLabelLen * validIdx);
-
 					layer1.computeClassOutputs(miniData);
 					
 	

@@ -66,7 +66,7 @@ void managerNode(pars* cnn, pars* logistic){
 	readData(nvValidData, "../data/input/mnist_valid.bin", true);
 	readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false);
 	readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false);
-/*
+
 	Matrix* hHidVis = new Matrix(cnn->numFilters, cnn->filterSize * cnn->filterSize);
 	Matrix* hHidBiases = new Matrix(cnn->numFilters, 1);
 	Matrix* hAvgout = new Matrix(avgOutLen / logistic->numOut, logistic->numOut);
@@ -92,13 +92,13 @@ void managerNode(pars* cnn, pars* logistic){
 	MPI_Bcast(hHidBiases->getData(), hidBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hAvgout->getData(), avgOutLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hOutBiases->getData(), outBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
-*/
+
 	float* sendData = new float[proTrainDataLen];
 	for(int i = 0; i < proTrainDataLen; i++){
 		sendData[i] = 1;
 	}
 	for(int i = 1; i < numProcess; i++){
-/*		MPI_Send(nvTrainData->getDevData()+(i-1)*proTrainDataLen, proTrainDataLen, \
+		MPI_Send(nvTrainData->getDevData()+(i-1)*proTrainDataLen, proTrainDataLen, \
 				MPI_FLOAT, i, i, MPI_COMM_WORLD);
 		MPI_Send(nvTrainLabel->getDevData()+(i-1)*proTrainLabelLen, \
 				proTrainLabelLen, MPI_FLOAT, i, i, MPI_COMM_WORLD);
@@ -106,24 +106,9 @@ void managerNode(pars* cnn, pars* logistic){
 				MPI_FLOAT, i, i, MPI_COMM_WORLD);
 		MPI_Send(nvValidLabel->getDevData()+(i-1)*proValidLabelLen, \
 				proValidLabelLen, MPI_FLOAT, i, i, MPI_COMM_WORLD);
-*/
-		MPI_Send(nvTrainData->getDevData(), proTrainDataLen, \
-				MPI_FLOAT, i, i, MPI_COMM_WORLD);
-		MPI_Send(sendData, \
-				proTrainLabelLen, MPI_FLOAT, i, i, MPI_COMM_WORLD);
-		MPI_Send(sendData, proValidDataLen, \
-				MPI_FLOAT, i, i, MPI_COMM_WORLD);
-		MPI_Send(sendData, \
-				proValidLabelLen, MPI_FLOAT, i, i, MPI_COMM_WORLD);
 		
 	}
-cout << "done1\n";
-float* tmp = nvTrainLabel->getDevData();
-for(int i = 0; i < 10; i++){
-	cout << tmp[i]<< " ";
-}	
-cout << endl;
-/*	
+	
 	//pro进程，每个进程进行的数据交换次数，0123是push，4567是fetch
 	//4个数据地址，8个线程来分别实现两种操作
 	const int transOPTimesInPro = 8;
@@ -131,7 +116,6 @@ cout << endl;
 	float* myData[numDataType] = {hidVis->getDevData(), hidBiases->getDevData(), \
 		avgOut->getDevData(), outBiases->getDevData()};
 	int myLen[numDataType] = {hidVisLen, hidBiasLen, avgOutLen, outBiasLen};
-*/
 /*
 	#pragma omp parallel num_threads(transOPTimesInPro * (numProcess - 1)) 
 	{
@@ -144,7 +128,7 @@ cout << endl;
 		int swapId = tid % transOPTimesInPro;
 		int dataAddr = tid % numDataType;
 		
-		cout << "pid" << endl;
+		cout << "tid" << tid<< endl;
 
 		while(myState != THREAD_END){
 			MPI_Recv(&myState, 1, MPI_INT, pid, \
@@ -158,17 +142,21 @@ cout << endl;
 						swapId + myState, MPI_COMM_WORLD);
 			}   
 		}
-	}*/
-
+	}
+*/
 	delete nvTrainData;
 	delete nvTrainLabel;
 	delete nvValidData;
 	delete nvValidLabel;
-/*	delete hHidVis;
+	delete hHidVis;
 	delete hHidBiases;
 	delete hAvgout;
 	delete hOutBiases;
-*/
+	delete hidVis;
+	delete hidBiases;
+	delete avgOut;
+	delete outBiases;
+
 }
 
 void workerNode(pars* cnn, pars* logistic){
@@ -196,7 +184,7 @@ void workerNode(pars* cnn, pars* logistic){
 	NVMatrix* nvValidLabel = new NVMatrix(cnn->validNum / (numProcess - 1), 1, \
 			NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
-/*	NVMatrix* miniData = new NVMatrix(nvTrainData->getDevData(), \
+	NVMatrix* miniData = new NVMatrix(nvTrainData->getDevData(), \
 			cnn->minibatchSize, inLen);
 	NVMatrix* miniLabel = new NVMatrix(nvTrainLabel->getDevData(), \
 			cnn->minibatchSize, 1);
@@ -210,7 +198,8 @@ void workerNode(pars* cnn, pars* logistic){
 	MPI_Bcast(hHidBiases->getData(), hidBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hAvgout->getData(), avgOutLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hOutBiases->getData(), outBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
-*/
+
+
 	MPI_Status status;
 	MPI_Recv(nvTrainData->getDevData(), proTrainDataLen, \
 			MPI_FLOAT, 0, rank, MPI_COMM_WORLD, &status);
@@ -220,7 +209,7 @@ void workerNode(pars* cnn, pars* logistic){
 			MPI_FLOAT, 0, rank, MPI_COMM_WORLD, &status);
 	MPI_Recv(nvValidLabel->getDevData(), proValidLabelLen, \
 			MPI_FLOAT, 0, rank, MPI_COMM_WORLD, &status);
-/*
+
 
 	ConvNet layer1(hHidVis, hHidBiases, cnn);
 	layer1.initCuda();
@@ -235,11 +224,11 @@ void workerNode(pars* cnn, pars* logistic){
 	NVMatrix* avgOut;
 	NVMatrix* outBiases;
 	NVMatrix* dE_dy_j;
-*/
+
 	clock_t t;
 	t = clock();
 
-/*
+
 	for(int epochIdx = 0; epochIdx < cnn->numEpoches; epochIdx++){
 		int error = 0;
 
@@ -249,16 +238,16 @@ void workerNode(pars* cnn, pars* logistic){
 					miniDataLen * batchIdx);
 			miniLabel->changePtrFromStart(nvTrainLabel->getDevData(), \
 					miniLabelLen * batchIdx);
-
+/*
 cout << "done1\n";
-float* tmp = nvTrainLabel->getDevData();
+float* tmp = miniData->getDevData();
 for(int i = 0; i < 10; i++){
 	cout << tmp[i]<< " ";
 }	
 cout << endl;	
-
+*/
 			layer1.computeConvOutputs(miniData);
-			layer1.computeMaxOutputs();
+		/*	layer1.computeMaxOutputs();
 			y_i = layer1.getYI();
 			layer2.computeClassOutputs(y_i);
 			layer2.computeError(miniLabel, error);
@@ -273,10 +262,11 @@ cout << endl;
 			outBiases = layer2.getOutBias();
 			hidVis = layer1.getHidVis();
 			hidBiases = layer1.getHidBias();
+
 			if((batchIdx + 1) % cnn->nPush == 0){
-				if(epochIdx == logistic->numEpoches - 1){
-                     if((batchIdx + logistic->nPush) >= logistic->numMinibatches \
-                         || batchIdx == logistic->numMinibatches - 1)
+				if(epochIdx == cnn->numEpoches - 1){
+                     if((batchIdx + cnn->nPush) >= cnn->numMinibatches \
+                         || batchIdx == cnn->numMinibatches - 1)
 					passMsg = THREAD_END;
 				}
 				else
@@ -303,9 +293,9 @@ cout << endl;
 			}
 
 			if((batchIdx + 1) % cnn->nFetch == 0){
-				if(epochIdx == logistic->numEpoches - 1){
-                    if((batchIdx + logistic->nFetch) >= logistic->numMinibatches \
-						|| batchIdx == logistic->numMinibatches - 1)
+				if(epochIdx == cnn->numEpoches - 1){
+                    if((batchIdx + cnn->nFetch) >= cnn->numMinibatches \
+						|| batchIdx == cnn->numMinibatches - 1)
 					passMsg = THREAD_END;
 				}else
 					passMsg = batchIdx;
@@ -332,15 +322,49 @@ cout << endl;
 						MPI_COMM_WORLD, &status);
 			}
 
-		}
-        cout << "epochIdx: " << epochIdx << ",error: " \
-                  << (float)error*(numProcess-1)/logistic->trainNum << endl;
+			if(batchIdx == cnn->numMinibatches - 1){ 
+                int errorValid = 0;
+                float loglihoodValid = 0;
+                for(int validIdx = 0; validIdx < cnn->numValidBatches; validIdx++){
 
-	}*/
+                    miniData->changePtrFromStart(nvValidData->getDevData(), \
+                                    miniDataLen * validIdx);
+                    miniLabel->changePtrFromStart(nvValidLabel->getDevData(), \
+                                    miniLabelLen * validIdx);
+					layer1.computeConvOutputs(miniData);
+					layer1.computeMaxOutputs();
+					y_i = layer1.getYI();
+					layer2.computeClassOutputs(y_i);
+					loglihoodValid += layer2.computeError(miniLabel, errorValid);
+
+                }
+                int totalValid = errorValid;
+                if(numProcess > 2){
+                    if(rank == 1){
+                        for(int i = 2; i < numProcess; i++){
+                            MPI_Recv(&errorValid, 1, MPI_INT, i, i, \
+										MPI_COMM_WORLD, &status);   
+                            totalValid += errorValid;
+                        }       
+                    }else{  
+                        MPI_Send(&errorValid, 1, MPI_INT, 1, rank, MPI_COMM_WORLD);
+                    }       
+                }       
+                if(rank == 1)
+                    cout << "epochIdx: " << epochIdx << ",error: " \
+                        << (float)totalValid/cnn->validNum \
+                         << ",likelihood: "<< loglihoodValid<< endl;
+            }  */
+
+		}
+
+	}
+
+
     if(rank == 1){
          t = clock() - t;
          cout << " " << ((float)t/CLOCKS_PER_SEC)/cnn->numEpoches << " seconds.\n";
-     }
+    }
 
 	delete nvTrainData;
 	delete nvTrainLabel;
@@ -386,21 +410,21 @@ int main(int argc, char** argv){
 	cnn->convResultSize = cnn->inSize - cnn->filterSize + 1;
 	cnn->poolSize = 2;
 	cnn->poolResultSize = cnn->convResultSize / cnn->poolSize;
-	cnn->trainNum = 50000;
+	cnn->trainNum = 1;
 	cnn->validNum = 10000;
-	cnn->minibatchSize = 1000;
-	cnn->numMinibatches = cnn->trainNum / cnn->minibatchSize;
-	cnn->numValidBatches = cnn->validNum / cnn->minibatchSize;
-	cnn->numEpoches = 2; 
-	cnn->nPush = 1;
-	cnn->nFetch = 1;
+	cnn->minibatchSize = 1;
+	cnn->numMinibatches = cnn->trainNum / (cnn->minibatchSize * (numProcess - 1));
+	cnn->numValidBatches = cnn->validNum / (cnn->minibatchSize * (numProcess - 1));
+	cnn->numEpoches = 1; 
+	cnn->nPush = 2;
+	cnn->nFetch = 3;
 
 	logistic->wcAvgOut = 0;
 	logistic->epsAvgOut = 0.1;
 	logistic->epsOutBias = 0.1;
 	logistic->mom = 0;
 	logistic->numOut = 10; 
-	logistic->minibatchSize = 1000;
+	logistic->minibatchSize = 1;
 
 	if(rank == 0){ 
 		managerNode(cnn, logistic);
