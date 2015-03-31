@@ -8,6 +8,7 @@
 #define IMG_CHANNEL			1
 #define IMG_SIZE			28
 #define FILTER_SIZE			5
+#define FILTER_CHANNEL			16
 #define CONV_FORWARD_SIZE   24
 #define POOL_FORWARD_SIZE   12
 #define AVG_POOL_X			2
@@ -16,6 +17,18 @@
 #define MAX_POOL_Y			2
 
 
+__global__ void im2col_filt(const float* imgs, float* targets, \
+                const int numKernels, const int widthNoChannel, const int width, \
+                const int heightNoChannel);
+
+__global__ void im2col_conv(const float* imgs, float* targets, \
+                const int numKernels, const int widthNoChannel, const int width, \
+                const int heightNoChannel);
+
+__global__ void reshape_y_h(const float* un_y_h, float* y_h, const int numKernels);
+
+__global__ void reshape_dE_dx_h(float* un_dE_dx_h, const float* dE_dx_h, \
+                        const int numKernels);
 
 __global__ void convolution_forward(const float* imgs, const float* filters, \
          const float* biases, float* targets, const int filConvtimes, \

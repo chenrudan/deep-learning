@@ -46,6 +46,7 @@ private:
 	int _minibatchSize;
 	int _inSize;
 	int _inChannel;
+	int _stepSize;
 	int _filterSize;
 	int _convResultSize;
 	int _poolResultSize;

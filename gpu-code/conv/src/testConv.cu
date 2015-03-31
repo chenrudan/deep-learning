@@ -21,22 +21,6 @@ int rank;
 
 
 int main(){
-/*
-	int prov;
-    MPI_Init_thread(&argc,&argv,MPI_THREAD_MULTIPLE, &prov);
-    if (prov < MPI_THREAD_MULTIPLE)
-    {   
-        printf("Error: the MPI library doesn't provide the required thread level\n");
-        MPI_Abort(MPI_COMM_WORLD, 0); 
-    }   
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&numProcess);
-
-    //检测有几个gpu
-    int numGpus;
-    cudaGetDeviceCount(&numGpus);
-    cudaSetDevice(rank%numGpus);
-*/	
 	pars* cnn = new pars;
 	pars* logistic = new pars;
 
@@ -63,15 +47,6 @@ int main(){
     logistic->mom = 0;
     logistic->numOut = 10; 
 	logistic->minibatchSize = 1000;
-
-/*
-	if(rank == 0){ 
-        managerNode(cnn);
-    }   
-    else{
-        workerNode(cnn);
-    } 	
-*/
 
 	clock_t t;
 	t = clock();

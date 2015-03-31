@@ -5,7 +5,7 @@ MPICXX = mpicxx
 CCFLAGS = -c
 NVCCFLAGS = -g -O3 -c -Xcompiler -fopenmp
 
-LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp 
+LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp
 INCLUDES = -I../include
 
 #CUFILES = $(shell find . -name "*.cu")
@@ -16,16 +16,30 @@ INCLUDES = -I../include
 
 OBJS = matrix.o nvmatrix.o nvmatrix_kernel.o convnet.o convnet_kernel.o logistic.o logistic_kernel.o 
 
+main: $(OBJS) main.cu
+	$(NVCC) $(NVCCFLAGS) main.cu $(INCLUDES)
+	$(NVCC) -o main main.o $(OBJS) $(LIB)  
+	#scp main crd@gpu-server1:/home/crd/conv/src
+	mpirun_rsh -np 2 -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 MV2_USE_GPUDIRECT=1 ./main
+
+test: $(OBJS) test.cu
+	$(NVCC) $(NVCCFLAGS) test.cu $(INCLUDES)
+	$(NVCC) -o test test.o $(OBJS) $(LIB)
+
 testLogistic: testLogistic.cu
 	$(NVCC) $(NVCCFLAGS) testLogistic.cu $(INCLUDES)
 	$(NVCC) -o testLogistic testLogistic.o $(OBJS) $(LIB)
+
+testConv: $(OBJS) testConv.cu
+	$(NVCC) $(NVCCFLAGS) testConv.cu $(INCLUDES)
+	$(NVCC) -o testConv testConv.o $(OBJS) $(LIB)
 
 testMultiGpu: $(OBJS) testMultiGpu.cu
 	$(NVCC) $(NVCCFLAGS) testMultiGpu.cu $(INCLUDES)
 	$(NVCC) -o testMultiGpu testMultiGpu.o $(OBJS) $(LIB)
 #   scp testMultiGpu root@gpu-server1:/home/conv/src2
 #	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter valgrind --leak-check=full ./testMultiGpu
-#mpirun_rsh -np 5 -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 ./testMultiGpu
+#mpirun_rsh -np 2 -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 MV2_USE_GPUDIRECT=1 ./testMultiGpu
 
 matrix.o: matrix.cpp
 	$(CC) $(CCFLAGS) $^ $(INCLUDES) 
@@ -48,9 +62,6 @@ logistic.o: logistic.cu
 logistic_kernel.o: logistic_kernel.cu
 	$(NVCC) $(NVCCFLAGS) $^ $(INCLUDES)
 
-main: $(OBJS) main.cu
-	$(NVCC) $(NVCCFLAGS) main.cu $(INCLUDES)
-	$(NVCC) -o main main.o $(OBJS) $(LIB)
 
 	
 testGpuSuccess4: $(OBJS) testGpuSuccess4.cu
@@ -61,16 +72,11 @@ testGpuSuccess1: $(OBJS) testGpuSuccess1.cu
 	$(NVCC) $(NVCCFLAGS) testGpuSuccess1.cu $(INCLUDES)
 	$(NVCC) -o testGpuSuccess1 testGpuSuccess1.o $(OBJS) $(LIB)
 
-testGpuSuccess2: $(OBJS) testGpuSuccess2.cu
-	$(NVCC) $(NVCCFLAGS) testGpuSuccess2.cu $(INCLUDES)
-	$(NVCC) -o testGpuSuccess2 testGpuSuccess2.o $(OBJS) $(LIB)
 
 testGpuSuccess3: $(OBJS) testGpuSuccess3.cu
 	$(NVCC) $(NVCCFLAGS) testGpuSuccess3.cu $(INCLUDES)
 	$(NVCC) -o testGpuSuccess3 testGpuSuccess3.o $(OBJS) $(LIB)
 
-test: test.cu
-	$(NVCC) -g -o test test.cu matrix.cpp nvmatrix.cu nvmatrix_kernel.cu
 
 testpy:
 	THEANO_FLAGS='blas.ldflags=' python logistic_sgd.py 

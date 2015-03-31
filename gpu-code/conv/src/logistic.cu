@@ -49,7 +49,9 @@ Logistic::~Logistic() {
 void Logistic::initCuda() {
 
 	this->_avgOut            = new NVMatrix(_hAvgOut, true);
+//					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 	this->_outBiases         = new NVMatrix(_hOutBiases, true);
+//					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
 	this->_y_j               = new NVMatrix(_minibatchSize, _numOut);
 
@@ -72,6 +74,7 @@ void Logistic::computeClassOutputs(NVMatrix* miniData){
 }
 
 double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
+
 	Matrix* hlabels = new Matrix(miniLabels->getNumRows(), miniLabels->getNumCols());
 	miniLabels->copyToHost(hlabels);
 	Matrix* y_j_CPU = new Matrix(_y_j->getNumRows(), _y_j->getNumCols());
@@ -81,7 +84,6 @@ double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
 	_y_j->maxPosInRow(maxPosOfOutGpu);
 	Matrix* maxPosCpu = new Matrix(_y_j->getNumRows(), 1);
 	maxPosOfOutGpu->copyToHost(maxPosCpu);
-
 	for (int c = 0; c < _y_j->getNumRows(); c++) {
 		int trueLabel = hlabels->getCell(c, 0);
 		int predictLabel = maxPosCpu->getCell(c, 0);
