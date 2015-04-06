@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include <sstream>
 #include <cmath>
 #include <omp.h>
 #include "mpi.h"
@@ -15,7 +14,6 @@
 #include "convnet_kernel.cuh"
 #include "utils.h"
 #include "logistic.cuh"
-#include "load_layer.hpp"
 
 using namespace std;
 
@@ -47,9 +45,7 @@ void managerNode(pars* cnn, pars* logistic){
 	int hidVisLen = cnn->numFilters * cnn->filterSize \
 			* cnn->filterSize;
 	int hidBiasLen = cnn->numFilters * 1;
-
 	int avgOutLen = cnn->poolResultSize * cnn->poolResultSize * cnn->numFilters * logistic->numOut;
-//	int avgOutLen = cnn->inSize * cnn->inSize * cnn->inChannel * logistic->numOut;
 	int outBiasLen = logistic->numOut;
 
 	int proTrainDataLen = cnn->trainNum * inLen / (numProcess - 1);
@@ -65,26 +61,11 @@ void managerNode(pars* cnn, pars* logistic){
 //					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 	NVMatrix* nvValidLabel = new NVMatrix(cnn->validNum, 1);
 //					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	
-	ImgInfo<float> *cifar10Info = new ImgInfo<float>;
-	LoadCifar10<float> cifar10(cifar10Info);
 
-    for(int i = 1; i < 6; i++){
-        string s;
-        stringstream ss;
-        ss << 5;
-        ss >> s;    
-		string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
-        cifar10.loadBinary(filename, cifar10Info->train_pixel_ptr, \
-				cifar10Info->train_label_ptr);    
-    }   
-    cifar10.loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
-            cifar10Info->test_pixel_ptr, cifar10Info->test_label_ptr);
-
-	nvTrainData->copyFromHost(cifar10Info->train_pixel, cnn->trainNum * inLen);
-	nvTrainLabel->copyFromHost(cifar10Info->train_label, cnn->trainNum);
-	nvValidData->copyFromHost(cifar10Info->test_pixel, cnn->validNum * inLen);
-	nvValidLabel->copyFromHost(cifar10Info->test_label, cnn->validNum);
+	readData(nvTrainData, "../data/input/mnist_train.bin", true);
+	readData(nvValidData, "../data/input/mnist_valid.bin", true);
+	readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false);
+	readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false);
 
 	Matrix* hHidVis = new Matrix(cnn->numFilters, cnn->filterSize * cnn->filterSize);
 	Matrix* hHidBiases = new Matrix(cnn->numFilters, 1);
@@ -111,7 +92,11 @@ void managerNode(pars* cnn, pars* logistic){
 	MPI_Bcast(hHidBiases->getData(), hidBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hAvgout->getData(), avgOutLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(hOutBiases->getData(), outBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	
+/*
+float* send = new float[proTrainDataLen];
+for(int i =0; i < proTrainDataLen; i++){
+	send[i] = 1;
+}*/
 	for(int i = 1; i < numProcess; i++){
 		MPI_Send(nvTrainData->getDevData()+(i-1)*proTrainDataLen, proTrainDataLen, \
 				MPI_FLOAT, i, i, MPI_COMM_WORLD);
@@ -143,6 +128,8 @@ void managerNode(pars* cnn, pars* logistic){
 		int swapId = tid % transOPTimesInPro;
 		int dataAddr = tid % numDataType;
 
+//		cout << "tid" << tid<< endl;
+
 		while(myState != THREAD_END){
 			MPI_Recv(&myState, 1, MPI_INT, pid, \
 					swapId*10000, MPI_COMM_WORLD, &status);
@@ -157,7 +144,6 @@ void managerNode(pars* cnn, pars* logistic){
 		}
 	}
 
-	delete cifar10Info;
 	delete nvTrainData;
 	delete nvTrainLabel;
 	delete nvValidData;
@@ -179,7 +165,6 @@ void workerNode(pars* cnn, pars* logistic){
 			* cnn->filterSize;
 	int hidBiasLen = cnn->numFilters * 1;
 	int avgOutLen = cnn->poolResultSize * cnn->poolResultSize * cnn->numFilters * logistic->numOut;
-//	int avgOutLen = cnn->inSize * cnn->inSize * cnn->inChannel * logistic->numOut;
 	int outBiasLen = logistic->numOut;
 	int miniDataLen = cnn->minibatchSize * inLen;
 	int miniLabelLen = cnn->minibatchSize;
@@ -256,7 +241,6 @@ void workerNode(pars* cnn, pars* logistic){
 			layer1.computeMaxOutputs();
 			y_i = layer1.getYI();
 			layer2.computeClassOutputs(y_i);
-
 			layer2.computeError(miniLabel, error);
 			dE_dy_j = layer2.getDEDYJ();
 			avgOut = layer2.getAvgOut();
@@ -419,8 +403,8 @@ int main(int argc, char** argv){
 	cnn->epsHidBias = 0.1;
 	cnn->mom = 0;
 	cnn->wcHidVis = 0;
-	cnn->inSize = 32; 
-	cnn->inChannel = 3;
+	cnn->inSize = 28; 
+	cnn->inChannel = 1;
 	cnn->filterSize = 5;
 	cnn->numFilters = 16; 
 	cnn->stepSize = 1;
@@ -432,7 +416,7 @@ int main(int argc, char** argv){
 	cnn->minibatchSize = 100;
 	cnn->numMinibatches = cnn->trainNum / (cnn->minibatchSize * (numProcess - 1));
 	cnn->numValidBatches = cnn->validNum / (cnn->minibatchSize * (numProcess - 1));
-	cnn->numEpoches = 10; 
+	cnn->numEpoches = 1; 
 	cnn->nPush = 4;
 	cnn->nFetch = 5;
 

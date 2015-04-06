@@ -27,6 +27,9 @@ __global__ void kReciprocal(float* gData, float* target, unsigned int width, \
 __global__ void kLog(float* gData, float* target, unsigned int width, \
 		 unsigned int height);
 
+__global__ void kCompactCol(const float* ori, float* target, const int interval, \
+        unsigned int width, unsigned int height);
+
 __global__ void kDumbSumCols(float* mat, float* vec, unsigned int width, \
          unsigned int height); 
 

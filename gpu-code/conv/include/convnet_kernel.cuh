@@ -5,12 +5,12 @@
 #ifndef CONVNET_KERNEL_CUH_
 #define CONVNET_KERNEL_CUH_
 
-#define IMG_CHANNEL			1
-#define IMG_SIZE			28
+#define IMG_CHANNEL			3
+#define IMG_SIZE			32
 #define FILTER_SIZE			5
 #define FILTER_CHANNEL			16
-#define CONV_FORWARD_SIZE   24
-#define POOL_FORWARD_SIZE   12
+#define CONV_FORWARD_SIZE   		28
+#define POOL_FORWARD_SIZE   		14
 #define AVG_POOL_X			2
 #define AVG_POOL_Y			2
 #define MAX_POOL_X			2
@@ -22,8 +22,8 @@ __global__ void im2col_filt(const float* imgs, float* targets, \
                 const int heightNoChannel);
 
 __global__ void im2col_conv(const float* imgs, float* targets, \
-                const int numKernels, const int widthNoChannel, const int width, \
-                const int heightNoChannel);
+                const int numKernels, const int widthNoBatch, const int widthNoChannel, \
+                const int width, const int height);
 
 __global__ void reshape_y_h(const float* un_y_h, float* y_h, const int numKernels);
 

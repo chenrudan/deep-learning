@@ -151,6 +151,23 @@ __global__ void kLog(float* gData, float* target, unsigned int width, \
 	}
 }
 
+__global__ void kCompactCol(const float* ori, float* target, const int interval, \
+		unsigned int width, unsigned int height){
+	const unsigned int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int oriIdx = idxY * width * interval + idxX * interval;
+	const unsigned int tarIdx = idxY * width + idxX;
+
+	if(idxY < height && idxX < width){
+		target[tarIdx] = 0;
+		for(int i = 0; i < interval; i++){
+			target[tarIdx] += ori[i + oriIdx];
+		}
+	}
+	
+}
+
+
 __global__ void kDumbSumCols(float* mat, float* vec, unsigned int width, \
 		unsigned int height) {
 
@@ -222,7 +239,7 @@ __global__ void kDumbMaxPosInRow(float* mat, float* vec, unsigned int width, \
 		__syncthreads();
 	}   
 
-	if(mat[idx] == ori[0])
+	if(mat[idx] == ori[0] && idxX < width)
 		vec[idxY] = idxX;
 
 	__syncthreads();

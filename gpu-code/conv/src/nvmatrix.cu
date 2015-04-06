@@ -364,6 +364,22 @@ void NVMatrix::apply(NVMatrix::FUNCTIONS f) {
 	apply(f, this);
 }
 
+void NVMatrix::compactCol(NVMatrix* ori, const int internal) {
+	//一个thread做channel个数的叠加
+	const unsigned int width = _numCols;
+	const unsigned int height = _numRows;
+	const int numBlocksX = DIVUP(width, ADD_BLOCK_SIZE);
+	assert(numBlocksX < NUM_BLOCKS_MAX);
+	const int numBlocksY = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), \
+				NUM_BLOCKS_MAX));
+	dim3 gridSize(numBlocksX, numBlocksY, 1); 
+	dim3 blockSize(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
+	
+	kCompactCol<<<gridSize, blockSize>>>(ori->getDevData(), _devData, internal, \
+			width, height);	
+	cudaThreadSynchronize();
+}
+
 
 NVMatrix* NVMatrix::sumCol(){
 	NVMatrix *sumVec = new NVMatrix( _numRows, 1);

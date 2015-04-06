@@ -101,7 +101,8 @@ public:
 
 	void apply(FUNCTIONS f, NVMatrix* target);
 	void apply(FUNCTIONS f);
-	
+
+	void compactCol(NVMatrix* ori, const int internal);	
 	void addSum(NVMatrix* b, NVMatrix* c, float scaleThis, \
 		     float scaleB, float scaleC);
 	void add(NVMatrix* b, float scaleThis, float scale);

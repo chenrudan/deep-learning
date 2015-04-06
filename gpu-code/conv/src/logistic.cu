@@ -67,10 +67,12 @@ void Logistic::initCuda() {
 
 void Logistic::computeClassOutputs(NVMatrix* miniData){
 	miniData->rightMult(_avgOut, 1, _y_j, handle);
-
 	_y_j->addRowVector(_outBiases);
-
+//_y_j->showValue("yj1");
 	_y_j->apply(NVMatrix::SOFTMAX);
+
+//miniData->showValue("data");
+//_avgOut->showValue("avgout");
 }
 
 double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
@@ -89,9 +91,11 @@ double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
 		int predictLabel = maxPosCpu->getCell(c, 0);
 		correctProbs->getCell(c, 0) = y_j_CPU->getCell(c, trueLabel);
 
+cout << predictLabel << ":" << trueLabel << " ";
 		if(predictLabel != trueLabel)
 			numError++;
 	}
+cout << endl;
 	correctProbs->apply(Matrix::LOG);
 	double result = -correctProbs->sum();
 	cudaThreadSynchronize();

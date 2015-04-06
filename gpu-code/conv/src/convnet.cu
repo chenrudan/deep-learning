@@ -98,36 +98,31 @@ void ConvNet::computeConvOutputs(NVMatrix* miniData){
 	
 	int filtPixs = _filterSize * _filterSize;
 	int convPixs = _convResultSize * _convResultSize;
+	//100*3*28*28 * 5*5, then add to 100*28*28 * 5*5
+	NVMatrix* unrolledMiniDataMultiChannel = new NVMatrix(_minibatchSize *convPixs, \
+ 					filtPixs * _inChannel);  
 	NVMatrix* unrolledMiniData = new NVMatrix(_minibatchSize * convPixs, \
-					filtPixs * _inChannel);
+					filtPixs);
 	NVMatrix* unrangedYH = new NVMatrix(_minibatchSize * convPixs, _numFilters);
-	//在unroll输入的地方需要进行改进，保证输入channel已经整合
+	
 	int numKernels = _minibatchSize * _convResultSize * \
-			_convResultSize * _filterSize * _filterSize;
+			_convResultSize * _filterSize * _filterSize *_inChannel;
 	int numBlocks = numKernels / 1024 + 1;
-//miniData->reValue(28);
-//_hidVis->reValue(5);
-//cout << numBlocks << endl;
 	im2col_filt<<<numBlocks, 1024>>>(miniData->getDevData(), \
-			unrolledMiniData->getDevData(), numKernels, filtPixs, \
-			filtPixs, convPixs);	
+			unrolledMiniDataMultiChannel->getDevData(), numKernels, filtPixs, \
+			filtPixs * _inChannel, convPixs);
+
+	unrolledMiniData->compactCol(unrolledMiniDataMultiChannel, _inChannel);
+
 	NVMatrix* hidVis_T = new NVMatrix(_hidVis->getNumCols(), _hidVis->getNumRows());
-//clock_t t = clock();
 	_hidVis->getTranspose(hidVis_T);
 
-//t = clock() - t;
-//cout << "2: " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
-//t = clock();
 	unrolledMiniData->rightMult(hidVis_T, 1, unrangedYH, handle);
-//t = clock() - t;
-//cout << "3: " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
 	numKernels = _minibatchSize * _convResultSize * _convResultSize * _numFilters;
 	numBlocks = numKernels / 1024 + 1;
 	reshape_y_h<<<numBlocks, 1024>>>(unrangedYH->getDevData(), _y_h->getDevData(), \
 					numKernels);
-//miniData->showValue("minidata");
-//_hidVis->showValue("hidvis");
-//_y_h->showValue("yh");
+	delete unrolledMiniDataMultiChannel;
 	delete unrolledMiniData;
 	delete unrangedYH;
 	delete hidVis_T;
@@ -175,41 +170,42 @@ void ConvNet::computeDerivs(NVMatrix* miniData, NVMatrix* dE_dy_j, NVMatrix* avg
 
 	_dE_dx_h->eltWiseMult(_dE_dy_h);
 
-//clock_t t = clock();
 	
-	int numKernels = _minibatchSize * _convResultSize * \
-			_convResultSize * _numFilters;
-	int numBlocks = numKernels / 1024 + 1;
 	int filtPixs = _filterSize * _filterSize;
 	int convPixs = _convResultSize * _convResultSize;
 
+	int numKernels = _minibatchSize * convPixs * filtPixs * _inChannel;
+	int numBlocks = numKernels / 1024 + 1;
+
 	//另外一种排列方式，因为需要排列的是24*24的块
-	NVMatrix* unrolledMiniData = new NVMatrix(unrolledMiniData->getNumCols(), \
-					unrolledMiniData->getNumRows());
-
-	im2col_filt<<<numBlocks, 1024>>>(miniData->getDevData(), \
-			unrolledMiniData->getDevData(), numKernels, filtPixs, \
-			filtPixs, convPixs);	
-
-
-	NVMatrix* rangedDEDXH = new NVMatrix(_minibatchSize * _convResultSize \
-			* _convResultSize, _numFilters);
+	NVMatrix* unrolledMiniDataMultiChannel = new NVMatrix(filtPixs, \
+				_minibatchSize * convPixs * _inChannel);
+	NVMatrix* unrolledMiniData = new NVMatrix(filtPixs, \
+				_minibatchSize * convPixs);
+	NVMatrix* rangedDEDXH = new NVMatrix(_minibatchSize * convPixs, _numFilters);
 	NVMatrix* dE_dw_hk_T = new NVMatrix(_hidVis->getNumCols(), \
 				_hidVis->getNumRows());
-	reshape_dE_dx_h<<<numBlocks, 1024>>>(rangedDEDXH->getDevData(), \
-			_dE_dx_h->getDevData(), numKernels);	
-	unrolledMiniData_T->rightMult(rangedDEDXH, 1, dE_dw_hk_T, handle);
-	dE_dw_hk_T->getTranspose(_dE_dw_hk);
-	
-	delete rangedDEDXH;
-	delete unrolledMiniData_T;
-	delete dE_dw_hk_T;
-/*	
-t = clock() - t;
-cout << "dEdwhktmp: " << (float)t/CLOCKS_PER_SEC << " seconds. \n";
-t = clock();
-*/
 
+	im2col_conv<<<numBlocks, 1024>>>(miniData->getDevData(), \
+			unrolledMiniDataMultiChannel->getDevData(), numKernels, \
+			convPixs * _inChannel, convPixs * _minibatchSize, \
+			convPixs * _minibatchSize * _inChannel, filtPixs);	
+	unrolledMiniData->compactCol(unrolledMiniDataMultiChannel, _inChannel);
+
+
+	numKernels = _minibatchSize * convPixs * _numFilters;
+	numBlocks = numKernels / 1024 + 1;
+	reshape_dE_dx_h<<<numBlocks, 1024>>>(rangedDEDXH->getDevData(), \
+			_dE_dx_h->getDevData(), numKernels);
+	
+	unrolledMiniData->rightMult(rangedDEDXH, 1, dE_dw_hk_T, handle);
+	dE_dw_hk_T->getTranspose(_dE_dw_hk);
+//rangedDEDXH->showValue("dedxdh");	
+//_dE_dw_hk->showValue("dedwhk");
+	delete rangedDEDXH;
+	delete dE_dw_hk_T;
+	delete unrolledMiniDataMultiChannel;
+	delete unrolledMiniData;
 	
 	NVMatrix* dE_db_h_tmp = new NVMatrix(_minibatchSize, _numFilters);
 	blocks = dim3(_minibatchSize, _numFilters);

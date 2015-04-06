@@ -29,34 +29,32 @@ int main(){
 
 	NVMatrix* a = new NVMatrix(100, 784);
 	NVMatrix* b = new NVMatrix(100, 24*24*16);
-	NVMatrix* c = new NVMatrix(100*24*24, 25);
-	NVMatrix* c_T = new NVMatrix(25, 100*24*24);
+	NVMatrix* c = new NVMatrix(25, 100*24*24);
 	NVMatrix* d = new NVMatrix(25, 16);
 	NVMatrix* e = new NVMatrix(100*24*24, 16);
 	NVMatrix* f = new NVMatrix(16, 25);
 
 	a->reValue(28);
-	b->reValue(1.0f);
+	b->reValue(24);
 
-        int numKernels = 100*24*24*5*5;;
+        int numKernels = 100*24*24*5*5*1;;
         int numBlocks = numKernels / 1024 + 1;
 
-	im2col_gpu<<<numBlocks, 1024>>>(a->getDevData(), \
-			c->getDevData(), numKernels, 25, \
-			25, 24*24);
+	//im2col_conv<<<numBlocks, 1024>>>(a->getDevData(), \
+			c->getDevData(), numKernels, 24*24, \
+			100*24*24, 25);
 
 	a->showValue("a");
 	c->showValue("c");
 
 	numKernels = 100*24*24*16;
 	numBlocks = numKernels / 1024;
-	c->getTranspose(c_T);
 	reshape_dE_dx_h<<<numBlocks, 1024>>>(e->getDevData(), b->getDevData(), \
 				numKernels);
 
 //cout << c->getNumRows() << ":" << c->getNumCols() << endl;
 //cout << d->getNumRows() << ":" << d->getNumCols() << endl;
-	c_T->rightMult(e, 1, d, handle);
+	c->rightMult(e, 1, d, handle);
 	d->getTranspose(f);
 
 //	numKernels = 100*24*24*16;
@@ -65,6 +63,7 @@ int main(){
 			numKernels);
 
 
+	b->showValue("b");
 	e->showValue("e");
 	f->showValue("f");
 
