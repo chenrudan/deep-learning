@@ -25,11 +25,13 @@ private:
 	// ===========================
 	NVMatrix* _hidVis, *_hidVisInc;
 	NVMatrix* _hidBiases, *_hidBiasInc;
+	NVMatrix* _trainData, *_trainLabel;
+	NVMatrix* _validData, *_validLabel;
 
 	// ---------------------------
     // Temporary storage
 	// ---------------------------
-  NVMatrix* _y_h; // conv outputs
+	NVMatrix* _y_h; // conv outputs
 	NVMatrix* _y_i; // avg outputs
 	NVMatrix* _dE_dy_i, *_dE_dy_h;
 	NVMatrix* _dE_dx_h;
@@ -42,6 +44,7 @@ private:
     // ===========================
 	float _epsHidVis, _epsHidBias;
 	float _mom, _wcHidVis, _wcAvgOut;
+	float _finePars;
 	int _numVis, _numFilters, _numAvg;
 	int _minibatchSize;
 	int _inSize;
@@ -50,18 +53,23 @@ private:
 	int _filterSize;
 	int _convResultSize;
 	int _poolResultSize;
-	
+	int _poolSize;
+
+	int _filtPixs;
+	int _convPixs;
+	int _numTrain;
+	int _numValid;	
 	cublasHandle_t handle;
 
 public:
-	ConvNet(Matrix* hHidVis, Matrix* hHidBiases, pars* netWork);
+	ConvNet(pars* netWork);
 	~ConvNet();
 	
 	void initCuda();
 	void computeConvOutputs(NVMatrix* miniData);
 	void computeAvgOutputs();
 	void computeMaxOutputs();
-	void computeDerivs(NVMatrix* miniData, NVMatrix* dE_dy_j, NVMatrix* avgOut);
+	void computeDerivs(NVMatrix* miniData);
 	void updatePars();
 
 	inline NVMatrix* getYH(){
@@ -89,7 +97,10 @@ public:
 		return _maxPoolPos;
 	}
 
-	inline void transfarLowerAvgOut(){
+	inline void transfarLowerPars(){
+		_epsHidVis *= _finePars;	
+		_epsHidBias *= _finePars;
+		cout << _epsHidVis << endl;
 	}
 
 	inline NVMatrix* getHidVis(){
@@ -99,7 +110,18 @@ public:
 		return _hidBiases;
 	}
 
-
+	inline NVMatrix* getTrainData(){
+		return _trainData;
+	}
+	inline NVMatrix* getTrainLabel(){
+		return _trainLabel;
+	}
+	inline NVMatrix* getValidData(){
+		return _validData;
+	}
+	inline NVMatrix* getValidLabel(){
+		return _validLabel;
+	}
 
 
 

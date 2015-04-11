@@ -7,12 +7,9 @@
 
 using namespace std;
 
-Logistic::Logistic(Matrix* hAvgOut, Matrix* hOutBiases, pars* netWork){
-
-	this->_numOut                = hAvgOut->getNumCols();
-
-	this->_hAvgOut               = hAvgOut;
-	this->_hOutBiases            = hOutBiases;
+Logistic::Logistic(pars* netWork){
+	this->_numIn				 = netWork->numIn;
+	this->_numOut                = netWork->numOut;
 
 	//w_hk的learning rate
 	this->_epsAvgOut             = netWork->epsAvgOut;
@@ -26,13 +23,12 @@ Logistic::Logistic(Matrix* hAvgOut, Matrix* hOutBiases, pars* netWork){
 	this->_wcAvgOut              = netWork->wcAvgOut;
 
 	this->_minibatchSize         = netWork->minibatchSize;
+	this->_finePars				 = netWork->finePars;
 
 	cublasCreate(&handle);
 }
 
 Logistic::~Logistic() {
-	delete _hAvgOut;
-	delete _hOutBiases;
 
 	delete _avgOut;
 	delete _avgOutInc;
@@ -48,9 +44,9 @@ Logistic::~Logistic() {
 
 void Logistic::initCuda() {
 
-	this->_avgOut            = new NVMatrix(_hAvgOut, true);
+	this->_avgOut            = new NVMatrix(_numIn, _numOut);
 //					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_outBiases         = new NVMatrix(_hOutBiases, true);
+	this->_outBiases         = new NVMatrix(1, _numOut);
 //					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
 	this->_y_j               = new NVMatrix(_minibatchSize, _numOut);
@@ -66,13 +62,12 @@ void Logistic::initCuda() {
 }
 
 void Logistic::computeClassOutputs(NVMatrix* miniData){
+//miniData->showValue("data");
 	miniData->rightMult(_avgOut, 1, _y_j, handle);
 	_y_j->addRowVector(_outBiases);
-//_y_j->showValue("yj1");
 	_y_j->apply(NVMatrix::SOFTMAX);
 
-//miniData->showValue("data");
-//_avgOut->showValue("avgout");
+//_y_j->showValue("yj1");
 }
 
 double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
@@ -91,11 +86,11 @@ double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
 		int predictLabel = maxPosCpu->getCell(c, 0);
 		correctProbs->getCell(c, 0) = y_j_CPU->getCell(c, trueLabel);
 
-cout << predictLabel << ":" << trueLabel << " ";
+//cout << predictLabel << ":" << trueLabel << " ";
 		if(predictLabel != trueLabel)
 			numError++;
 	}
-cout << endl;
+//cout << endl;
 	correctProbs->apply(Matrix::LOG);
 	double result = -correctProbs->sum();
 	cudaThreadSynchronize();
@@ -108,7 +103,7 @@ cout << endl;
 	return result;
 }
 
-void Logistic::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels){
+void Logistic::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels, NVMatrix* dE_dy_i){
 	assert(miniLabels->getNumRows() == miniData->getNumRows());
 
 	const int numThreads = DIVUP(_numOut, ADD_BLOCK_SIZE) * ADD_BLOCK_SIZE;
@@ -121,6 +116,11 @@ void Logistic::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels){
 	data_T->rightMult(_dE_dy_j, 1, _dE_dw_ij, handle);
 	_dE_dy_j->sumRow(_dE_db_j);
 
+	NVMatrix* avgOut_T = new NVMatrix(_avgOut->getNumCols(), _avgOut->getNumRows());
+    _avgOut->getTranspose(avgOut_T);
+    _dE_dy_j->rightMult(avgOut_T, 1, dE_dy_i, handle);
+
+	delete avgOut_T;
 	delete data_T;
 }
 

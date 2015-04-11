@@ -17,11 +17,13 @@ typedef struct Pars{
     float mom;
     float wcHidVis;
     float wcAvgOut;
+	float finePars;
 
     int inSize;
     int inChannel;
     int filterSize;
     int numFilters;
+	int numIn;
     int numOut;
 	int stepSize;
 	int convResultSize;
@@ -39,7 +41,9 @@ typedef struct Pars{
     
 }pars;
 
-inline void initW(float* a, int length){
+inline void initW(NVMatrix* nvMat){
+	int length = nvMat->getNumRows() * nvMat->getNumCols();
+	float* a = new float[length];
     srand((unsigned)time(NULL));
     float bound = sqrt(1.0 / length);
     for(int i = 0; i < length; i++){
@@ -49,6 +53,7 @@ inline void initW(float* a, int length){
         else
             a[i] = ((k - 100)/100.0)*bound; 
     }   
+	nvMat->copyFromHost(a, length);
 }
 
 inline void readPars(Matrix* par, string filename){

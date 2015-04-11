@@ -15,11 +15,6 @@
 class Logistic {
 
 private:
-	// ================
-	// Host matrics
-	// ================
-	Matrix* _hAvgOut;
-	Matrix* _hOutBiases;
 
 	// ===========================
     // Device matrices
@@ -38,7 +33,8 @@ private:
     // ===========================
 	float _epsAvgOut,_epsOutBias;
 	float _mom, _wcHidVis, _wcAvgOut;
-	int _numVis, _numFilters, _numAvg, _numOut;
+	float _finePars;
+	int _numVis, _numFilters, _numAvg, _numOut, _numIn;
 	int _minibatchSize;
 	int _inSize;
 	int _inChannel;
@@ -46,13 +42,13 @@ private:
 	cublasHandle_t handle;
 
 public:
-	Logistic(Matrix* hAvgOut, Matrix* hOutBiases, pars* netWork);
+	Logistic(pars* netWork);
 	~Logistic();
 	
 	void initCuda();
 	void computeClassOutputs(NVMatrix* miniData);
 	double computeError(const NVMatrix* const miniLables, int& numError);
-	void computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels);
+	void computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels, NVMatrix* dE_dy_i);
 	void updatePars();
 
 	inline NVMatrix* getYJ(){
@@ -67,9 +63,9 @@ public:
 	inline NVMatrix* getDEDBJ(){
 		return _dE_db_j;
 	}
-	inline void transfarLowerAvgOut(){
-		_epsAvgOut = _epsAvgOut * 0.995;                                                                                                                             
-		_epsOutBias = _epsOutBias * 0.995;
+	inline void transfarLowerPars(){
+		_epsAvgOut = _epsAvgOut * _finePars;
+		_epsOutBias = _epsOutBias * _finePars;
 	}
 	inline NVMatrix* getAvgOut(){
 		return _avgOut;
