@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#include "utils.h"
+#include "utils.cuh"
 #include "matrix.h"
 #include "nvmatrix.cuh"
 
@@ -37,7 +37,20 @@ private:
 	NVMatrix* _dE_dx_h;
 	NVMatrix* _dE_dw_hk;
 	NVMatrix* _dE_db_h;
+	NVMatrix* _dE_dx;
 	int* _maxPoolPos;	
+	
+	NVMatrix* unrolledMiniData1;
+	NVMatrix* unrangedYH;
+	NVMatrix* hidVis_T;
+	NVMatrix* hidBias_T;
+	NVMatrix* unrolledMiniData2;
+	NVMatrix* rangedDEDXH;
+	NVMatrix* dE_dw_hk_T;
+	NVMatrix* dE_db_h_tmp;
+	NVMatrix* unrolledConv;
+	NVMatrix* rangedHidVis;
+	NVMatrix* unrangedIn;
 
     // ===========================
 	// Various learning parameters
@@ -70,6 +83,7 @@ public:
 	void computeAvgOutputs();
 	void computeMaxOutputs();
 	void computeDerivs(NVMatrix* miniData);
+	void computeDerivsToIn(NVMatrix* downLayer_dE_dy_i);
 	void updatePars();
 
 	inline NVMatrix* getYH(){
@@ -100,7 +114,6 @@ public:
 	inline void transfarLowerPars(){
 		_epsHidVis *= _finePars;	
 		_epsHidBias *= _finePars;
-		cout << _epsHidVis << endl;
 	}
 
 	inline NVMatrix* getHidVis(){

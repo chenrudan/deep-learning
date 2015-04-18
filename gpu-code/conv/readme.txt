@@ -38,3 +38,5 @@
 
 在执行程序时
 	make TARGET=main MULTI_PROCESS=1 MULTI_MECHINE=1
+
+v3:单层的conv

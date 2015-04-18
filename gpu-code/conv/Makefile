@@ -1,6 +1,6 @@
 #!/bin/bash
 GCC = gcc
-CC = g++                                                                        
+CC = g++ -std=c++0x                                                                    
 NVCC = nvcc
 MPICXX = mpicxx
 CCFLAGS = -c

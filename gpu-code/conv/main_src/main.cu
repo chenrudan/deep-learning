@@ -13,7 +13,7 @@
 #include "nvmatrix.cuh"
 #include "convnet.cuh"
 #include "convnet_kernel.cuh"
-#include "utils.h"
+#include "utils.cuh"
 #include "logistic.cuh"
 #include "load_layer.hpp"
 
@@ -30,33 +30,58 @@ enum swapInfo{SWAP_HIDVIS1_PUSH, SWAP_HIDBIAS1_PUSH, \
 int numProcess;
 int rank;
 
+
 void managerNode(pars* cnnPars, pars* logistic){
 
-	cout << "=========================\n" \
-		<< "train: " << cnnPars[0].trainNum \
+	cout << "\n===========overall==============" \
+		<< "\ntrain: " << cnnPars[0].trainNum \
 		<< "\nvalid: " << cnnPars[0].validNum \
+		<< "\nbatchSize: " << cnnPars[0].minibatchSize \
+		<< "\nnFetch: " << cnnPars[0].nFetch \
+		<< "\nnPush: " << cnnPars[0].nPush;
+
+	cout << "\n===========cnn1==============" \
+		<< "\ninSize: " << cnnPars[0].inSize \
+		<< "\ninChannel: " << cnnPars[0].inChannel \
 		<< "\nfiltersize: " << cnnPars[0].filterSize \
 		<< "\nnumFilters: " << cnnPars[0].numFilters \
 		<< "\nconvstepsize: " << cnnPars[0].stepSize \
+		<< "\npoolSize: " << cnnPars[0].poolSize \
 		<< "\nepsHidVis: " << cnnPars[0].epsHidVis \
 		<< "\nepsHidBias: " << cnnPars[0].epsHidBias \
+		<< "\nmom: " << cnnPars[0].mom \
+		<< "\nwcHidVis: " << cnnPars[0].wcHidVis;
+		
+	cout << "\n===========cnn2==============" \
+		<< "\ninSize: " << cnnPars[1].inSize \
+		<< "\ninChannel: " << cnnPars[1].inChannel \
+		<< "\nfiltersize: " << cnnPars[1].filterSize \
+		<< "\nnumFilters: " << cnnPars[1].numFilters \
+		<< "\nconvstepsize: " << cnnPars[1].stepSize \
+		<< "\npoolSize: " << cnnPars[1].poolSize \
+		<< "\nepsHidVis: " << cnnPars[1].epsHidVis \
+		<< "\nepsHidBias: " << cnnPars[1].epsHidBias \
+		<< "\nmom: " << cnnPars[1].mom \
+		<< "\nwcHidVis: " << cnnPars[1].wcHidVis ;
+
+	cout << "\n===========logsitic==============" \
+		<< "\ninSize: " << logistic->numIn \
+		<< "\noutSize: " << logistic->numOut \
 		<< "\nepsAvgOut: " << logistic->epsAvgOut \
 		<< "\nepsOutBias: " << logistic->epsOutBias \
-		<< "\nmom: " << cnnPars[0].mom \
-		<< "\nwcHidVis: " << cnnPars[0].wcHidVis \
 		<< "\nwcAvgOut: " << logistic->wcAvgOut << endl;
 
 	int cnn1InLen = cnnPars[0].inSize * cnnPars[0].inSize * cnnPars[0].inChannel;
 	int cnn1HidVisLen = cnnPars[0].numFilters * cnnPars[0].filterSize \
-			* cnnPars[0].filterSize;
-	int cnn1HidBiasLen = cnnPars[0].numFilters * 1;
+			* cnnPars[0].filterSize * cnnPars[0].inChannel;
+	int cnn1HidBiasLen = cnnPars[0].numFilters;
 
 	int cnn2HidVisLen = cnnPars[1].numFilters * cnnPars[1].filterSize \
-			* cnnPars[1].filterSize;
-	int cnn2HidBiasLen = cnnPars[1].numFilters * 1;
+			* cnnPars[1].filterSize * cnnPars[1].inChannel;
+	int cnn2HidBiasLen = cnnPars[1].numFilters;
 
-	int avgOutLen = cnnPars[0].poolResultSize * cnnPars[0].poolResultSize * cnnPars[0].numFilters * logistic->numOut;
-//	int avgOutLen = cnn1.inSize * cnn1.inSize * cnn1.inChannel * logistic->numOut;
+	int avgOutLen = cnnPars[1].poolResultSize*cnnPars[1].poolResultSize*cnnPars[1].numFilters*logistic->numOut;
+//	int avgOutLen = cnnPars[0].inSize * cnnPars[0].inSize * cnnPars[0].inChannel* logistic->numOut;
 	int outBiasLen = logistic->numOut;
 
 	int proTrainDataLen = cnnPars[0].trainNum * cnn1InLen / (numProcess - 1);
@@ -69,15 +94,16 @@ void managerNode(pars* cnnPars, pars* logistic){
 	NVMatrix* nvTrainLabel = new NVMatrix(cnnPars[0].trainNum, 1);
 	NVMatrix* nvValidLabel = new NVMatrix(cnnPars[0].validNum, 1);
 
+/*
     readData(nvTrainData, "./data/input/mnist_train.bin", true);
     readData(nvValidData, "./data/input/mnist_valid.bin", true);
     readData(nvTrainLabel, "./data/input/mnist_label_train.bin", false);
     readData(nvValidLabel, "./data/input/mnist_label_valid.bin", false);
+*/
 
 
 	ImgInfo<float> *cifar10Info = new ImgInfo<float>;
 	LoadCifar10<float> cifar10(cifar10Info);
-/*
     for(int i = 1; i < 6; i++){
         string s;
         stringstream ss;
@@ -94,22 +120,26 @@ void managerNode(pars* cnnPars, pars* logistic){
 	nvTrainLabel->copyFromHost(cifar10Info->train_label, cnnPars[0].trainNum);
 	nvValidData->copyFromHost(cifar10Info->test_pixel, cnnPars[0].validNum * cnn1InLen);
 	nvValidLabel->copyFromHost(cifar10Info->test_label, cnnPars[0].validNum);
-*/
+
+
 	NVMatrix* cnn1HidVis = new NVMatrix(cnnPars[0].numFilters, \
-			cnnPars[0].filterSize * cnnPars[0].filterSize);
+			cnnPars[0].filterSize * cnnPars[0].filterSize * cnnPars[0].inChannel);
 	NVMatrix* cnn1HidBiases = new NVMatrix(cnnPars[0].numFilters, 1);
 	NVMatrix* avgOut = new NVMatrix(avgOutLen / logistic->numOut, logistic->numOut);
 	NVMatrix* outBiases = new NVMatrix(1, logistic->numOut);
 
 	NVMatrix* cnn2HidVis = new NVMatrix(cnnPars[1].numFilters, \
-			cnnPars[1].filterSize * cnnPars[1].filterSize);
+			cnnPars[1].filterSize * cnnPars[1].filterSize * cnnPars[1].inChannel);
 	NVMatrix* cnn2HidBiases = new NVMatrix(cnnPars[1].numFilters, 1);
 
-	initW(cnn1HidVis);
+	gaussRand(cnn1HidVis, 0.01);
+//	initW(cnn1HidVis);
 	initW(cnn2HidVis);
-	cudaMemset(cnn1HidBiases->getDevData(), 0, sizeof(float) * cnnPars[0].numFilters);
-	cudaMemset(cnn2HidBiases->getDevData(), 0, sizeof(float) * cnnPars[1].numFilters);
-	cudaMemset(avgOut->getDevData(), 0, sizeof(float) * avgOutLen);
+	cudaMemset(cnn1HidBiases->getDevData(), 0, sizeof(float) * cnn1HidBiasLen);
+	cudaMemset(cnn2HidBiases->getDevData(), 0, sizeof(float) * cnn2HidBiasLen);
+//	initW(avgOut);
+	gaussRand(avgOut, 0.1);
+//	cudaMemset(avgOut->getDevData(), 0, sizeof(float) * avgOutLen);
 	cudaMemset(outBiases->getDevData(), 0, sizeof(float) * logistic->numOut);
 
 	//	readPars(hHidVis, "hHidVis_t1.bin");
@@ -188,13 +218,13 @@ void workerNode(pars* cnnPars, pars* logistic){
 	cnnPars->trainNum /= (numProcess - 1);
 	int cnn1InLen = cnnPars->inSize * cnnPars->inSize * cnnPars->inChannel;
 	int cnn1HidVisLen = cnnPars->numFilters * cnnPars->filterSize \
-			* cnnPars->filterSize;
-	int cnn1HidBiasLen = cnnPars->numFilters * 1;
+			* cnnPars->filterSize * cnnPars->inChannel;
+	int cnn1HidBiasLen = cnnPars->numFilters;
 	int cnn2HidVisLen = cnnPars[1].numFilters * cnnPars[1].filterSize \
-			* cnnPars[1].filterSize;
-	int cnn2HidBiasLen = cnnPars[1].numFilters * 1;
-	int avgOutLen = cnnPars->poolResultSize * cnnPars->poolResultSize * cnnPars->numFilters * logistic->numOut;
-//	int avgOutLen = cnnPars->inSize * cnn1->inSize * cnn1->inChannel * logistic->numOut;
+			* cnnPars[1].filterSize * cnnPars[1].inChannel;
+	int cnn2HidBiasLen = cnnPars[1].numFilters;
+	int avgOutLen = cnnPars[1].poolResultSize * cnnPars[1].poolResultSize * cnnPars[1].numFilters * logistic->numOut;
+//	int avgOutLen = cnnPars[0].inSize * cnnPars[0].inSize * cnnPars[0].inChannel* logistic->numOut;
 	int outBiasLen = logistic->numOut;
 
 
@@ -220,6 +250,7 @@ void workerNode(pars* cnnPars, pars* logistic){
 	NVMatrix* cnn2HidBiases = cnn2.getHidBias();
 	NVMatrix* avgOut = layer3.getAvgOut();
 	NVMatrix* outBiases = layer3.getOutBias();
+
 
 	MPI_Bcast(cnn1HidVis->getDevData(), cnn1HidVisLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn1HidBiases->getDevData(), cnn1HidBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -248,8 +279,10 @@ void workerNode(pars* cnnPars, pars* logistic){
 
 	int passMsg = 0;
 
-	NVMatrix* y_i;
-	NVMatrix* dE_dy_i;
+	NVMatrix* cnn1_y_i;
+	NVMatrix* cnn1_dE_dy_i;
+	NVMatrix* cnn2_y_i;
+	NVMatrix* cnn2_dE_dy_i;
 
 	clock_t t;
 	t = clock();
@@ -257,6 +290,12 @@ void workerNode(pars* cnnPars, pars* logistic){
 	for(int epochIdx = 0; epochIdx < cnnPars->numEpoches; epochIdx++){
 		int error = 0;
 
+if(epochIdx > 10){
+//	cnn1HidVis->showValue("whk");
+//	cnn1HidBiases->showValue("hidBias");
+//	avgOut->showValue("wij");
+//	outBiases->showValue("outBias");
+}
 		for(int batchIdx = 0; batchIdx < cnnPars->numMinibatches; batchIdx++){
 
 			miniData->changePtrFromStart(cnn1TrainData->getDevData(), \
@@ -265,22 +304,27 @@ void workerNode(pars* cnnPars, pars* logistic){
 					miniLabelLen * batchIdx);
 			cnn1.computeConvOutputs(miniData);
 			cnn1.computeMaxOutputs();
-			y_i = cnn1.getYI();
-			dE_dy_i = cnn1.getDEDYI();
-			layer3.computeClassOutputs(y_i);
+			cnn1_y_i = cnn1.getYI();
+			cnn1_dE_dy_i = cnn1.getDEDYI();
+
+			cnn2.computeConvOutputs(cnn1_y_i);			
+			cnn2.computeMaxOutputs();
+			cnn2_y_i = cnn2.getYI();
+			cnn2_dE_dy_i = cnn2.getDEDYI();
+
+			layer3.computeClassOutputs(cnn2_y_i);
 //			layer3.computeClassOutputs(miniData);
 			layer3.computeError(miniLabel, error);
-//cout << "done2\n";
-			avgOut = layer3.getAvgOut();
 //			layer3.computeDerivs(miniData, miniLabel);
-			layer3.computeDerivs(y_i, miniLabel, dE_dy_i);
-			cnn1.computeDerivs(miniData);
+			layer3.computeDerivs(cnn2_y_i, miniLabel, cnn2_dE_dy_i);
+			cnn2.computeDerivs(cnn1_y_i);
+			cnn2.computeDerivsToIn(cnn1_dE_dy_i);
+			cnn1.computeDerivs(miniData);		
+	
 			cnn1.updatePars();
+			cnn2.updatePars();
 			layer3.updatePars();
-			avgOut = layer3.getAvgOut();
-			outBiases = layer3.getOutBias();
-			cnn1HidVis = cnn1.getHidVis();
-			cnn1HidBiases = cnn1.getHidBias();
+
 			if((batchIdx + 1) % cnnPars->nPush == 0){
 				if(epochIdx == cnnPars->numEpoches - 1){
 					if((batchIdx + cnnPars->nPush) >= cnnPars->numMinibatches \
@@ -395,8 +439,12 @@ void workerNode(pars* cnnPars, pars* logistic){
 							miniLabelLen * validIdx);
 					cnn1.computeConvOutputs(miniData);
 					cnn1.computeMaxOutputs();
-					y_i = cnn1.getYI();
-					layer3.computeClassOutputs(y_i);
+					cnn1_y_i = cnn1.getYI();
+					cnn2.computeConvOutputs(cnn1_y_i);
+					cnn2.computeMaxOutputs();
+					cnn2_y_i = cnn2.getYI();
+
+					layer3.computeClassOutputs(cnn2_y_i);
 //					layer3.computeClassOutputs(miniData);
 					loglihoodValid += layer3.computeError(miniLabel, errorValid);
 
@@ -414,15 +462,17 @@ void workerNode(pars* cnnPars, pars* logistic){
 					}       
 				}       
 				if(rank == 1)
-					cout << "epochIdx: " << epochIdx << ",error: " \
-						<< (float)totalValid/cnnPars->validNum \
+					cout << "epochIdx: " << epochIdx << ", error: " \
+						<<  (float)totalValid/cnnPars->validNum \
 						<< ",likelihood: "<< loglihoodValid<< endl;
 			}
 		}
-	//	if((epochIdx + 1) % 10 == 0){
-	//		cnn1.transfarLowerPars();
-	//		layer3.transfarLowerPars();
-	//	}  
+//		if((epochIdx + 1) % 10 == 0){
+//			cnn1.transfarLowerPars();
+//			layer3.transfarLowerPars();
+//		} 
+ 
+
 		if(rank == 1){
 			t = clock() - t;
 			cout << " " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
@@ -467,74 +517,71 @@ int main(int argc, char** argv){
 
 	const int numCnnLayers = 2;
 	
-	pars* cnn1Pars = new pars[numCnnLayers];
+	pars* cnnPars = new pars[numCnnLayers];
 	pars* logistic = new pars;
 
-	cnn1Pars[0].epsHidVis = 0.1;
-	cnn1Pars[0].epsHidBias = 0.1;
-	cnn1Pars[0].mom = 0.9;
-	cnn1Pars[0].wcHidVis = 0;
-	cnn1Pars[0].inSize = 28; 
-	cnn1Pars[0].inChannel = 1;
-	cnn1Pars[0].filterSize = 5;
-	cnn1Pars[0].numFilters = 16; 
-	cnn1Pars[0].stepSize = 1;
-	cnn1Pars[0].convResultSize = (cnn1Pars[0].inSize - cnn1Pars[0].filterSize) / cnn1Pars[0].stepSize + 1;
-	cnn1Pars[0].poolSize = 2;
-	cnn1Pars[0].poolResultSize = cnn1Pars[0].convResultSize / cnn1Pars[0].poolSize;
-	cnn1Pars[0].trainNum = 50000;
-	cnn1Pars[0].validNum = 10000;
-	cnn1Pars[0].minibatchSize = 100;
-	cnn1Pars[0].numMinibatches = cnn1Pars[0].trainNum / (cnn1Pars[0].minibatchSize * (numProcess - 1));
-	cnn1Pars[0].numValidBatches = cnn1Pars[0].validNum / (cnn1Pars[0].minibatchSize * (numProcess - 1));
-	cnn1Pars[0].numEpoches = 100; 
-	cnn1Pars[0].nPush = 1;
-	cnn1Pars[0].nFetch = 1;
-	cnn1Pars[0].finePars = 0.995;
+	cnnPars[0].epsHidVis = 0.1;
+	cnnPars[0].epsHidBias = 0.2;
+	cnnPars[0].mom = 0.9;
+	cnnPars[0].wcHidVis = 0.0004;
+	cnnPars[0].inSize = 32; 
+	cnnPars[0].inChannel = 3;
+	cnnPars[0].filterSize = 6;
+	cnnPars[0].numFilters = 32; 
+	cnnPars[0].stepSize = 2;
+	cnnPars[0].convResultSize = (cnnPars[0].inSize - cnnPars[0].filterSize) / cnnPars[0].stepSize + 1;
+	cnnPars[0].poolSize = 2;
+	cnnPars[0].poolResultSize = cnnPars[0].convResultSize / cnnPars[0].poolSize;
+	cnnPars[0].trainNum = 50000;
+	cnnPars[0].validNum = 10000;
+	cnnPars[0].minibatchSize = 100;
+	cnnPars[0].numMinibatches = cnnPars[0].trainNum / (cnnPars[0].minibatchSize * (numProcess - 1));
+	cnnPars[0].numValidBatches = cnnPars[0].validNum / (cnnPars[0].minibatchSize * (numProcess - 1));
+	cnnPars[0].numEpoches = 300; 
+	cnnPars[0].nPush =10;
+	cnnPars[0].nFetch = 19;
+	cnnPars[0].finePars = 0.95;
 
-	cnn1Pars[1].epsHidVis = 0.01;
-	cnn1Pars[1].epsHidBias = 0.01;
-	cnn1Pars[1].mom = 0.9;
-	cnn1Pars[1].wcHidVis = 0;
-	cnn1Pars[1].inSize = cnn1Pars[0].poolResultSize; 
-	cnn1Pars[1].inChannel = cnn1Pars[0].numFilters;
-	cnn1Pars[1].filterSize = 3;
-	cnn1Pars[1].numFilters = 128; 
-	cnn1Pars[1].stepSize = 1;
-	cnn1Pars[1].convResultSize = (cnn1Pars[1].inSize - cnn1Pars[1].filterSize) / cnn1Pars[1].stepSize + 1;
-	cnn1Pars[1].poolSize = 2;
-	cnn1Pars[1].poolResultSize = cnn1Pars[1].convResultSize / cnn1Pars[1].poolSize;
-	cnn1Pars[1].trainNum = 50000;
-	cnn1Pars[1].validNum = 10000;
-	cnn1Pars[1].minibatchSize = 100;
-	cnn1Pars[1].numMinibatches = cnn1Pars[1].trainNum / (cnn1Pars[1].minibatchSize * (numProcess - 1));
-	cnn1Pars[1].numValidBatches = cnn1Pars[1].validNum / (cnn1Pars[1].minibatchSize * (numProcess - 1));
-	cnn1Pars[1].numEpoches = 100; 
-	cnn1Pars[1].nPush = 1;
-	cnn1Pars[1].nFetch = 1;
+	cnnPars[1].epsHidVis = 0.1;
+	cnnPars[1].epsHidBias = 0.2;
+	cnnPars[1].mom = 0.9;
+	cnnPars[1].wcHidVis = 0;
+	cnnPars[1].inSize = cnnPars[0].poolResultSize; 
+	cnnPars[1].inChannel = cnnPars[0].numFilters;
+	cnnPars[1].filterSize = 4;
+	cnnPars[1].numFilters = 128; 
+	cnnPars[1].stepSize = 1;
+	cnnPars[1].convResultSize = (cnnPars[1].inSize - cnnPars[1].filterSize) / cnnPars[1].stepSize + 1;
+	cnnPars[1].poolSize = 2;
+	cnnPars[1].poolResultSize = cnnPars[1].convResultSize / cnnPars[1].poolSize;
+	cnnPars[1].trainNum = cnnPars[0].trainNum;
+	cnnPars[1].validNum = cnnPars[0].validNum;
+	cnnPars[1].minibatchSize = cnnPars[0].minibatchSize;
+	cnnPars[1].numMinibatches = cnnPars[1].trainNum / (cnnPars[1].minibatchSize * (numProcess - 1));
+	cnnPars[1].numValidBatches = cnnPars[1].validNum / (cnnPars[1].minibatchSize * (numProcess - 1));
 
 	logistic->wcAvgOut = 0;
 	logistic->epsAvgOut = 0.001;
 	logistic->epsOutBias = 0.001;
-	logistic->numIn = 12*12*16;
+	logistic->numIn = cnnPars[1].poolResultSize * cnnPars[1].poolResultSize * cnnPars[1].numFilters;
+//	logistic->numIn = cnnPars[0].inSize * cnnPars[0].inSize * cnnPars[0].inChannel;
 	logistic->mom = 0.9;
 	logistic->numOut = 10; 
-	logistic->minibatchSize = 100;
-	logistic->finePars = 0.995;
+	logistic->minibatchSize = cnnPars[0].minibatchSize;
+	logistic->finePars = 0.95;
 
 	if(rank == 0){ 
-		managerNode(cnn1Pars, logistic);
+		managerNode(cnnPars, logistic);
 	}   
 	else{
-		workerNode(cnn1Pars, logistic);
+		workerNode(cnnPars, logistic);
 	} 	
 
-	delete[] cnn1Pars;
+	delete[] cnnPars;
 	delete logistic;
 	MPI_Finalize();
 	return 0;
 }
-
 
 
 

@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#include "utils.h"
+#include "utils.cuh"
 #include "matrix.h"
 #include "nvmatrix.cuh"
 #include "nvmatrix_kernel.cuh"
@@ -48,7 +48,7 @@ public:
 	void initCuda();
 	void computeClassOutputs(NVMatrix* miniData);
 	double computeError(const NVMatrix* const miniLables, int& numError);
-	void computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels, NVMatrix* dE_dy_i);
+	void computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels, NVMatrix* dE_dy_i = NULL);
 	void updatePars();
 
 	inline NVMatrix* getYJ(){

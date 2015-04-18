@@ -18,6 +18,51 @@ __device__ float logistic(float x) {
 		return 1 / (1 + __expf(-x));
 }
 
+__global__ void im2col_img(const float* conv_result, float* targets, \
+		const int numKernels, const int widthNoChannel, const int width, \
+		const int img_size, const int filter_channel, \
+		const int img_channel, const int filter_size, const int conv_forward_size, \
+		const int conv_stride){
+
+	const int imgPixs = img_size * img_size;
+	const int convPixs = conv_forward_size * conv_forward_size;
+	int index;
+	//这个numkernel比conv要大
+	CUDA_KERNEL_LOOP(idx, numKernels){
+		//此处的width指的是5*5*16,height指的是100*32*32
+		const int filtChannelIdx = (idx % width) / widthNoChannel;
+		//widthIdx指的是filt*filt的id
+		const int widthIdx = (idx % width) % widthNoChannel;
+		const int filtRow = widthIdx / filter_size;
+		const int filtCol = widthIdx % filter_size;
+		
+		const int imgIdx = (idx / width) / imgPixs;
+		const int heightIdx = (idx / width) % imgPixs;
+		const int imgRow = heightIdx / img_size;
+		const int imgCol = heightIdx % img_size;
+
+		index =	imgIdx * filter_channel * convPixs \
+				+ filtChannelIdx * convPixs;
+		if((imgRow % conv_stride == filtRow % conv_stride) && \
+				(imgCol % conv_stride == filtCol % conv_stride)){
+			const int convRow = (imgRow - filtRow) / conv_stride;
+			const int convCol = (imgCol - filtCol) / conv_stride; 
+			if(convRow >= 0 && convRow < conv_forward_size \
+					&& convCol >= 0 && convCol < conv_forward_size){
+				index += convRow * conv_forward_size + convCol;
+				targets[idx] = conv_result[index];
+			}
+//			else
+//				targets[idx] = 0;
+		}
+//		else
+//			targets[idx] = 0;
+		//输出图片的位置
+	}
+	__syncthreads();
+
+}
+
 __global__ void im2col_filt(const float* imgs, float* targets, \
 		const int numKernels, const int widthNoChannel, const int width, \
 		const int heightNoBatch, const int img_size, const int img_channel, \
@@ -27,11 +72,12 @@ __global__ void im2col_filt(const float* imgs, float* targets, \
 	const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if(idx < numKernels){
 		int imgPixs = img_size * img_size;
+		int filPixs = filter_size * filter_size;
 
 		//此处的width指的是5*5*3,height指的是24*24
-		const int channelIdx = (idx % width) % img_channel;
+		const int channelIdx = (idx % width) / filPixs;
 		//widthIdx指的是5*5的id
-		const int widthIdx = (idx % width) / img_channel;
+		const int widthIdx = (idx % width) % filPixs;
 		const int filtRow = widthIdx / filter_size;
 		const int filtCol = widthIdx % filter_size;
 		const int imgIdx = (idx / width) / heightNoBatch;
@@ -50,8 +96,8 @@ __global__ void im2col_filt(const float* imgs, float* targets, \
 }
 
 __global__ void im2col_conv(const float* imgs, float* targets, \
-		const int numKernels, const int widthNoBatch, const int widthNoChannel, \
-		const int width, const int height, const int img_size, \
+		const int numKernels, const int widthNoBatch, const int width, \
+		const int heightNoChannel, const int img_size, \
 		const int img_channel, const int filter_size, const int conv_forward_size, \
 		const int conv_step_size){
 
@@ -59,16 +105,15 @@ __global__ void im2col_conv(const float* imgs, float* targets, \
 	const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if(idx < numKernels){
 		int imgPixs = img_size * img_size;
-		//输入channel的值展开成行
-		//此处的width指的是100*24*24,height指的是5*5
+		//此处的width指的是100*24*24,height指的是5*5*3
 		const int imgIdx = (idx % width) / widthNoBatch;
-		const int withChannelIdx = (idx % width) % widthNoBatch;
-		const int channelIdx = withChannelIdx % img_channel;
 		//widthIdx指的是conv*conv的id
-		const int widthIdx = withChannelIdx / img_channel;
+		const int widthIdx = (idx % width) % widthNoBatch;
 		const int convRow = widthIdx / conv_forward_size;
 		const int convCol = widthIdx % conv_forward_size;
-		const int heightIdx = (idx / width) % height;
+
+		const int channelIdx = (idx / width) / heightNoChannel;
+		const int heightIdx = (idx / width) % heightNoChannel;
 		const int filtRow = heightIdx / filter_size;
 		const int filtCol = heightIdx % filter_size;
 		//输入图片的位置
@@ -81,6 +126,43 @@ __global__ void im2col_conv(const float* imgs, float* targets, \
 	__syncthreads();
 
 }
+
+__global__ void reshape_hidVis(float* un_w, const float* w, \
+		const int numKernels, const int filter_size, \
+		const int filter_channel, const int img_channel){
+
+	const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if(idx < numKernels){
+
+		int filPixs = filter_size * filter_size;
+
+		const int dstRow = idx / img_channel;
+		const int dstCol = idx % img_channel;
+		const int oriCol = dstCol * filPixs + dstRow % filPixs;
+		const int oriRow = dstRow / filPixs;
+		w += oriRow * filPixs * img_channel + oriCol;
+		un_w[idx] = w[0]; 
+	}
+}
+
+__global__ void reshape_In(float* in, const float* un_in, \
+		const int numKernels, const int in_size, \
+		const int img_channel){
+
+	int index;
+	CUDA_KERNEL_LOOP(idx, numKernels){
+
+		int imgPixs = in_size * in_size;
+		const int dstRow = idx / img_channel;
+		const int dstCol = idx % img_channel;
+		const int oriCol = dstCol * imgPixs + dstRow % imgPixs;
+		const int oriRow = dstRow / imgPixs;
+		index = oriRow * imgPixs * img_channel + oriCol;
+		in[index] = un_in[idx]; 
+	}
+}
+
 
 __global__ void reshape_y_h(const float* un_y_h, float* y_h, \
 		const int numKernels, const int conv_forward_size, \

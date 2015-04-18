@@ -103,6 +103,7 @@ void LoadCifar10<Dtype>::processOneImg(Dtype* pixel_ptr){
 		pixel_ptr[i] = this->_ori_pix[i] - avg;
 		std += pixel_ptr[i] * pixel_ptr[i];
 	}
+	std /= this->_img_sqrt;
 	std = sqrt(std);
 	for(int i = 0; i < this->_img_sqrt; i++){
 		pixel_ptr[i] /= std;

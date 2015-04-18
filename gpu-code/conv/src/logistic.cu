@@ -116,11 +116,13 @@ void Logistic::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels, NVMatrix*
 	data_T->rightMult(_dE_dy_j, 1, _dE_dw_ij, handle);
 	_dE_dy_j->sumRow(_dE_db_j);
 
-	NVMatrix* avgOut_T = new NVMatrix(_avgOut->getNumCols(), _avgOut->getNumRows());
-    _avgOut->getTranspose(avgOut_T);
-    _dE_dy_j->rightMult(avgOut_T, 1, dE_dy_i, handle);
+	if(dE_dy_i != NULL){
+		NVMatrix* avgOut_T = new NVMatrix(_avgOut->getNumCols(), _avgOut->getNumRows());
+		_avgOut->getTranspose(avgOut_T);
+		_dE_dy_j->rightMult(avgOut_T, 1, dE_dy_i, handle);
+		delete avgOut_T;
+	}
 
-	delete avgOut_T;
 	delete data_T;
 }
 

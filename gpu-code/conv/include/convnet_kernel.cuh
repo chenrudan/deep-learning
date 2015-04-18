@@ -5,31 +5,38 @@
 #ifndef CONVNET_KERNEL_CUH_
 #define CONVNET_KERNEL_CUH_
 
-/*
-#define IMG_CHANNEL				3
-#define IMG_SIZE				32
-#define FILTER_SIZE				9
-#define FILTER_CHANNEL			16
-#define CONV_STEP_SIZE			1
-#define CONV_FORWARD_SIZE   	24
-#define POOL_FORWARD_SIZE   	6
-#define AVG_POOL_X				4
-#define AVG_POOL_Y				4
-#define MAX_POOL_X				2
-#define MAX_POOL_Y				2
-*/
+// CUDA: grid stride looping
+#define CUDA_KERNEL_LOOP(i, n) \
+  for (int i = blockIdx.x * blockDim.x + threadIdx.x; \
+       i < (n); \
+       i += blockDim.x * gridDim.x)
+
+
+__global__ void im2col_img(const float* conv_result, float* targets, \
+        const int numKernels, const int widthNoChannel, const int width, \
+        const int img_size, const int filter_channel, \
+        const int img_channel, const int filter_size, const int conv_forward_size, \
+        const int conv_stride);
 
 __global__ void im2col_filt(const float* imgs, float* targets, \
-                const int numKernels, const int widthNoChannel, const int width, \
-                const int heightNoChannel, const int img_size, const int img_channel, \
-				const int filter_size, const int conv_forward_size, \
-				const int conv_step_size);
+        const int numKernels, const int widthNoChannel, const int width, \
+        const int heightNoBatch, const int img_size, const int img_channel, \
+        const int filter_size, const int conv_forward_size, \
+        const int conv_step_size);
 
 __global__ void im2col_conv(const float* imgs, float* targets, \
-                const int numKernels, const int widthNoBatch, const int widthNoChannel, \
-                const int width, const int height, const int img_size, \
-				const int img_channel, const int filter_size, \
-				const int conv_forward_size, const int conv_step_size);
+        const int numKernels, const int widthNoBatch, const int width, \
+        const int heightNoChannel, const int img_size, \
+        const int img_channel, const int filter_size, const int conv_forward_size, \
+        const int conv_step_size);
+
+__global__ void reshape_hidVis(float* un_w, const float* w, \
+        const int numKernels, const int filter_size, \
+        const int filter_channel, const int img_channel);
+
+__global__ void reshape_In(float* in, const float* un_in, \
+        const int numKernels, const int in_size, \
+        const int img_channel);
 
 __global__ void reshape_y_h(const float* un_y_h, float* y_h, const int numKernels, \
 				const int conv_forward_size, const int filter_channel);
