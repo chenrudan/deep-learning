@@ -69,6 +69,7 @@ void managerNode(pars* cnnPars, pars* logistic){
 		<< "\noutSize: " << logistic->numOut \
 		<< "\nepsAvgOut: " << logistic->epsAvgOut \
 		<< "\nepsOutBias: " << logistic->epsOutBias \
+		<< "\nmom: " << logistic->mom \
 		<< "\nwcAvgOut: " << logistic->wcAvgOut << endl;
 
 	int cnn1InLen = cnnPars[0].inSize * cnnPars[0].inSize * cnnPars[0].inChannel;
@@ -94,32 +95,32 @@ void managerNode(pars* cnnPars, pars* logistic){
 	NVMatrix* nvTrainLabel = new NVMatrix(cnnPars[0].trainNum, 1);
 	NVMatrix* nvValidLabel = new NVMatrix(cnnPars[0].validNum, 1);
 
-/*
-    readData(nvTrainData, "./data/input/mnist_train.bin", true);
-    readData(nvValidData, "./data/input/mnist_valid.bin", true);
-    readData(nvTrainLabel, "./data/input/mnist_label_train.bin", false);
-    readData(nvValidLabel, "./data/input/mnist_label_valid.bin", false);
-*/
+    readData(nvTrainData, "../data/input/mnist_train.bin", true);
+    readData(nvValidData, "../data/input/mnist_valid.bin", true);
+    readData(nvTrainLabel, "../data/input/mnist_label_train.bin", false);
+    readData(nvValidLabel, "../data/input/mnist_label_valid.bin", false);
 
 
 	ImgInfo<float> *cifar10Info = new ImgInfo<float>;
 	LoadCifar10<float> cifar10(cifar10Info);
+/*
     for(int i = 1; i < 6; i++){
         string s;
         stringstream ss;
         ss << 5;
         ss >> s;    
-		string filename = "./data/cifar-10-batches-bin/data_batch_"+s+".bin";
+		string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
         cifar10.loadBinary(filename, cifar10Info->train_pixel_ptr, \
 				cifar10Info->train_label_ptr);    
     }   
-    cifar10.loadBinary("./data/cifar-10-batches-bin/test_batch.bin", \
+    cifar10.loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
             cifar10Info->test_pixel_ptr, cifar10Info->test_label_ptr);
 
 	nvTrainData->copyFromHost(cifar10Info->train_pixel, cnnPars[0].trainNum * cnn1InLen);
 	nvTrainLabel->copyFromHost(cifar10Info->train_label, cnnPars[0].trainNum);
 	nvValidData->copyFromHost(cifar10Info->test_pixel, cnnPars[0].validNum * cnn1InLen);
 	nvValidLabel->copyFromHost(cifar10Info->test_label, cnnPars[0].validNum);
+*/
 
 
 	NVMatrix* cnn1HidVis = new NVMatrix(cnnPars[0].numFilters, \
@@ -259,10 +260,10 @@ void workerNode(pars* cnnPars, pars* logistic){
 	MPI_Bcast(avgOut->getDevData(), avgOutLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(outBiases->getDevData(), outBiasLen, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-	NVMatrix* cnn1TrainData = cnn1.getTrainData();
-	NVMatrix* cnn1TrainLabel = cnn1.getTrainLabel();
-	NVMatrix* cnn1ValidData = cnn1.getValidData();
-	NVMatrix* cnn1ValidLabel = cnn1.getValidLabel();
+	NVMatrix* cnn1TrainData = new NVMatrix(cnnPars->trainNum, cnn1InLen);
+	NVMatrix* cnn1TrainLabel = new NVMatrix(cnnPars->trainNum, 1);
+	NVMatrix* cnn1ValidData = new NVMatrix(cnnPars->validNum, cnn1InLen);
+	NVMatrix* cnn1ValidLabel = new NVMatrix(cnnPars->validNum, 1);
 
 	NVMatrix* miniData = new NVMatrix(cnnPars->minibatchSize, cnn1InLen);
 	NVMatrix* miniLabel = new NVMatrix(cnnPars->minibatchSize, 1);
@@ -467,11 +468,11 @@ if(epochIdx > 10){
 						<< ",likelihood: "<< loglihoodValid<< endl;
 			}
 		}
-//		if((epochIdx + 1) % 10 == 0){
-//			cnn1.transfarLowerPars();
-//			layer3.transfarLowerPars();
-//		} 
- 
+		if((epochIdx + 1) % 10 == 0){
+			cnn1.transfarLowerPars();
+			cnn2.transfarLowerPars();
+			layer3.transfarLowerPars();
+		} 
 
 		if(rank == 1){
 			t = clock() - t;
@@ -523,12 +524,12 @@ int main(int argc, char** argv){
 	cnnPars[0].epsHidVis = 0.1;
 	cnnPars[0].epsHidBias = 0.2;
 	cnnPars[0].mom = 0.9;
-	cnnPars[0].wcHidVis = 0.0004;
-	cnnPars[0].inSize = 32; 
-	cnnPars[0].inChannel = 3;
-	cnnPars[0].filterSize = 6;
-	cnnPars[0].numFilters = 32; 
-	cnnPars[0].stepSize = 2;
+	cnnPars[0].wcHidVis = 0;
+	cnnPars[0].inSize = 28; 
+	cnnPars[0].inChannel = 1;
+	cnnPars[0].filterSize = 5;
+	cnnPars[0].numFilters = 20; 
+	cnnPars[0].stepSize = 1;
 	cnnPars[0].convResultSize = (cnnPars[0].inSize - cnnPars[0].filterSize) / cnnPars[0].stepSize + 1;
 	cnnPars[0].poolSize = 2;
 	cnnPars[0].poolResultSize = cnnPars[0].convResultSize / cnnPars[0].poolSize;
@@ -537,7 +538,7 @@ int main(int argc, char** argv){
 	cnnPars[0].minibatchSize = 100;
 	cnnPars[0].numMinibatches = cnnPars[0].trainNum / (cnnPars[0].minibatchSize * (numProcess - 1));
 	cnnPars[0].numValidBatches = cnnPars[0].validNum / (cnnPars[0].minibatchSize * (numProcess - 1));
-	cnnPars[0].numEpoches = 300; 
+	cnnPars[0].numEpoches = 100; 
 	cnnPars[0].nPush =10;
 	cnnPars[0].nFetch = 19;
 	cnnPars[0].finePars = 0.95;
@@ -548,8 +549,8 @@ int main(int argc, char** argv){
 	cnnPars[1].wcHidVis = 0;
 	cnnPars[1].inSize = cnnPars[0].poolResultSize; 
 	cnnPars[1].inChannel = cnnPars[0].numFilters;
-	cnnPars[1].filterSize = 4;
-	cnnPars[1].numFilters = 128; 
+	cnnPars[1].filterSize = 5;
+	cnnPars[1].numFilters = 50; 
 	cnnPars[1].stepSize = 1;
 	cnnPars[1].convResultSize = (cnnPars[1].inSize - cnnPars[1].filterSize) / cnnPars[1].stepSize + 1;
 	cnnPars[1].poolSize = 2;
@@ -561,8 +562,8 @@ int main(int argc, char** argv){
 	cnnPars[1].numValidBatches = cnnPars[1].validNum / (cnnPars[1].minibatchSize * (numProcess - 1));
 
 	logistic->wcAvgOut = 0;
-	logistic->epsAvgOut = 0.001;
-	logistic->epsOutBias = 0.001;
+	logistic->epsAvgOut = 0.1;
+	logistic->epsOutBias = 0.2;
 	logistic->numIn = cnnPars[1].poolResultSize * cnnPars[1].poolResultSize * cnnPars[1].numFilters;
 //	logistic->numIn = cnnPars[0].inSize * cnnPars[0].inSize * cnnPars[0].inChannel;
 	logistic->mom = 0.9;

@@ -37,7 +37,6 @@ public:
 	
 	LoadLayer() {}
 	virtual ~LoadLayer() {}
-	
 		
 	/**
 	 * Load binary file, pixel, label or one file contain pixel and label.

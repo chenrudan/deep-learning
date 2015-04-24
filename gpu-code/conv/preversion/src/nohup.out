@@ -1,0 +1,1002 @@
+=========================
+train: 50000
+valid: 10000
+filtersize: 5
+numFilters: 16
+epsHidVis: 0.001
+epsHidBias: 0.001
+epsAvgOut: 0.13
+epsOutBias: 0.13
+mom: 0
+wcHidVis: 0
+wcAvgOut: 0
+========================
+endl??????????????
+0:2:1:784000
+0:1:1:784000
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:0     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:0     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:13
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:14
+     1:receive pixel  epochIdx:1     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:1     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:19
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:20
+     1:receive pixel  epochIdx:1     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:1     batchIdx:24
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:0
+     1:receive pixel  epochIdx:2     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:4
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:5
+     1:receive pixel  epochIdx:2     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:10
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:11
+     2:receive pixel  epochIdx:2     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:11
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:12
+     1:receive pixel  epochIdx:2     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:16
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:17
+     1:receive pixel  epochIdx:2     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:2     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:21
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:22
+     1:receive pixel  epochIdx:3     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:2     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:4
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:5
+     2:receive pixel  epochIdx:3     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:1
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:2
+     1:receive pixel  epochIdx:3     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:18
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:19
+     1:receive pixel  epochIdx:3     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:3     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:23
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:3     batchIdx:24
+     1:receive pixel  epochIdx:4     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:7
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:8
+     2:receive pixel  epochIdx:4     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:15
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:16
+     1:receive pixel  epochIdx:4     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:4     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:4     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:9
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:10
+     2:receive pixel  epochIdx:5     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:18
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:19
+     1:receive pixel  epochIdx:5     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:5     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:23
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:5     batchIdx:24
+     1:receive pixel  epochIdx:6     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:7
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:8
+     1:receive pixel  epochIdx:6     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:10
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:12
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:13
+     1:receive pixel  epochIdx:6     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:6     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:6     batchIdx:24
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:3
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:4
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:5
+     1:receive pixel  epochIdx:7     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:9
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:10
+     1:receive pixel  epochIdx:7     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:12
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:15
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:23
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:7     batchIdx:24
+     2:receive pixel  epochIdx:7     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:21
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:7     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:1
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:2
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:5
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:7
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:8
+     2:receive pixel  epochIdx:8     batchIdx:3
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:4
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:7
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:11
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:12
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:13
+     2:receive pixel  epochIdx:8     batchIdx:8
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:14
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:13
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:20
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:18
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:19
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:8     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:0
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:2
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:3
+     2:receive pixel  epochIdx:8     batchIdx:22
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:23
+2:send pixel done
+     2:receive pixel  epochIdx:8     batchIdx:24
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:4
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:0
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:1
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:6
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:7
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:8
+     2:receive pixel  epochIdx:9     batchIdx:2
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:3
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:4
+     1:receive pixel  epochIdx:9     batchIdx:9
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:5
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:6
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:7
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:8
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:12
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:13
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:14
+1:send pixel done
+2:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:15
+     2:receive pixel  epochIdx:9     batchIdx:9
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:10
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:16
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:17
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:11
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:12
+2:send pixel done
+1:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:13
+     1:receive pixel  epochIdx:9     batchIdx:18
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:19
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:20
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:14
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:15
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:16
+2:send pixel done
+     2:receive pixel  epochIdx:9     batchIdx:17
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:21
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:22
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:23
+1:send pixel done
+     1:receive pixel  epochIdx:9     batchIdx:24

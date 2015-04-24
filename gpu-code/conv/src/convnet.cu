@@ -12,63 +12,53 @@ using namespace std;
 
 ConvNet::ConvNet(pars* netWork){
 
-	this->_numFilters            = netWork->numFilters;
+	this->_filter_channel           = netWork->filter_channel;
 
-	this->_epsHidVis             = netWork->epsHidVis;
+	this->_w_lr             		= netWork->w_lr;
 	//hidden bias的learning rate
-	this->_epsHidBias            = netWork->epsHidBias;
+	this->_b_lr            			= netWork->b_lr;
 	//上一次更新的参数控制增长趋势
-	this->_mom                   = netWork->mom;
+	this->_momentum                 = netWork->momentum;
 	//hidden原值的参数
-	this->_wcHidVis              = netWork->wcHidVis;
+	this->_weight_decay             = netWork->weight_decay;
 	//out原值的参数
-	this->_numTrain				 = netWork->trainNum;
-	this->_numValid				 = netWork->validNum;
-	this->_minibatchSize         = netWork->minibatchSize;
-	this->_inSize				 = netWork->inSize;
-	this->_filterSize			 = netWork->filterSize;
-	this->_stepSize              = netWork->stepSize;
-	this->_poolSize              = netWork->poolSize;
-	this->_convResultSize		 = (_inSize - _filterSize) / _stepSize + 1;
-	this->_poolResultSize		 = this->_convResultSize / _poolSize;
-	this->_inChannel			 = netWork->inChannel;
-	this->_finePars				 = netWork->finePars;
-	this->_filtPixs				 = _filterSize * _filterSize;
-	this->_convPixs				 = _convResultSize * _convResultSize;
+	this->_minibatch_size         	= netWork->minibatch_size;
+	this->_in_size				 	= netWork->in_size;
+	this->_filter_size			 	= netWork->filter_size;
+	this->_stride              		= netWork->stride;
+	this->_out_size		 			= (_in_size - _filter_size) / _stride + 1;
+	this->_numTrain				 	= netWork->trainNum;
+	this->_numValid				 	= netWork->validNum;
+	this->_in_channel			 	= netWork->in_channel;
+	this->_lr_down_scale			= netWork->lr_down_scale;
+	this->_filt_pixs				= _filter_size * _filter_size;
+	this->_conv_pixs				= _out_size * _out_size;
 	cublasCreate(&handle);
 }
 ConvNet::~ConvNet() {
 
-	delete _hidVis;
-	delete _hidVisInc;
-	delete _hidBiases;
-	delete _hidBiasInc;
+	delete _w;
+	delete _w_inc;
+	delete _bias;
+	delete _bias_inc;
 
-	delete _y_h; 
-	delete  _y_i; 
-	delete _dE_dy_i;
-	delete _dE_dy_h;
-	delete _dE_dx_h;
-	delete _dE_dw_hk;
-	delete _dE_db_h;
-	delete _trainData;
-	delete _trainLabel;
-	delete _validData;
-	delete _validLabel;
+	delete _y; 
+	delete _dE_dy;
+	delete _dE_dw;
+	delete _dE_db;
 
-	delete unrolledMiniData1;
-	delete unrangedYH;
-	delete hidVis_T;
-	delete hidBias_T;
-	delete unrolledMiniData2;
-	delete rangedDEDXH;
-	delete dE_dw_hk_T;
-	delete dE_db_h_tmp;
-	delete unrolledConv;
-	delete rangedHidVis;
-	delete unrangedIn;
+	delete unrolled_x1;
+	delete unranged_y;
+	delete w_T;
+	delete bias_T;
+	delete unrolled_x2;
+	delete ranged_dE_dx;
+	delete dE_dw_T;
+	delete dE_db_tmp;
+	delete unrolled_conv;
+	delete ranged_w;
+	delete unranged_in;
 
-	cudaFree(_maxPoolPos);
 	cublasDestroy(handle);
 }
 
@@ -76,227 +66,172 @@ void ConvNet::initCuda() {
 	//cudaSetDevice(cutGetAvgGflopsDeviceId());
 	//NVMatrix::initDeviceProps();
 
-	//hidVis大小是16*5*5,bias是5*5
-	int inLen = _inChannel * _inSize * _inSize;
-	this->_trainData		 = new NVMatrix(_numTrain, inLen);	
-	this->_trainLabel		 = new NVMatrix(_numTrain, 1);	
-	this->_validData		 = new NVMatrix(_numValid, inLen);	
-	this->_validLabel		 = new NVMatrix(_numValid, 1);	
-
-	this->_hidVis            = new NVMatrix(_numFilters, _filtPixs * _inChannel);
+	this->_w            = new NVMatrix(_filter_channel, _filt_pixs * _in_channel);
 	//					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_hidBiases         = new NVMatrix(_numFilters, 1);
+	this->_bias         = new NVMatrix(_filter_channel, 1);
 	//					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_y_h               = new NVMatrix(_minibatchSize, \
-			_numFilters * _convPixs);
-	this->_y_i               = new NVMatrix(_minibatchSize, \
-			_numFilters * _poolResultSize * _poolResultSize);
-	this->_dE_dy_i           = new NVMatrix(_y_i);
-	this->_dE_dy_h           = new NVMatrix(_y_h);
-	this->_dE_dx_h           = new NVMatrix(_y_h);
-	this->_dE_dw_hk          = new NVMatrix(_hidVis);
-	this->_dE_db_h           = new NVMatrix(_hidBiases);
+	this->_y               = new NVMatrix(_minibatch_size, \
+			_filter_channel * _conv_pixs);
+	this->_dE_dy           = new NVMatrix(_y);
+	//dE_dx_h是对sigmoid函数的输入求导
+	this->_dE_dx_h           = new NVMatrix(_y);
+	this->_dE_dw          = new NVMatrix(_w);
+	this->_dE_db           = new NVMatrix(_bias);
 
-	this->_hidVisInc		 = new NVMatrix(_numFilters, _filtPixs * _inChannel);
-	this->_hidBiasInc		 = new NVMatrix(_numFilters, 1);
+	this->_w_inc		 = new NVMatrix(_filter_channel, _filt_pixs * _in_channel);
+	this->_bias_inc		 = new NVMatrix(_filter_channel, 1);
 
 	//中间变量
-	unrolledMiniData1 = new NVMatrix(_minibatchSize * _convPixs, \
-			_filtPixs * _inChannel);
-	unrangedYH = new NVMatrix(_minibatchSize * _convPixs, _numFilters);
-	hidVis_T = new NVMatrix(_hidVis->getNumCols(), _hidVis->getNumRows());
-	hidBias_T = new NVMatrix(_hidBiases->getNumCols(), _hidBiases->getNumRows());	
+	unrolled_x1 = new NVMatrix(_minibatch_size * _conv_pixs, \
+			_filt_pixs * _in_channel);
+	unranged_y = new NVMatrix(_minibatch_size * _conv_pixs, _filter_channel);
+	w_T = new NVMatrix(_w->getNumCols(), _w->getNumRows());
+	bias_T = new NVMatrix(_bias->getNumCols(), _bias->getNumRows());	
 
-	unrolledMiniData2 = new NVMatrix(_filtPixs * _inChannel, \
-			_minibatchSize * _convPixs);
-	rangedDEDXH = new NVMatrix(_minibatchSize * _convPixs, _numFilters);
-	dE_dw_hk_T = new NVMatrix(_hidVis->getNumCols(), \
-			_hidVis->getNumRows());
-	dE_db_h_tmp = new NVMatrix(_minibatchSize, _numFilters);
+	unrolled_x2 = new NVMatrix(_filt_pixs * _in_channel, \
+			_minibatch_size * _conv_pixs);
+	ranged_dE_dx = new NVMatrix(_minibatch_size * _conv_pixs, _filter_channel);
+	dE_dw_T = new NVMatrix(_w->getNumCols(), \
+			_w->getNumRows());
+	dE_db_tmp = new NVMatrix(_minibatch_size, _filter_channel);
 
-	unrolledConv = new NVMatrix(_minibatchSize * _inSize * _inSize, \
-			_filterSize * _filterSize * _numFilters);
-	rangedHidVis = new NVMatrix(_numFilters * _filtPixs, _inChannel);
-	unrangedIn = new NVMatrix(_minibatchSize * _inSize * _inSize, _inChannel);
+	unrolled_conv = new NVMatrix(_minibatch_size * _in_size * _in_size, \
+			_filter_size * _filter_size * _filter_channel);
+	ranged_w = new NVMatrix(_filter_channel * _filt_pixs, _in_channel);
+	unranged_in = new NVMatrix(_minibatch_size * _in_size * _in_size, _in_channel);
 
 
-	this->_hidVisInc->zeros();
-	this->_hidBiasInc->zeros();
+	this->_w_inc->zeros();
+	this->_bias_inc->zeros();
 
-	cudaError_t status = cudaMalloc((void**) &_maxPoolPos, \
-			_minibatchSize * _numFilters * _poolResultSize * _poolResultSize * sizeof(int));
-	if (status != cudaSuccess) {
-		fprintf(stderr, "!!!! device memory allocation error\n");
-		exit(EXIT_FAILURE);
-	}
 
 }
 
-void ConvNet::computeConvOutputs(NVMatrix* miniData){
+void ConvNet::computeConvOutputs(NVMatrix* _x){
 
 	//100*3*28*28 * 5*5, then add to 100*28*28 * 5*5
 
 
-	int numKernels = _minibatchSize * _convPixs * _filtPixs *_inChannel;
-	int numBlocks = numKernels / 1024 + 1;
-	//miniData->reValue(32);
-	//_hidVis->reValue(1.0f);
-	//_hidBiases->reValue(2.0f);
-	im2col_filt<<<numBlocks, 1024>>>(miniData->getDevData(), \
-			unrolledMiniData1->getDevData(), numKernels, _filtPixs, \
-			_filtPixs * _inChannel, _convPixs, _inSize, _inChannel, \
-			_filterSize, _convResultSize, _stepSize);
+	int num_kernel = _minibatch_size * _conv_pixs * _filt_pixs *_in_channel;
+	int num_block = num_kernel / 1024 + 1;
+	//_x->reValue(32);
+	//_w->reValue(1.0f);
+	//_bias->reValue(2.0f);
+	im2col_filt<<<num_block, 1024>>>(_x->getDevData(), \
+			unrolled_x1->getDevData(), num_kernel, _filt_pixs, \
+			_filt_pixs * _in_channel, _conv_pixs, _in_size, _in_channel, \
+			_filter_size, _out_size, _stride);
 
 
-	_hidVis->getTranspose(hidVis_T);
+	_w->getTranspose(w_T);
 
-	unrolledMiniData1->rightMult(hidVis_T, 1, unrangedYH, handle);
+	unrolled_x1->rightMult(w_T, 1, unranged_y, handle);
 
-	_hidBiases->getTranspose(hidBias_T);
-	unrangedYH->addRowVector(hidBias_T);
+	_bias->getTranspose(bias_T);
+	unranged_y->addRowVector(bias_T);
 
-	numKernels = _minibatchSize * _convPixs * _numFilters;
-	numBlocks = numKernels / 1024 + 1;
-	reshape_y_h<<<numBlocks, 1024>>>(unrangedYH->getDevData(), _y_h->getDevData(), \
-			numKernels, _convResultSize, _numFilters);
-	//unrolledMiniData1->showValue("data");
-	//_hidVis->showValue("whk");
-	//_y_h->showValue("yh");
-}
-
-/*
-   void ConvNet::computeAvgOutputs(){
-//16*16
-dim3 blocks = dim3(_minibatchSize, _numFilters);
-dim3 threads = dim3(_poolResultSize, _poolResultSize);
-//24*24,pooling到12*12
-avg_pooling<<<blocks, threads>>>(_y_h->getDevData(), _y_i->getDevData());
-cudaThreadSynchronize();
-}*/
-
-void ConvNet::computeMaxOutputs(){
-	//16*16
-	dim3 blocks = dim3(_minibatchSize, _numFilters);
-	dim3 threads = dim3(ceil(_poolResultSize / 16.0) * 16,  ceil(_poolResultSize / 16.0) * 16);
-	//24*24,pooling到12*12
-	max_pooling<<<blocks, threads, sizeof(float) * _convResultSize * _convResultSize>>>(_y_h->getDevData(), \
-			_y_i->getDevData(), _maxPoolPos, _convResultSize, _poolResultSize, _poolSize);	
-	cudaThreadSynchronize();
+	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
+	num_block = num_kernel / 1024 + 1;
+	reshape_y<<<num_block, 1024>>>(unranged_y->getDevData(), _y->getDevData(), \
+			num_kernel, _out_size, _filter_channel);
+	//unrolled_x1->showValue("data");
+	//_w->showValue("whk");
+	//_y->showValue("yh");
 }
 
 
-void ConvNet::computeDerivs(NVMatrix* miniData){
-	//assert(_minibatchSize % 16 == 0);
-
-	//dE_dy_i, 16*16*12*12
-	//每次还原一个点，因为四个点只需还原一个，因此只用12*12的线程做
-	dim3 blocks = dim3(_minibatchSize, _numFilters);
-	dim3 threads = dim3(ceil(_poolResultSize / 16.0) * 16,  ceil(_poolResultSize / 16.0) * 16);
-	//dE_dy_h, 16*16*24*24
-	_dE_dy_h->zeros();
-	compute_dE_dy_h_max<<<blocks, threads>>>(_dE_dy_i->getDevData(), \
-			_dE_dy_h->getDevData(), _maxPoolPos, _convResultSize, \
-			_poolResultSize, _poolSize);
-	cudaThreadSynchronize();
+void ConvNet::computeDerivs(NVMatrix* _x){
+	//assert(_minibatch_size % 16 == 0);
 
 	//dE_dx_h, 16*16*24*24
-	_y_h->subtractFromScalar(1, _dE_dx_h);
+	_y->subtractFromScalar(1, _dE_dx_h);
 
-	_dE_dx_h->eltWiseMult(_y_h);
+	_dE_dx_h->eltWiseMult(_y);
 
-	_dE_dx_h->eltWiseMult(_dE_dy_h);
+	_dE_dx_h->eltWiseMult(_dE_dy);
 
-	int numKernels = _minibatchSize * _convPixs * _filtPixs * _inChannel;
-	int numBlocks = numKernels / 1024 + 1;
+	int num_kernel = _minibatch_size * _conv_pixs * _filt_pixs * _in_channel;
+	int num_block = num_kernel / 1024 + 1;
 
-	//miniData->reValue(3072);
+	//_x->reValue(3072);
 	//另外一种排列方式，因为需要排列的是24*24的块
 
-	im2col_conv<<<numBlocks, 1024>>>(miniData->getDevData(), \
-			unrolledMiniData2->getDevData(), numKernels, \
-			_convPixs, _convPixs * _minibatchSize, \
-			_filtPixs, _inSize, _inChannel, _filterSize, \
-			_convResultSize, _stepSize);	
+	im2col_conv<<<num_block, 1024>>>(_x->getDevData(), \
+			unrolled_x2->getDevData(), num_kernel, \
+			_conv_pixs, _conv_pixs * _minibatch_size, \
+			_filt_pixs, _in_size, _in_channel, _filter_size, \
+			_out_size, _stride);	
 	//	}
-	//miniData->showValue("data1");
+	//_x->showValue("data1");
 	//_dE_dx_h->reValue(12544);
-	//unrolledMiniData2->showValue("data");
+	//unrolled_x2->showValue("data");
 
-	numKernels = _minibatchSize * _convPixs * _numFilters;
-	numBlocks = numKernels / 1024 + 1;
-	reshape_dE_dx_h<<<numBlocks, 1024>>>(rangedDEDXH->getDevData(), \
-			_dE_dx_h->getDevData(), numKernels, _convResultSize, _numFilters);
+	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
+	num_block = num_kernel / 1024 + 1;
+	reshape_dE_dx_h<<<num_block, 1024>>>(ranged_dE_dx->getDevData(), \
+			_dE_dx_h->getDevData(), num_kernel, _out_size, _filter_channel);
 
-	unrolledMiniData2->rightMult(rangedDEDXH, 1, dE_dw_hk_T, handle);
-	dE_dw_hk_T->getTranspose(_dE_dw_hk);
-//rangedDEDXH->showValue("dedxdh");	
-//_dE_dw_hk->showValue("dedwhk");
+	unrolled_x2->rightMult(ranged_dE_dx, 1, dE_dw_T, handle);
+	dE_dw_T->getTranspose(_dE_dw);
+//ranged_dE_dx->showValue("dedxdh");	
+//_dE_dw->showValue("dedwhk");
 
-	blocks = dim3(_minibatchSize, _numFilters);
-	threads = dim3(_convResultSize, _convResultSize);
-	compute_dE_db_h<<<blocks, threads, sizeof(float)>>>(_dE_dx_h->getDevData(), \
-			dE_db_h_tmp->getDevData(), _convResultSize);
+	blocks = dim3(_minibatch_size, _filter_channel);
+	threads = dim3(_out_size, _out_size);
+	compute_dE_db<<<blocks, threads, sizeof(float)>>>(_dE_dx_h->getDevData(), \
+			dE_db_tmp->getDevData(), _out_size);
 	cudaThreadSynchronize();
-	dE_db_h_tmp->sumRow(_dE_db_h);
+	dE_db_tmp->sumRow(_dE_db);
 }
 
-void ConvNet::computeDerivsToIn(NVMatrix* downLayer_dE_dy_i){
+void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 
-	int numKernels = _minibatchSize * _inSize * _inSize * _filtPixs * _numFilters;
-	int numBlocks = 4096;
-//	int numBlocks = numKernels / 1024 + 1;
+	int num_kernel = _minibatch_size * _in_size * _in_size * _filt_pixs * _filter_channel;
+	int num_block = 4096;
+//	int num_block = num_kernel / 1024 + 1;
 
-	cudaMemset(unrolledConv->getDevData(), 0, sizeof(float) * numKernels);
-//clock_t t = clock();
-	im2col_img<<<numBlocks, 1024>>>(_dE_dx_h->getDevData(), unrolledConv->getDevData(), \
-			numKernels, _filtPixs, _filtPixs * _numFilters, _inSize, _numFilters, \
-			_inChannel, _filterSize, _convResultSize, _stepSize);
+	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(float) * num_kernel);
+	im2col_img<<<num_block, 1024>>>(_dE_dx_h->getDevData(), unrolled_conv->getDevData(), \
+			num_kernel, _filt_pixs, _filt_pixs * _filter_channel, _in_size, _filter_channel, \
+			_in_channel, _filter_size, _out_size, _stride);
 	cudaThreadSynchronize();
-	//	_dE_dx_h->showValue("dedxh");
-	
-//t = clock() - t;
-//cout << "1: " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
-//t = clock();
+	num_kernel = _filter_channel * _filt_pixs * _in_channel;
 
-
-
-	//unrolledConv->showValue("");
-	numKernels = _numFilters * _filtPixs * _inChannel;
-	numBlocks = numKernels / 1024 + 1;
-	reshape_hidVis<<<numBlocks, 1024>>>(rangedHidVis->getDevData(), \
-			_hidVis->getDevData(), numKernels, _filterSize, \
-			_numFilters, _inChannel);
+	num_block = num_kernel / 1024 + 1;
+	reshape_w<<<num_block, 1024>>>(ranged_w->getDevData(), \
+			_w->getDevData(), num_kernel, _filter_size, \
+			_filter_channel, _in_channel);
 	cudaThreadSynchronize();
 
-	unrolledConv->rightMult(rangedHidVis, 1, unrangedIn, handle);
-	numKernels = _minibatchSize * _inSize * _inSize * _inChannel;
-	numBlocks = numKernels / 1024 + 1;
-	reshape_In<<<numBlocks, 512>>>(downLayer_dE_dy_i->getDevData(), unrangedIn->getDevData(), \
-			numKernels, _inSize, _inChannel);
+	unrolled_conv->rightMult(ranged_w, 1, unranged_in, handle);
+	num_kernel = _minibatch_size * _in_size * _in_size * _in_channel;
+	num_block = num_kernel / 1024 + 1;
+	reshape_In<<<num_block, 1024>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
+			num_kernel, _in_size, _in_channel);
 	cudaThreadSynchronize();
 
 //t = clock() - t;
 //cout << "3: " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
 //t = clock();
-	//_hidVis->showValue("whk");
-	//rangedHidVis->showValue("rangWhk");
-//	unrangedIn->showValue("unrangIN");
-//	unrolledConv->showValue("");
+	//_w->showValue("whk");
+	//ranged_w->showValue("rangWhk");
+//	unranged_in->showValue("unrangIN");
+//	unrolled_conv->showValue("");
 //	_dE_dx->showValue("dx");
 
 }
-
+/*
 void ConvNet::updatePars(){
 
-	_hidVisInc->addSum(_hidVis, _dE_dw_hk, _mom, -_wcHidVis, \
-			-_epsHidVis / _minibatchSize);
-	_hidVis->add(_hidVisInc, 1, 1);
+	_w_inc->addSum(_w, _dE_dw, _momentum, -_weight_decay, \
+			-_w_lr / _minibatch_size);
+	_w->add(_w_inc, 1, 1);
 
-	_hidBiasInc->add(_dE_db_h, _mom, -_epsHidBias / _minibatchSize);
-	_hidBiases->add(_hidBiasInc, 1, 1);
+	_bias_inc->add(_dE_db, _momentum, -_b_lr / _minibatch_size);
+	_bias->add(_bias_inc, 1, 1);
 
 }
-
+*/
 
 
 

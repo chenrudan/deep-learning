@@ -7,133 +7,134 @@
 
 using namespace std;
 
-Logistic::Logistic(pars* netWork){
-	this->_numIn				 = netWork->numIn;
-	this->_numOut                = netWork->numOut;
+Logistic::Logistic(pars* network){
+	this->_num_in				 	= network->num_in;
+	this->_num_out               	= network->num_out;
 
 	//w_hk的learning rate
-	this->_epsAvgOut             = netWork->epsAvgOut;
+	this->_w_lr		      	      	= network->w_lr;
 	//out bias learning rate
-	this->_epsOutBias            = netWork->epsOutBias;
+	this->_b_lr 		          	= network->b_lr;
 	//上一次更新的参数控制增长趋势
-	this->_mom                   = netWork->mom;
-	//hidden原值的参数
-	this->_wcHidVis              = netWork->wcHidVis;
-	//out原值的参数
-	this->_wcAvgOut              = netWork->wcAvgOut;
+	this->_momentum                 = network->momentum;
+	this->_weight_decay             = network->weight_decay;
 
-	this->_minibatchSize         = netWork->minibatchSize;
-	this->_finePars				 = netWork->finePars;
+	this->_minibatch_size         	= network->minibatch_size;
+	this->_lr_down_scale			= network->lr_down_scale;
 
 	cublasCreate(&handle);
 }
 
 Logistic::~Logistic() {
 
-	delete _avgOut;
-	delete _avgOutInc;
-	delete _outBiases;
-	delete _outBiasInc;
+	delete _w;
+	delete _w_inc;
+	delete _bias;
+	delete _bias_inc;
 
-	delete  _y_j;
-	delete  _dE_dy_j;
-	delete _dE_db_j;
-	delete _dE_dw_ij;
+	delete  _y;
+	delete  _dE_dy;
+	delete _dE_db;
+	delete _dE_dw;
 	cublasDestroy(handle);
 }
 
 void Logistic::initCuda() {
 
-	this->_avgOut            = new NVMatrix(_numIn, _numOut);
+	this->_w            = new NVMatrix(_num_in, _num_out);
 //					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_outBiases         = new NVMatrix(1, _numOut);
+	this->_bias         = new NVMatrix(1, _num_out);
 //					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
-	this->_y_j               = new NVMatrix(_minibatchSize, _numOut);
+	this->_y               = new NVMatrix(_minibatch_size, _num_out);
 
-	this->_dE_dy_j           = new NVMatrix(_y_j);
-	this->_dE_db_j           = new NVMatrix(_outBiases);
-	this->_dE_dw_ij          = new NVMatrix(_avgOut);
+	this->_dE_dy           = new NVMatrix(_y);
+	this->_dE_db           = new NVMatrix(_bias);
+	this->_dE_dw          = new NVMatrix(_w);
 
-	this->_avgOutInc         = new NVMatrix(_avgOut);
-	this->_outBiasInc        = new NVMatrix(1, _numOut);
-	this->_avgOutInc->zeros();
-	this->_outBiasInc->zeros();
+	this->_w_inc         = new NVMatrix(_w);
+	this->_bias_inc        = new NVMatrix(1, _num_out);
+	this->_w_inc->zeros();
+	this->_bias_inc->zeros();
 }
 
-void Logistic::computeClassOutputs(NVMatrix* miniData){
-//miniData->showValue("data");
-	miniData->rightMult(_avgOut, 1, _y_j, handle);
-	_y_j->addRowVector(_outBiases);
-	_y_j->apply(NVMatrix::SOFTMAX);
+void Logistic::computeOutputs(NVMatrix* x){
+//x->showValue("data");
+	x->rightMult(_w, 1, _y, handle);
+	_y->addRowVector(_bias);
+	_y->apply(NVMatrix::SOFTMAX);
 
-//_y_j->showValue("yj1");
+//_y->showValue("yj1");
 }
 
-double Logistic::computeError(const NVMatrix* const miniLabels, int& numError){
+double Logistic::computeError(const NVMatrix* labels, int& num_error){
 
-	Matrix* hlabels = new Matrix(miniLabels->getNumRows(), miniLabels->getNumCols());
-	miniLabels->copyToHost(hlabels);
-	Matrix* y_j_CPU = new Matrix(_y_j->getNumRows(), _y_j->getNumCols());
-	_y_j->copyToHost(y_j_CPU);
-	Matrix* correctProbs = new Matrix(_y_j->getNumRows(), 1);
-	NVMatrix* maxPosOfOutGpu = new NVMatrix(_y_j->getNumRows(), 1);
-	_y_j->maxPosInRow(maxPosOfOutGpu);
-	Matrix* maxPosCpu = new Matrix(_y_j->getNumRows(), 1);
-	maxPosOfOutGpu->copyToHost(maxPosCpu);
-	for (int c = 0; c < _y_j->getNumRows(); c++) {
-		int trueLabel = hlabels->getCell(c, 0);
-		int predictLabel = maxPosCpu->getCell(c, 0);
-		correctProbs->getCell(c, 0) = y_j_CPU->getCell(c, trueLabel);
+	Matrix* h_labels = new Matrix(labels->getNumRows(), labels->getNumCols());
+	labels->copyToHost(h_labels);
+
+	Matrix* y_CPU = new Matrix(_y->getNumRows(), _y->getNumCols());
+	_y->copyToHost(y_CPU);
+
+	Matrix* correct_probs = new Matrix(_y->getNumRows(), 1);
+	NVMatrix* d_max_pos_of_out = new NVMatrix(_y->getNumRows(), 1);
+	_y->maxPosInRow(d_max_pos_of_out);
+	Matrix* h_max_pos_of_out = new Matrix(_y->getNumRows(), 1);
+	d_max_pos_of_out->copyToHost(h_max_pos_of_out);
+
+	for (int c = 0; c < _y->getNumRows(); c++) {
+		int true_label = h_labels->getCell(c, 0);
+		int predict_label = h_max_pos_of_out->getCell(c, 0);
+		correct_probs->getCell(c, 0) = y_CPU->getCell(c, true_label);
 
 //cout << predictLabel << ":" << trueLabel << " ";
-		if(predictLabel != trueLabel)
-			numError++;
+		if(predict_label != true_label)
+			num_error++;
 	}
 //cout << endl;
-	correctProbs->apply(Matrix::LOG);
-	double result = -correctProbs->sum();
+	correct_probs->apply(Matrix::LOG);
+	double result = -correct_probs->sum();
 	cudaThreadSynchronize();
 
-	delete hlabels;
-	delete y_j_CPU;
-	delete correctProbs;
-	delete maxPosOfOutGpu;
-	delete maxPosCpu;
+	delete h_labels;
+	delete y_CPU;
+	delete correct_probs;
+	delete d_max_pos_of_out;
+	delete h_max_pos_of_out;
 	return result;
 }
 
-void Logistic::computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels, NVMatrix* dE_dy_i){
-	assert(miniLabels->getNumRows() == miniData->getNumRows());
+void Logistic::computeDerivsOfPars(NVMatrix* x, NVMatrix* labels){
+	assert(labels->getNumRows() == x->getNumRows());
 
-	const int numThreads = DIVUP(_numOut, ADD_BLOCK_SIZE) * ADD_BLOCK_SIZE;
-	compute_dE_dy<<<_minibatchSize, numThreads>>>(_y_j->getDevData(), \
-			miniLabels->getDevData(), _dE_dy_j->getDevData(), _numOut);
+	const int num_thread = DIVUP(_num_out, ADD_BLOCK_SIZE) * ADD_BLOCK_SIZE;
+	compute_dE_dy<<<_minibatch_size, num_thread>>>(_y->getDevData(), \
+			labels->getDevData(), _dE_dy->getDevData(), _num_out);
 
-	NVMatrix* data_T = new NVMatrix(miniData->getNumCols(), miniData->getNumRows());
-	miniData->getTranspose(data_T);
+	NVMatrix* data_T = new NVMatrix(x->getNumCols(), x->getNumRows());
+	x->getTranspose(data_T);
 
-	data_T->rightMult(_dE_dy_j, 1, _dE_dw_ij, handle);
-	_dE_dy_j->sumRow(_dE_db_j);
-
-	if(dE_dy_i != NULL){
-		NVMatrix* avgOut_T = new NVMatrix(_avgOut->getNumCols(), _avgOut->getNumRows());
-		_avgOut->getTranspose(avgOut_T);
-		_dE_dy_j->rightMult(avgOut_T, 1, dE_dy_i, handle);
-		delete avgOut_T;
-	}
+	data_T->rightMult(_dE_dy, 1, _dE_dw, handle);
+	_dE_dy->sumRow(_dE_db);
 
 	delete data_T;
 }
 
-void Logistic::updatePars(){
-	_avgOutInc->addSum(_avgOut, _dE_dw_ij, _mom, -_wcAvgOut, \
-			-_epsAvgOut / _minibatchSize);
-	_avgOut->add(_avgOutInc, 1, 1);
-
-	_outBiasInc->add(_dE_db_j, _mom, -_epsOutBias / _minibatchSize);
-	_outBiases->add(_outBiasInc, 1, 1);
+void Logistic::computeDerivsOfInput(NVMatrix* dE_dx){
+	NVMatrix* w_T = new NVMatrix(_w->getNumCols(), _w->getNumRows());
+	_w->getTranspose(w_T);
+	_dE_dy->rightMult(w_T, 1, dE_dx, handle);
+	delete w_T;
 }
 
+/*
+void Logistic::updatePars(){
+	_w_inc->addSum(_w, _dE_dw, _momentum, -_weight_decay, \
+			-_w_lr / _minibatch_size);
+	_w->add(_w_inc, 1, 1);
+
+	_bias_inc->add(_dE_db, _momentum, -_b_lr / _minibatch_size);
+	_bias->add(_bias_inc, 1, 1);
+}
+*/
 
 

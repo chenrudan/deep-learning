@@ -1,0 +1,245 @@
+=========================
+train: 50000
+valid: 10000
+filtersize: 5
+numFilters: 16
+epsHidVis: 0.1
+epsHidBias: 0.1
+epsAvgOut: 0
+epsOutBias: 0
+mom: 0
+wcHidVis: 0
+wcAvgOut: 0
+tid3
+tid6
+tid8
+tid5
+tid9
+tidtid25
+tid7
+tid1
+tid10
+tid11
+tid12
+tid15
+tid18
+tid21
+tid26
+tid31
+tid28
+tid30
+tid14
+tid19
+tid23
+tid4
+tid0
+tid17
+tid27
+tid2
+tid20
+24
+tid16
+tid13
+tid22
+tid29
+epochIdx: 0,error: 0.7207,likelihood: 23788.1
+epochIdx: 1,error: 0.7078,likelihood: 19374.5
+epochIdx: 2,error: 0.6426,likelihood: 12125.1
+epochIdx: 3,error: 0.4683,likelihood: 5527.17
+epochIdx: 4,error: 0.3942,likelihood: 5175.95
+epochIdx: 5,error: 0.3129,likelihood: 3079.58
+epochIdx: 6,error: 0.2745,likelihood: 3127.36
+epochIdx: 7,error: 0.2329,likelihood: 2256.55
+epochIdx: 8,error: 0.1975,likelihood: 1984.75
+epochIdx: 9,error: 0.1708,likelihood: 1747.48
+epochIdx: 10,error: 0.1713,likelihood: 1626.55
+epochIdx: 11,error: 0.169,likelihood: 1443.88
+epochIdx: 12,error: 0.1384,likelihood: 1364.2
+epochIdx: 13,error: 0.1442,likelihood: 1483.58
+epochIdx: 14,error: 0.1518,likelihood: 1415.19
+epochIdx: 15,error: 0.1442,likelihood: 1316.79
+epochIdx: 16,error: 0.1366,likelihood: 1331.35
+epochIdx: 17,error: 0.1259,likelihood: 1094.95
+epochIdx: 18,error: 0.1282,likelihood: 1188.2
+epochIdx: 19,error: 0.1224,likelihood: 1097.62
+epochIdx: 20,error: 0.1208,likelihood: 1177.49
+epochIdx: 21,error: 0.108,likelihood: 967.728
+epochIdx: 22,error: 0.1023,likelihood: 976.081
+epochIdx: 23,error: 0.1065,likelihood: 975.691
+epochIdx: 24,error: 0.1026,likelihood: 950.262
+epochIdx: 25,error: 0.0984,likelihood: 951.022
+epochIdx: 26,error: 0.098,likelihood: 919.571
+epochIdx: 27,error: 0.0929,likelihood: 909.345
+epochIdx: 28,error: 0.0921,likelihood: 924.904
+epochIdx: 29,error: 0.092,likelihood: 928.152
+epochIdx: 30,error: 0.0909,likelihood: 886.162
+epochIdx: 31,error: 0.0892,likelihood: 893.064
+epochIdx: 32,error: 0.0892,likelihood: 879.308
+epochIdx: 33,error: 0.0893,likelihood: 889.079
+epochIdx: 34,error: 0.0892,likelihood: 875.377
+epochIdx: 35,error: 0.0898,likelihood: 858.917
+epochIdx: 36,error: 0.0868,likelihood: 850.247
+epochIdx: 37,error: 0.0906,likelihood: 858.362
+epochIdx: 38,error: 0.087,likelihood: 847.388
+epochIdx: 39,error: 0.0859,likelihood: 836.929
+epochIdx: 40,error: 0.0864,likelihood: 850.066
+epochIdx: 41,error: 0.0857,likelihood: 834.198
+epochIdx: 42,error: 0.0854,likelihood: 837.999
+epochIdx: 43,error: 0.0853,likelihood: 831.626
+epochIdx: 44,error: 0.0859,likelihood: 832.034
+epochIdx: 45,error: 0.0855,likelihood: 829.126
+epochIdx: 46,error: 0.0862,likelihood: 822.808
+epochIdx: 47,error: 0.0853,likelihood: 819.631
+epochIdx: 48,error: 0.0842,likelihood: 813.582
+epochIdx: 49,error: 0.0843,likelihood: 808.414
+epochIdx: 50,error: 0.0825,likelihood: 812.806
+epochIdx: 51,error: 0.083,likelihood: 806.977
+epochIdx: 52,error: 0.0842,likelihood: 807.629
+epochIdx: 53,error: 0.0834,likelihood: 803.413
+epochIdx: 54,error: 0.083,likelihood: 800.629
+epochIdx: 55,error: 0.0826,likelihood: 796.17
+epochIdx: 56,error: 0.0835,likelihood: 799.752
+epochIdx: 57,error: 0.0817,likelihood: 800.76
+epochIdx: 58,error: 0.0836,likelihood: 796.815
+epochIdx: 59,error: 0.0805,likelihood: 790.224
+epochIdx: 60,error: 0.08,likelihood: 790.999
+epochIdx: 61,error: 0.0826,likelihood: 786.622
+epochIdx: 62,error: 0.079,likelihood: 770.764
+epochIdx: 63,error: 0.0825,likelihood: 768.532
+epochIdx: 64,error: 0.0788,likelihood: 769.595
+epochIdx: 65,error: 0.0792,likelihood: 771.615
+epochIdx: 66,error: 0.0784,likelihood: 763.555
+epochIdx: 67,error: 0.0785,likelihood: 763.123
+epochIdx: 68,error: 0.0782,likelihood: 761.687
+epochIdx: 69,error: 0.0785,likelihood: 759.221
+epochIdx: 70,error: 0.0801,likelihood: 764.825
+epochIdx: 71,error: 0.078,likelihood: 762.372
+epochIdx: 72,error: 0.0797,likelihood: 762.063
+epochIdx: 73,error: 0.0788,likelihood: 760.783
+epochIdx: 74,error: 0.0783,likelihood: 747.558
+epochIdx: 75,error: 0.0775,likelihood: 746.991
+epochIdx: 76,error: 0.0781,likelihood: 756.053
+epochIdx: 77,error: 0.0778,likelihood: 756.128
+epochIdx: 78,error: 0.0778,likelihood: 754.85
+epochIdx: 79,error: 0.0779,likelihood: 755.328
+epochIdx: 80,error: 0.0778,likelihood: 752.072
+epochIdx: 81,error: 0.0775,likelihood: 749.945
+epochIdx: 82,error: 0.078,likelihood: 749.452
+epochIdx: 83,error: 0.0773,likelihood: 745.977
+epochIdx: 84,error: 0.077,likelihood: 745.432
+epochIdx: 85,error: 0.0762,likelihood: 743.887
+epochIdx: 86,error: 0.0766,likelihood: 745.524
+epochIdx: 87,error: 0.0768,likelihood: 744.842
+epochIdx: 88,error: 0.0766,likelihood: 742.008
+epochIdx: 89,error: 0.0772,likelihood: 742.18
+epochIdx: 90,error: 0.0769,likelihood: 742.406
+epochIdx: 91,error: 0.0755,likelihood: 742.342
+epochIdx: 92,error: 0.0768,likelihood: 738.908
+epochIdx: 93,error: 0.0755,likelihood: 736.815
+epochIdx: 94,error: 0.0751,likelihood: 732.538
+epochIdx: 95,error: 0.0751,likelihood: 734.901
+epochIdx: 96,error: 0.0748,likelihood: 733.968
+epochIdx: 97,error: 0.0752,likelihood: 733.499
+epochIdx: 98,error: 0.0742,likelihood: 726.997
+epochIdx: 99,error: 0.075,likelihood: 725.497
+epochIdx: 100,error: 0.0752,likelihood: 726.147
+epochIdx: 101,error: 0.0754,likelihood: 726.769
+epochIdx: 102,error: 0.075,likelihood: 724.502
+epochIdx: 103,error: 0.0748,likelihood: 721.084
+epochIdx: 104,error: 0.0748,likelihood: 723.727
+epochIdx: 105,error: 0.0746,likelihood: 721.023
+epochIdx: 106,error: 0.0745,likelihood: 723.837
+epochIdx: 107,error: 0.0747,likelihood: 722.937
+epochIdx: 108,error: 0.0745,likelihood: 721.832
+epochIdx: 109,error: 0.0741,likelihood: 720.651
+epochIdx: 110,error: 0.0738,likelihood: 719.621
+epochIdx: 111,error: 0.0741,likelihood: 718.664
+epochIdx: 112,error: 0.0737,likelihood: 717.662
+epochIdx: 113,error: 0.0735,likelihood: 716.984
+epochIdx: 114,error: 0.0732,likelihood: 716.386
+epochIdx: 115,error: 0.0735,likelihood: 715.519
+epochIdx: 116,error: 0.0733,likelihood: 714.948
+epochIdx: 117,error: 0.0729,likelihood: 714.153
+epochIdx: 118,error: 0.0731,likelihood: 713.377
+epochIdx: 119,error: 0.0735,likelihood: 714.775
+epochIdx: 120,error: 0.073,likelihood: 713.613
+epochIdx: 121,error: 0.0727,likelihood: 712.512
+epochIdx: 122,error: 0.0731,likelihood: 711.572
+epochIdx: 123,error: 0.0727,likelihood: 710.704
+epochIdx: 124,error: 0.0729,likelihood: 709.888
+epochIdx: 125,error: 0.0729,likelihood: 709.112
+epochIdx: 126,error: 0.0729,likelihood: 708.368
+epochIdx: 127,error: 0.0732,likelihood: 708.445
+epochIdx: 128,error: 0.0731,likelihood: 707.593
+epochIdx: 129,error: 0.0733,likelihood: 706.449
+epochIdx: 130,error: 0.0731,likelihood: 706.695
+epochIdx: 131,error: 0.0732,likelihood: 705.692
+epochIdx: 132,error: 0.0732,likelihood: 705.791
+epochIdx: 133,error: 0.0723,likelihood: 706.083
+epochIdx: 134,error: 0.0731,likelihood: 705.434
+epochIdx: 135,error: 0.0729,likelihood: 703.879
+epochIdx: 136,error: 0.0729,likelihood: 703.79
+epochIdx: 137,error: 0.0731,likelihood: 702.827
+epochIdx: 138,error: 0.0725,likelihood: 703.361
+epochIdx: 139,error: 0.0729,likelihood: 701.425
+epochIdx: 140,error: 0.0729,likelihood: 700.236
+epochIdx: 141,error: 0.0731,likelihood: 699.948
+epochIdx: 142,error: 0.0726,likelihood: 700.575
+epochIdx: 143,error: 0.0731,likelihood: 699.006
+epochIdx: 144,error: 0.0724,likelihood: 698.947
+epochIdx: 145,error: 0.0727,likelihood: 697.209
+epochIdx: 146,error: 0.0726,likelihood: 695.824
+epochIdx: 147,error: 0.0725,likelihood: 695.623
+epochIdx: 148,error: 0.0722,likelihood: 695.775
+epochIdx: 149,error: 0.0725,likelihood: 694.311
+epochIdx: 150,error: 0.0719,likelihood: 692.025
+epochIdx: 151,error: 0.0725,likelihood: 692.189
+epochIdx: 152,error: 0.0723,likelihood: 691.874
+epochIdx: 153,error: 0.0717,likelihood: 692.134
+epochIdx: 154,error: 0.0722,likelihood: 691.107
+epochIdx: 155,error: 0.0719,likelihood: 691.028
+epochIdx: 156,error: 0.0721,likelihood: 690.928
+epochIdx: 157,error: 0.0723,likelihood: 690.407
+epochIdx: 158,error: 0.0723,likelihood: 690.584
+epochIdx: 159,error: 0.0721,likelihood: 690.328
+epochIdx: 160,error: 0.0721,likelihood: 690.151
+epochIdx: 161,error: 0.0714,likelihood: 689.43
+epochIdx: 162,error: 0.0719,likelihood: 688.95
+epochIdx: 163,error: 0.0715,likelihood: 688.353
+epochIdx: 164,error: 0.0712,likelihood: 691.664
+epochIdx: 165,error: 0.0711,likelihood: 688.796
+epochIdx: 166,error: 0.071,likelihood: 687.747
+epochIdx: 167,error: 0.0719,likelihood: 687.115
+epochIdx: 168,error: 0.0708,likelihood: 690.065
+epochIdx: 169,error: 0.0707,likelihood: 686.738
+epochIdx: 170,error: 0.071,likelihood: 689.117
+epochIdx: 171,error: 0.0708,likelihood: 687.785
+epochIdx: 172,error: 0.0707,likelihood: 685.731
+epochIdx: 173,error: 0.0707,likelihood: 686.047
+epochIdx: 174,error: 0.0703,likelihood: 689.061
+epochIdx: 175,error: 0.0706,likelihood: 685.423
+epochIdx: 176,error: 0.0704,likelihood: 685.268
+epochIdx: 177,error: 0.0706,likelihood: 684.071
+epochIdx: 178,error: 0.0708,likelihood: 684.008
+epochIdx: 179,error: 0.0703,likelihood: 683.109
+epochIdx: 180,error: 0.069,likelihood: 672.753
+epochIdx: 181,error: 0.0693,likelihood: 672.197
+epochIdx: 182,error: 0.0692,likelihood: 671.529
+epochIdx: 183,error: 0.0708,likelihood: 681.249
+epochIdx: 184,error: 0.0707,likelihood: 681
+epochIdx: 185,error: 0.0702,likelihood: 679.619
+epochIdx: 186,error: 0.0697,likelihood: 672.194
+epochIdx: 187,error: 0.0706,likelihood: 678.141
+epochIdx: 188,error: 0.0701,likelihood: 678.063
+epochIdx: 189,error: 0.0698,likelihood: 677.672
+epochIdx: 190,error: 0.0702,likelihood: 677.695
+epochIdx: 191,error: 0.0698,likelihood: 669.695
+epochIdx: 192,error: 0.0701,likelihood: 675.982
+epochIdx: 193,error: 0.0694,likelihood: 668.046
+epochIdx: 194,error: 0.0696,likelihood: 668.073
+epochIdx: 195,error: 0.0699,likelihood: 673.23
+epochIdx: 196,error: 0.0696,likelihood: 673.135
+epochIdx: 197,error: 0.0698,likelihood: 671.898
+epochIdx: 198,error: 0.0708,likelihood: 671.865
+epochIdx: 199,error: 0.0705,likelihood: 671.958
+ 2.09975 seconds.

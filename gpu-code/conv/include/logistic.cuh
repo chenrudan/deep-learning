@@ -8,71 +8,23 @@
 #include <iostream>
 
 #include "utils.cuh"
+#include "layer.hpp"
 #include "matrix.h"
 #include "nvmatrix.cuh"
 #include "nvmatrix_kernel.cuh"
 
-class Logistic {
-
-private:
-
-	// ===========================
-    // Device matrices
-	// ===========================
-	NVMatrix* _avgOut, *_avgOutInc;
-	NVMatrix* _outBiases, *_outBiasInc;
-
-	// ---------------------------
-    // Temporary storage
-	// ---------------------------
-	NVMatrix* _y_j; // classification
-	NVMatrix* _dE_dy_j, *_dE_db_j, *_dE_dw_ij;
-
-    // ===========================
-	// Various learning parameters
-    // ===========================
-	float _epsAvgOut,_epsOutBias;
-	float _mom, _wcHidVis, _wcAvgOut;
-	float _finePars;
-	int _numVis, _numFilters, _numAvg, _numOut, _numIn;
-	int _minibatchSize;
-	int _inSize;
-	int _inChannel;
-	
-	cublasHandle_t handle;
+class Logistic : public Layer {
 
 public:
-	Logistic(pars* netWork);
+	Logistic(pars* network);
 	~Logistic();
 	
 	void initCuda();
-	void computeClassOutputs(NVMatrix* miniData);
-	double computeError(const NVMatrix* const miniLables, int& numError);
-	void computeDerivs(NVMatrix* miniData, NVMatrix* miniLabels, NVMatrix* dE_dy_i = NULL);
-	void updatePars();
-
-	inline NVMatrix* getYJ(){
-		return _y_j;
-	}
-	inline NVMatrix* getDEDYJ(){
-		return _dE_dy_j;
-	}
-	inline NVMatrix* getDEDWIJ(){
-		return _dE_dw_ij;
-	}
-	inline NVMatrix* getDEDBJ(){
-		return _dE_db_j;
-	}
-	inline void transfarLowerPars(){
-		_epsAvgOut = _epsAvgOut * _finePars;
-		_epsOutBias = _epsOutBias * _finePars;
-	}
-	inline NVMatrix* getAvgOut(){
-		return _avgOut;
-	}
-	inline NVMatrix* getOutBias(){
-		return _outBiases;
-	}
+	void computeOutputs(NVMatrix* x);
+	double computeError(const NVMatrix* labels, int& num_error);
+	void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels);
+	void computeDerivsOfInput(NVMatrix* dE_dx);
+//	void updatePars();
 
 };
 

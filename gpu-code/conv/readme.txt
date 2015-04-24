@@ -40,3 +40,4 @@
 	make TARGET=main MULTI_PROCESS=1 MULTI_MECHINE=1
 
 v3:单层的conv
+v4:两层conv，一层logistic
