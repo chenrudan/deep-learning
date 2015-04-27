@@ -48,7 +48,8 @@ void PoolingLayer::initCuda() {
 	//	this->_bias         = new NVMatrix(1, _num_out);
 	//                  NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
 
-	this->_y               = new NVMatrix(_minibatch_size, _num_out);
+	this->_y               = new NVMatrix(_minibatch_size, \
+					_out_size * _out_size * _in_channel);
 
 	this->_dE_dy           = new NVMatrix(_y);
 	//	this->_dE_db           = new NVMatrix(_bias);
@@ -59,8 +60,8 @@ void PoolingLayer::initCuda() {
 	//	this->_w_inc->zeros();
 	//	this->_bias_inc->zeros();
 
-	cudaError_t status = cudaMalloc((void**) &_maxPoolPos, \
-			_minibatchSize * _numFilters * _poolResultSize * _poolResultSize * sizeof(int));
+	cudaError_t status = cudaMalloc((void**) &_max_pos, \
+			_minibatch_size * _in_channel * _out_size * _out_size * sizeof(int));
 	if (status != cudaSuccess) {
 		fprintf(stderr, "!!!! device memory allocation error\n");
 		exit(EXIT_FAILURE);
@@ -70,10 +71,10 @@ void PoolingLayer::initCuda() {
 
 void PoolingLayer::computeOutputs(NVMatrix* x){
 	dim3 blocks = dim3(_minibatch_size, _in_channel);
-	dim3 threads = dim3(ceil(_out_size / 16.0) * 16,  ceil(out_size / 16.0) * 16);
+	dim3 threads = dim3(ceil(_out_size / 16.0) * 16,  ceil(_out_size / 16.0) * 16);
 	//24*24,pooling到12*12
 	max_pooling<<<blocks, threads, sizeof(float) * _in_size * _in_size>>>(x->getDevData(), \
-			_y->getDevData(), _maxPoolPos, _in_size, _out_size, _pool_size);  
+			_y->getDevData(), _max_pos, _in_size, _out_size, _pool_size);  
 	cudaThreadSynchronize();
 
 }
@@ -83,9 +84,9 @@ void PoolingLayer::computeDerivsOfInput(NVMatrix* dE_dx){
 	dim3 blocks = dim3(_minibatch_size, _in_channel);
 	dim3 threads = dim3(ceil(_out_size / 16.0) * 16,  ceil(_out_size / 16.0) * 16);
 	//dE_dy_h, 16*16*24*24
-	_dE_dy_h->zeros();
-	compute_dE_dy_h_max<<<blocks, threads>>>(_dE_dy->getDevData(), \
-			_dE_dx->getDevData(), _maxPoolPos, _in_size, \
+	dE_dx->zeros();
+	compute_dE_dy_max<<<blocks, threads>>>(_dE_dy->getDevData(), \
+			dE_dx->getDevData(), _max_pos, _in_size, \
 			_out_size, _pool_size);
 	cudaThreadSynchronize();
 
@@ -94,8 +95,8 @@ void PoolingLayer::computeDerivsOfInput(NVMatrix* dE_dx){
 /*
    void ConvNet::computeAvgOutputs(){
 	   //16*16
-	   dim3 blocks = dim3(_minibatchSize, _numFilters);
-	   dim3 threads = dim3(_poolResultSize, _poolResultSize);
+	   dim3 blocks = dim3(_minibatch_size, _in_channels);
+	   dim3 threads = dim3(_out_size, _out_size);
 	   //24*24,pooling到12*12
 	   avg_pooling<<<blocks, threads>>>(_y_h->getDevData(), _y_i->getDevData());
 	   cudaThreadSynchronize();

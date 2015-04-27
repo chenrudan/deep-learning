@@ -6,29 +6,28 @@
 #define CONVNET_H_
 
 #include <iostream>
-
+#include "layer.hpp"
 #include "utils.cuh"
 #include "matrix.h"
 #include "nvmatrix.cuh"
 
-class ConvNet {
+class ConvNet : public Layer{
 
 private:
 	
-	NVMatrix* unrolledMiniData1;
-	NVMatrix* unrangedYH;
-	NVMatrix* hidVis_T;
-	NVMatrix* hidBias_T;
-	NVMatrix* unrolledMiniData2;
-	NVMatrix* rangedDEDXH;
-	NVMatrix* dE_dw_hk_T;
-	NVMatrix* dE_db_h_tmp;
-	NVMatrix* unrolledConv;
-	NVMatrix* rangedHidVis;
-	NVMatrix* unrangedIn;
+	NVMatrix* unrolled_x1;
+	NVMatrix* unranged_y;
+	NVMatrix* unrolled_x2;
+	NVMatrix* ranged_dE_dx;
+	NVMatrix* dE_db_tmp;
+	NVMatrix* unrolled_conv;
+	NVMatrix* ranged_w;
+	NVMatrix* unranged_in;
 
-	int _filtPixs;
-	int _convPixs;
+	NVMatrix* _dE_dx_sigmoid;
+		
+	int _filt_pixs;
+	int _conv_pixs;
 
 public:
 	ConvNet(pars* network);

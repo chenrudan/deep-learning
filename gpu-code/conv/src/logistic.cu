@@ -3,7 +3,7 @@
  */
 #include <time.h>
 #include "logistic.cuh"
-#include "logistic_kernel.cuh"
+#include "layer_kernel.cuh"
 
 using namespace std;
 

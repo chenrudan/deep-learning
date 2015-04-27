@@ -22,7 +22,7 @@ class PoolingLayer : public Layer {
 //		void updatePars();
 
 	private:
-		int* _maxPoolPos;
+		int* _max_pos;
 
 };
 

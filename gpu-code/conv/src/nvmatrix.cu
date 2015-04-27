@@ -356,6 +356,9 @@ void NVMatrix::apply(NVMatrix::FUNCTIONS f, NVMatrix *target){
 	}else if(f == NVMatrix::LOG) {
 		kLog<<<gridSize, blockSize>>>(_devData, target->getDevData(), \
 				width, height);
+	}else if(f == NVMatrix::SIGMOID) {
+		kSigmoid<<<gridSize, blockSize>>>(_devData, target->getDevData(), \
+				width, height);
 	}
 	cudaThreadSynchronize();
 }

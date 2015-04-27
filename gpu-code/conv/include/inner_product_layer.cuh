@@ -6,37 +6,26 @@
 #define INNER_PRODUCT_LAYER_H_
 
 #include <iostream>
-
+#include "layer.hpp"
 #include "utils.cuh"
 #include "matrix.h"
 #include "nvmatrix.cuh"
 
-class InnerProductLayer {
-
-private:
-	
-	NVMatrix* _w;
-	NVMatrix* _bias;
-	
-	NVMatrix* _dE_dw;
-	NVMatrix* _dE_db;
-	
-	NVMatrix* _y;
-	
-	float w_lr;
-	float b_lr; 
-	
-	int numIn, numOut;
-	
-	cublasHandle_t handle;
+class InnerProductLayer : public Layer {
 
 public:
 	
 	InnerProductLayer(pars* netWork);
 	~InnerProductLayer();
 
-	
-	
+	void initCuda();
+	void computeOutputs(NVMatrix* x);
+	void computeDerivsOfPars(NVMatrix* x);
+	void computeDerivsOfInput(NVMatrix* dE_dx);
+
+private:
+	NVMatrix* _dE_dx_sigmoid;
+
 };
 
 

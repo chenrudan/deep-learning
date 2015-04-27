@@ -9,6 +9,17 @@ __constant__ int WIDTH;
 __constant__ int HEIGHT;
 __constant__ float SCALE_VEC;
 
+
+__device__ float mySigmoid(float x) {
+	if(x < -300)
+		return 0;
+	else if( x > 300)
+		return 1;
+	else
+		return 1 / (1 + __expf(-x));
+}
+
+
 __global__ void multiRowCol(float* aData, float* bData, float scaleAB, \
 		float* target, const int numInRowCol, const int times ){
 	extern __shared__ float result[];
@@ -125,6 +136,15 @@ __global__ void kSoftmax(float* gData, unsigned int width, \
 
 }
 
+__global__ void kSigmoid(float* gData, float* target, unsigned int width, \
+		unsigned int height) {
+	const unsigned int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idx = idxY * width + idxX;
+
+	if(idxY < height && idxX < width)
+		target[idx] = mySigmoid(gData[idx]);
+}
 
 
 __global__ void kReciprocal(float* gData, float* target, unsigned int width, \
@@ -164,7 +184,7 @@ __global__ void kCompactCol(const float* ori, float* target, const int interval,
 			target[tarIdx] += ori[i + oriIdx];
 		}
 	}
-	
+
 }
 
 
@@ -260,7 +280,7 @@ __global__ void kSubtractFromScalar(float* gData, float scalar, float* target, \
 	const unsigned int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const unsigned int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idx = idxY * width + idxX;
-	
+
 	if(idxY < height && idxX < width)
 		target[idx] = scalar - gData[idx];
 }
@@ -270,7 +290,7 @@ __global__ void kMult(float* matA, float* matB, float* tgtMat, \
 	const unsigned int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const unsigned int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idx = idxY * width + idxX;
-	
+
 	if(idxY < height && idxX < width)
 		tgtMat[idx] = matA[idx] * matB[idx];
 }
@@ -280,7 +300,7 @@ __global__ void kAdd(float* matA, float* matB, float* tgtMat, float scaleA,  \
 	const unsigned int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const unsigned int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idx = idxY * width + idxX;
-	
+
 	if(idxY < height && idxX < width)
 		tgtMat[idx] = scaleA * matA[idx] + scaleB * matB[idx];
 }

@@ -25,6 +25,7 @@ public:
 	void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels);
 	void computeDerivsOfInput(NVMatrix* dE_dx);
 //	void updatePars();
+	
 
 };
 

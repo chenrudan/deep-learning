@@ -11,34 +11,30 @@
 using namespace std;
 
 typedef struct Pars{
-    float epsHidVis;
-    float epsHidBias;
-    float epsAvgOut;
-    float epsOutBias;
-    float mom;
-    float wcHidVis;
-    float wcAvgOut;
-	float finePars;
+    float w_lr;
+    float b_lr;
+    float momentum;
+    float weight_decay;
+	float lr_down_scale;
 
-    int inSize;
-    int inChannel;
-    int filterSize;
-    int numFilters;
-	int numIn;
-    int numOut;
-	int stepSize;
-	int convResultSize;
-	int poolResultSize;
-	int poolSize;
-    int trainNum;
-    int validNum;
-    int minibatchSize;
-    int numMinibatches;
-    int numValidBatches;
-    int numEpoches; 
+    int in_size;
+    int in_channel;
+	int out_size;
+    int filter_size;
+    int filter_channel;
+	int num_in;
+    int num_out;
+	int stride;
+	int pool_size;
+    int num_train;
+    int num_valid;
+    int minibatch_size;
+    int num_minibatch;
+    int num_validbatch;
+    int num_epoch; 
 
-	int nPush;
-	int nFetch;
+	int n_push;
+	int n_fetch;
     
 }pars;
 

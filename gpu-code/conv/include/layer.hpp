@@ -47,8 +47,8 @@ protected:
 	cublasHandle_t handle;
 
 public:
-	Layer(pars* network);
-	virtual ~Layer();	
+	Layer() {}
+	virtual ~Layer() {}	
 
 	virtual void initCuda() {}
 	virtual void computeOutput(NVMatrix* x) {}
@@ -70,11 +70,18 @@ public:
 		_b_lr *= _lr_down_scale;
 	}
 
-	inline void getW {
+	inline NVMatrix* getW() {
 		return _w;	
 	}
-	inline void getBias {
+	inline NVMatrix* getBias() {
 		return _bias;
+	}
+
+	inline NVMatrix* getY() {
+		return _y; 
+	}   
+	inline NVMatrix* getDEDY() {
+		return _dE_dy;
 	}
 
 };
