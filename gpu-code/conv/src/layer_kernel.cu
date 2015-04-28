@@ -138,12 +138,11 @@ __global__ void reshape_w(float* un_w, const float* w, \
 	if(idx < numKernels){
 
 		int filPixs = filter_size * filter_size;
-
 		const int dstRow = idx / img_channel;
 		const int dstCol = idx % img_channel;
 		const int oriRow = dstCol * filPixs + dstRow % filPixs;
 		const int oriCol = dstRow / filPixs;
-		w += oriRow * filPixs * img_channel + oriCol;
+		w += oriRow * filter_channel + oriCol;
 		un_w[idx] = w[0]; 
 	}
 }

@@ -6,7 +6,7 @@ MPICXX = mpicxx
 CCFLAGS = -c
 NVCCFLAGS = -g -O3 -c -Xcompiler -fopenmp
 
-LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp
+LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp -lmpi
 INCLUDES = -I./include
 
 BUILD_DIR = ./bin
@@ -29,6 +29,7 @@ CU_OBJS += $(subst $(SRCS_DIR), $(OBJ_DIR), ${CU_SRCS:.cu=.o})
 TARGET ?= main
 MULTI_PROCESS ?= 0
 MULTI_MECHINE ?= 0
+OPEN_MPI ?= 0
 NUM_PROCESS ?= 2
 BUILD_TARGET = $(BUILD_DIR)/$(TARGET)
 SRCS_TARGET = $(SRCS_TARGET_DIR)/$(TARGET).cu
@@ -45,12 +46,13 @@ $(BUILD_TARGET): $(CXX_OBJS) $(CU_OBJS) $(SRCS_TARGET)
 	$(NVCC) -o $(BUILD_TARGET) $(OBJ_TARGET)  $(CXX_OBJS) $(CU_OBJS) $(LIB)  
 	
 	if [ $(MULTI_MECHINE) -eq 1 ] ; then \
-		scp $(BUILD_TARGET) crd@192.168.0.101:/home/crd/conv/bin; \
+		scp $(BUILD_TARGET) crd@gpu-server1:/home/crd/conv/bin; \
 	fi
 	if [ $(MULTI_PROCESS) -eq 1 ]; then \
-		mpirun_rsh -np $(NUM_PROCESS) -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 MV2_USE_GPUDIRECT=1 $(BUILD_TARGET); \
+		mpirun_rsh -np $(NUM_PROCESS) -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 $(BUILD_TARGET); \
 	fi
 
+			#mpirun -np $(NUM_PROCESS) -hostfile hostfile $(BUILD_TARGET); \
 #   scp testMultiGpu root@gpu-server1:/home/conv/src2
 #	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter valgrind --leak-check=full ./testMultiGpu
 #mpirun_rsh -np 2 -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 MV2_USE_GPUDIRECT=1 ./testMultiGpu

@@ -55,13 +55,18 @@ public:
 	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels = NULL) {}
 	virtual void computeDerivsOfInput(NVMatrix* dE_dx) {}
 
-	void updatePars() {
+	void updatePars(bool isShow = false) {
+		if(isShow == true){
+			_w->showValue("w");
+			_dE_dw->showValue("dEdw");
+			_w_inc->showValue("winc");
+			_dE_db->showValue("dEdb");
+		}
 		_w_inc->addSum(_w, _dE_dw, _momentum, -_weight_decay, \
 			            -_w_lr / _minibatch_size);
 		_w->add(_w_inc, 1, 1); 
 
 		_bias_inc->add(_dE_db, _momentum, -_b_lr / _minibatch_size);
-					    _bias->add(_bias_inc, 1, 1);
 		_bias->add(_bias_inc, 1, 1);
 	}
 

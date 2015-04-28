@@ -1,0 +1,93 @@
+nvcc -g -O3 -c -Xcompiler -fopenmp ./main_src/main.cu -I./include -o ./obj/main.o
+nvcc -o ./bin/main ./obj/main.o    ./obj/matrix.o   ./obj/nvmatrix_kernel.o  ./obj/utils.o  ./obj/layer_kernel.o  ./obj/convnet.o  ./obj/inner_product_layer.o  ./obj/nvmatrix.o  ./obj/pooling_layer.o  ./obj/logistic.o -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp -lmpi  
+if [ 0 -eq 1 ] ; then \
+		scp ./bin/main crd@gpu-server1:/home/crd/conv/bin; \
+	fi
+if [ 1 -eq 1 ]; then \
+		mpirun_rsh -np 2 -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 ./bin/main; \
+	fi
+
+===========overall==============
+train: 50000
+valid: 10000
+batchSize: 100
+n_fetch: 21
+n_push: 29
+===========cnn1==============
+in_size: 28
+in_channel: 1
+filter_size: 5
+filter_channel: 20
+stride: 1
+w_lr: 5
+b_lr: 10
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.9
+===========pool1==============
+in_size: 24
+in_channel: 20
+stride: 0
+pool_size: 2
+===========cnn2==============
+in_size: 12
+in_channel: 20
+filter_size: 5
+filter_channel: 50
+stride: 1
+w_lr: 1
+b_lr: 1
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========pool2==============
+in_size: 8
+in_channel: 50
+stride: 0
+pool_size: 2
+===========inner_product==============
+num_in: 800
+num_out: 500
+w_lr: 1
+b_lr: 2
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.9
+===========softmax==============
+num_in: 500
+num_out: 10
+w_lr: 0.01
+b_lr: 0.05
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.9
+done1
+epoch_idx: 0, error: 0.8936,likelihood: 23018.2
+epoch_idx: 1, error: 0.7871,likelihood: 22997.1
+epoch_idx: 2, error: 0.1747,likelihood: 5559.88
+epoch_idx: 3, error: 0.0585,likelihood: 1975.64
+epoch_idx: 4, error: 0.0422,likelihood: 1468.77
+epoch_idx: 5, error: 0.0304,likelihood: 1070.11
+epoch_idx: 6, error: 0.0303,likelihood: 1026.46
+epoch_idx: 7, error: 0.0259,likelihood: 866.863
+epoch_idx: 8, error: 0.0236,likelihood: 804.362
+epoch_idx: 9, error: 0.0242,likelihood: 793.443
+epoch_idx: 10, error: 0.0217,likelihood: 743.117
+epoch_idx: 11, error: 0.0218,likelihood: 748.763
+epoch_idx: 12, error: 0.0229,likelihood: 725.343
+epoch_idx: 13, error: 0.0222,likelihood: 718.119
+epoch_idx: 14, error: 0.0199,likelihood: 662.995
+epoch_idx: 15, error: 0.0207,likelihood: 664.28
+epoch_idx: 16, error: 0.0188,likelihood: 654.006
+epoch_idx: 17, error: 0.0201,likelihood: 662.843
+epoch_idx: 18, error: 0.0179,likelihood: 619.599
+epoch_idx: 19, error: 0.0181,likelihood: 592.63
+epoch_idx: 20, error: 0.017,likelihood: 575.749
+epoch_idx: 21, error: 0.0163,likelihood: 562.181
+epoch_idx: 22, error: 0.0162,likelihood: 559.392
+epoch_idx: 23, error: 0.0159,likelihood: 565.545
+epoch_idx: 24, error: 0.0162,likelihood: 572.951
+epoch_idx: 25, error: 0.0166,likelihood: 582.867
+epoch_idx: 26, error: 0.016,likelihood: 587.412
+epoch_idx: 27, error: 0.0167,likelihood: 605.186
+epoch_idx: 28, error: 0.0177,likelihood: 610.334

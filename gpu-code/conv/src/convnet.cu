@@ -139,6 +139,8 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 
 	_dE_dx_sigmoid->eltWiseMult(_dE_dy);
 
+//_dE_dy->showValue("dedy");
+//_dE_dx_sigmoid->showValue("dedxsigmoid");
 	int num_kernel = _minibatch_size * _conv_pixs * _filt_pixs * _in_channel;
 	int num_block = num_kernel / 1024 + 1;
 
@@ -153,7 +155,7 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 	//	}
 	//_x->showValue("data1");
 	//_dE_dx_sigmoid->reValue(12544);
-	//unrolled_x2->showValue("data");
+//unrolled_x2->showValue("data");
 
 	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
 	num_block = num_kernel / 1024 + 1;
@@ -161,7 +163,9 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 			_dE_dx_sigmoid->getDevData(), num_kernel, _out_size, _filter_channel);
 
 	unrolled_x2->rightMult(ranged_dE_dx, 1, _dE_dw, handle);
+
 //ranged_dE_dx->showValue("dedxdh");	
+//_dE_dx_sigmoid->showValue("dedxsigmoid");
 //_dE_dw->showValue("dedwhk");
 
 	dim3 blocks = dim3(_minibatch_size, _filter_channel);
@@ -183,8 +187,9 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 			num_kernel, _filt_pixs, _filt_pixs * _filter_channel, _in_size, _filter_channel, \
 			_in_channel, _filter_size, _out_size, _stride);
 	cudaThreadSynchronize();
-	num_kernel = _filter_channel * _filt_pixs * _in_channel;
 
+//_w->reValue(50);
+	num_kernel = _filter_channel * _filt_pixs * _in_channel;
 	num_block = num_kernel / 1024 + 1;
 	reshape_w<<<num_block, 1024>>>(ranged_w->getDevData(), \
 			_w->getDevData(), num_kernel, _filter_size, \
@@ -201,11 +206,11 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 //t = clock() - t;
 //cout << "3: " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
 //t = clock();
-	//_w->showValue("whk");
-	//ranged_w->showValue("rangWhk");
+//	_w->showValue("whk");
+//	ranged_w->showValue("rangWhk");
+//	unrolled_conv->showValue("unrolledconv");
 //	unranged_in->showValue("unrangIN");
-//	unrolled_conv->showValue("");
-//	_dE_dx->showValue("dx");
+//	dE_dx->showValue("dx");
 
 }
 /*

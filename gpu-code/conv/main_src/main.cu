@@ -53,7 +53,9 @@ void managerNode(pars* layer_pars){
 		<< "\nw_lr: " << layer_pars[0].w_lr \
 		<< "\nb_lr: " << layer_pars[0].b_lr \
 		<< "\nmomentum: " << layer_pars[0].momentum \
-		<< "\nweight_decay: " << layer_pars[0].weight_decay;
+		<< "\nweight_decay: " << layer_pars[0].weight_decay \
+		<< "\nlr_scale: " << layer_pars[0].lr_down_scale;
+
 	
 	cout << "\n===========pool1==============" \
 		<< "\nin_size: " << layer_pars[1].in_size \
@@ -70,7 +72,8 @@ void managerNode(pars* layer_pars){
 		<< "\nw_lr: " << layer_pars[2].w_lr \
 		<< "\nb_lr: " << layer_pars[2].b_lr \
 		<< "\nmomentum: " << layer_pars[2].momentum \
-		<< "\nweight_decay: " << layer_pars[2].weight_decay ;
+		<< "\nweight_decay: " << layer_pars[2].weight_decay \
+		<< "\nlr_scale: " << layer_pars[2].lr_down_scale;
 
 	cout << "\n===========pool2==============" \
 		<< "\nin_size: " << layer_pars[3].in_size \
@@ -84,7 +87,8 @@ void managerNode(pars* layer_pars){
 		<< "\nw_lr: " << layer_pars[4].w_lr \
 		<< "\nb_lr: " << layer_pars[4].b_lr \
 		<< "\nmomentum: " << layer_pars[4].momentum \
-		<< "\nweight_decay: " << layer_pars[4].weight_decay << endl;
+		<< "\nweight_decay: " << layer_pars[4].weight_decay \
+		<< "\nlr_scale: " << layer_pars[4].lr_down_scale;
 
 	cout << "\n===========softmax==============" \
 		<< "\nnum_in: " << layer_pars[5].num_in \
@@ -92,7 +96,8 @@ void managerNode(pars* layer_pars){
 		<< "\nw_lr: " << layer_pars[5].w_lr \
 		<< "\nb_lr: " << layer_pars[5].b_lr \
 		<< "\nmomentum: " << layer_pars[5].momentum \
-		<< "\nweight_decay: " << layer_pars[5].weight_decay << endl;
+		<< "\nweight_decay: " << layer_pars[5].weight_decay \
+		<< "\nlr_scale: " << layer_pars[5].lr_down_scale << endl;
 
 	int cnn1_in_len = layer_pars[0].in_size * layer_pars[0].in_size * layer_pars[0].in_channel;
 	int cnn1_w_len = layer_pars[0].filter_channel * layer_pars[0].filter_size \
@@ -164,14 +169,17 @@ void managerNode(pars* layer_pars){
 	NVMatrix* softmax_w = new NVMatrix(softmax_w_len / layer_pars[5].num_out, layer_pars[5].num_out);
 	NVMatrix* softmax_bias = new NVMatrix(1, layer_pars[5].num_out);
 
-	gaussRand(cnn1_w, 0.01);
-	gaussRand(cnn2_w);
+//	gaussRand(cnn1_w, 0.01);
+	initW(cnn1_w);
+//	gaussRand(cnn2_w, 0.01);
+	initW(cnn2_w);
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
-	gaussRand(inner_w, 0.1);
+//	gaussRand(inner_w, 0.1);
+	initW(inner_w);
 	cudaMemset(inner_bias->getDevData(), 0, sizeof(float) * layer_pars[4].num_out);
-	//gaussRand(softmax_w, 0.1);
-	cudaMemset(softmax_w->getDevData(), 0, sizeof(float) * softmax_w_len);
+//	gaussRand(softmax_w, 0.1);
+	initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
 	//	readPars(hHidVis, "hHidVis_t1.bin");
@@ -318,7 +326,7 @@ void workerNode(pars* layer_pars){
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_bias->getDevData(), softmax_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-
+cout << "done1\n";
 	NVMatrix* train_data = new NVMatrix(layer_pars->num_train, cnn1_in_len);
 	NVMatrix* train_label = new NVMatrix(layer_pars->num_train, 1);
 	NVMatrix* valid_data = new NVMatrix(layer_pars->num_valid, cnn1_in_len);
@@ -353,14 +361,27 @@ void workerNode(pars* layer_pars){
 	clock_t t;
 	t = clock();
 
+
+	const int num_pars_type = 8;
+	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
+				cnn2_w->getDevData(), cnn2_bias->getDevData(), \
+				inner_w->getDevData(), inner_bias->getDevData(), \ 
+				softmax_w->getDevData(), softmax_bias->getDevData()};
+	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
+			     inner_w_len, inner_b_len, softmax_w_len, softmax_b_len};
+
 	for(int epoch_idx = 0; epoch_idx < layer_pars->num_epoch; epoch_idx++){
 		int error = 0;
 /*
-if(epoch_idx > 10){
-//	cnn1_w->showValue("whk");
-//	cnn1_bias->showValue("hidBias");
-//	softmax_w->showValue("wij");
-//	softmax_bias->showValue("SOFTMAX_BIAS");
+if(epoch_idx > 1){
+	cnn1_w->showValue("cnn1w");
+	cnn1_bias->showValue("cnn1b");
+	cnn2_w->showValue("cnn2w");
+	cnn2_bias->showValue("cnn2b");
+	inner_w->showValue("innerw");
+	inner_bias->showValue("innerb");
+	softmax_w->showValue("softmaxw");
+	softmax_bias->showValue("softmaxb");
 }
 */
 		for(int batch_idx = 0; batch_idx < layer_pars->num_minibatch; batch_idx++){
@@ -413,63 +434,18 @@ if(epoch_idx > 10){
 				}
 				else
 					passMsg = batch_idx;
-				/*
-				const int num_pars_type = 4;
-				float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
-						softmax_w->getDevData(), softmax_bias->getDevData()};
-			    int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, softmax_w_len, softmax_b_len};
 				#pragma omp parallel num_threads(num_pars_type)
 				{
 					int tid = omp_get_thread_num();
 					int pars_addr = tid % num_pars_type;
 					int swap_id = tid % num_pars_type;
 
-					MPI_Recv(&passMsg, 1, MPI_INT, 0, \
-						swap_id*10000, MPI_COMM_WORLD, &status);
+					MPI_Send(&passMsg, 1, MPI_INT, 0, \
+						swap_id*10000, MPI_COMM_WORLD);
 					MPI_Send(my_pars[pars_addr], pars_len[pars_addr], \
 						MPI_FLOAT, 0, swap_id + passMsg, MPI_COMM_WORLD);
 					
-				}*/
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN1_W_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(cnn1_w->getDevData(), cnn1_w_len, \
-                        MPI_FLOAT, 0, SWAP_CNN1_W_PUSH + passMsg, MPI_COMM_WORLD);
-
-                MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN1_BIAS_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(cnn1_bias->getDevData(), cnn1_b_len, \
-                        MPI_FLOAT, 0, SWAP_CNN1_BIAS_PUSH + passMsg, MPI_COMM_WORLD);
-
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN2_W_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(cnn2_w->getDevData(), cnn2_w_len, \
-                        MPI_FLOAT, 0, SWAP_CNN2_W_PUSH + passMsg, MPI_COMM_WORLD);
-
-                MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN2_BIAS_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(cnn2_bias->getDevData(), cnn2_b_len, \
-                        MPI_FLOAT, 0, SWAP_CNN2_BIAS_PUSH + passMsg, MPI_COMM_WORLD);
-
-                MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_INNER_W_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(inner_w->getDevData(), inner_w_len, \
-                        MPI_FLOAT, 0, SWAP_INNER_W_PUSH + passMsg, MPI_COMM_WORLD);
-
-                MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_INNER_BIAS_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(inner_bias->getDevData(), inner_b_len, \
-                        MPI_FLOAT, 0, SWAP_INNER_BIAS_PUSH + passMsg, MPI_COMM_WORLD);
-
-                MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_SOFTMAX_W_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(softmax_w->getDevData(), softmax_w_len, \
-                        MPI_FLOAT, 0, SWAP_SOFTMAX_W_PUSH + passMsg, MPI_COMM_WORLD);
-
-                MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_SOFTMAX_BIAS_PUSH*10000, \
-                        MPI_COMM_WORLD);
-                MPI_Send(softmax_bias->getDevData(), softmax_b_len, \
-                        MPI_FLOAT, 0, SWAP_SOFTMAX_BIAS_PUSH + passMsg, MPI_COMM_WORLD);
-
+				}
 			}
 			if((batch_idx + 1) % layer_pars->n_fetch == 0){
 				if(epoch_idx == layer_pars->num_epoch - 1){
@@ -481,51 +457,19 @@ if(epoch_idx > 10){
 				}else
 					passMsg = batch_idx;
 			
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN1_W_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, \
-						SWAP_CNN1_W_FETCH + passMsg, MPI_COMM_WORLD, &status);
+				#pragma omp parallel num_threads(num_pars_type)
+				{
+					int tid = omp_get_thread_num();
+					int pars_addr = tid % num_pars_type;
+					int swap_id = tid % num_pars_type + num_pars_type;
 
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN1_BIAS_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, \
-						0, SWAP_CNN1_BIAS_FETCH + passMsg, \
-						MPI_COMM_WORLD, &status);
-
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN2_W_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, \
-						SWAP_CNN2_W_FETCH + passMsg, MPI_COMM_WORLD, &status);
-
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_CNN2_BIAS_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, \
-						0, SWAP_CNN2_BIAS_FETCH + passMsg, \
-						MPI_COMM_WORLD, &status);
-
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_INNER_W_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(inner_w->getDevData(), inner_w_len, MPI_FLOAT, 0, \
-						SWAP_INNER_W_FETCH + passMsg, MPI_COMM_WORLD, &status);
-
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_INNER_BIAS_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(inner_bias->getDevData(), inner_b_len, MPI_FLOAT, \
-						0, SWAP_INNER_BIAS_FETCH + passMsg, \
-						MPI_COMM_WORLD, &status);
-
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_SOFTMAX_W_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, \
-						SWAP_SOFTMAX_W_FETCH + passMsg, MPI_COMM_WORLD, &status);
-
-				MPI_Send(&passMsg, 1, MPI_INT, 0, SWAP_SOFTMAX_BIAS_FETCH*10000, \
-						MPI_COMM_WORLD);
-				MPI_Recv(softmax_bias->getDevData(), softmax_b_len, MPI_FLOAT, \
-						0, SWAP_SOFTMAX_BIAS_FETCH + passMsg, \
-						MPI_COMM_WORLD, &status);
+					MPI_Send(&passMsg, 1, MPI_INT, 0, \
+						swap_id*10000, MPI_COMM_WORLD);
+					MPI_Recv(my_pars[pars_addr], pars_len[pars_addr], \
+						MPI_FLOAT, 0, swap_id + passMsg, MPI_COMM_WORLD, &status);
+					
+				}
 			}
-
 
 			if(batch_idx == layer_pars->num_minibatch - 1){ 
 				int errorValid = 0;
@@ -568,19 +512,28 @@ if(epoch_idx > 10){
 						<< ",likelihood: "<< loglihoodValid<< endl;
 			}
 		}
-	/*	if((epoch_idx + 1) % 10 == 0){
-			cnn1.transfarLowerPars();
-			cnn2.transfarLowerPars();
-			softmax1.transfarLowerPars();
-		} 
-*/
+		/*
 		if(rank == 1){
 			t = clock() - t;
 			cout << " " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
 			t = clock();
-		}
+		}*/
+	/*	
+		if((epoch_idx + 1) % 1 == 0){
+			cnn1.transfarLowerPars();
+//			cnn2.transfarLowerPars();
+//			inner1.transfarLowerPars();
+			softmax1.transfarLowerPars();
+		} 
+*/
 
 	}
+	if(rank == 1){
+		t = clock() - t;
+		cout << " " << ((float)t/CLOCKS_PER_SEC) / layer_pars->num_epoch << " seconds.\n";
+		t = clock();
+	}
+
 	delete mini_data;
 	delete mini_label;
 }
@@ -620,8 +573,8 @@ int main(int argc, char** argv){
 
 	pars* layer_pars = new pars[num_layer];
 
-	layer_pars[0].w_lr = 0.1;
-	layer_pars[0].b_lr = 0.1;
+	layer_pars[0].w_lr = 5;
+	layer_pars[0].b_lr = 10;
 	layer_pars[0].momentum = 0.9;
 	layer_pars[0].weight_decay = 0;
 	layer_pars[0].in_size = 28; 
@@ -635,10 +588,10 @@ int main(int argc, char** argv){
 	layer_pars[0].minibatch_size = 100;
 	layer_pars[0].num_minibatch = layer_pars[0].num_train / (layer_pars[0].minibatch_size * (num_process - 1));
 	layer_pars[0].num_validbatch = layer_pars[0].num_valid / (layer_pars[0].minibatch_size * (num_process - 1));
-	layer_pars[0].num_epoch = 1000; 
-	layer_pars[0].n_push =10;
-	layer_pars[0].n_fetch = 19;
-	layer_pars[0].lr_down_scale = 0.95;
+	layer_pars[0].num_epoch = 100; 
+	layer_pars[0].n_push = 29;
+	layer_pars[0].n_fetch = 21;
+	layer_pars[0].lr_down_scale = 0.9;
 
 	layer_pars[1].in_size = layer_pars[0].out_size; 
 	layer_pars[1].in_channel = layer_pars[0].filter_channel;
@@ -647,8 +600,8 @@ int main(int argc, char** argv){
 	layer_pars[1].out_size = layer_pars[0].out_size / layer_pars[1].pool_size;
 	layer_pars[1].minibatch_size = layer_pars[0].minibatch_size;
 
-	layer_pars[2].w_lr = 0.1;
-	layer_pars[2].b_lr = 0.1;
+	layer_pars[2].w_lr = 1;
+	layer_pars[2].b_lr = 1;
 	layer_pars[2].momentum = 0.9;
 	layer_pars[2].weight_decay = 0;
 	layer_pars[2].in_size = layer_pars[1].out_size; 
@@ -658,6 +611,7 @@ int main(int argc, char** argv){
 	layer_pars[2].stride = 1;
 	layer_pars[2].out_size = (layer_pars[2].in_size - layer_pars[2].filter_size) / layer_pars[2].stride + 1;
 	layer_pars[2].minibatch_size = layer_pars[0].minibatch_size;
+	layer_pars[2].lr_down_scale = 0.95;
 
 	layer_pars[3].in_size = layer_pars[2].out_size; 
 	layer_pars[3].in_channel = layer_pars[2].filter_channel;
@@ -666,24 +620,24 @@ int main(int argc, char** argv){
 	layer_pars[3].out_size = layer_pars[3].in_size / layer_pars[3].pool_size;
 	layer_pars[3].minibatch_size = layer_pars[2].minibatch_size;
 
-	layer_pars[4].w_lr = 0.1;
-	layer_pars[4].b_lr = 0.1;
+	layer_pars[4].w_lr = 1;
+	layer_pars[4].b_lr = 2;
 	layer_pars[4].momentum = 0.9;
 	layer_pars[4].weight_decay = 0;
 	layer_pars[4].num_in = layer_pars[3].out_size * layer_pars[3].out_size * layer_pars[3].filter_channel;
 	layer_pars[4].num_out = 500;
 	layer_pars[4].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[4].lr_down_scale = 0.95;
+	layer_pars[4].lr_down_scale = 0.9;
 
-	layer_pars[5].w_lr = 0.1;
-	layer_pars[5].b_lr = 0.1;
-	layer_pars[5].momentum = 0;
+	layer_pars[5].w_lr = 0.01;
+	layer_pars[5].b_lr = 0.05;
+	layer_pars[5].momentum = 0.9;
 	layer_pars[5].weight_decay = 0;
 	layer_pars[5].num_in = layer_pars[4].num_out;
 //	layer_pars[5].num_in = layer_pars[1].out_size * layer_pars[1].out_size * layer_pars[1].filter_channel;
 	layer_pars[5].num_out = 10; 
 	layer_pars[5].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[5].lr_down_scale = 0.95;
+	layer_pars[5].lr_down_scale = 0.9;
 
 	if(rank == 0){ 
 		managerNode(layer_pars);

@@ -90,6 +90,9 @@ void PoolingLayer::computeDerivsOfInput(NVMatrix* dE_dx){
 			_out_size, _pool_size);
 	cudaThreadSynchronize();
 
+//_dE_dy->showValue("dedy");
+//dE_dx->showValue("dedx");
+
 }
 
 /*
