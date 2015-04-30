@@ -56,7 +56,44 @@ LOGISTIC1	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, O
 LOGISTIC1	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
 LOGISTIC2	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
 LOGISTIC2	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Layer	include/layer.hpp	/^	Layer() {}$/;"	f	class:Layer	access:public	signature:()
 Layer	include/layer.hpp	/^class Layer {$/;"	c
+Layer::Layer	include/layer.hpp	/^	Layer() {}$/;"	f	class:Layer	access:public	signature:()
+Layer::_b_lr	include/layer.hpp	/^	float _b_lr;$/;"	m	class:Layer	access:protected
+Layer::_bias	include/layer.hpp	/^	NVMatrix* _bias;$/;"	m	class:Layer	access:protected
+Layer::_bias_inc	include/layer.hpp	/^	NVMatrix* _bias_inc;$/;"	m	class:Layer	access:protected
+Layer::_dE_db	include/layer.hpp	/^	NVMatrix* _dE_db;$/;"	m	class:Layer	access:protected
+Layer::_dE_dw	include/layer.hpp	/^	NVMatrix* _dE_dw;$/;"	m	class:Layer	access:protected
+Layer::_dE_dy	include/layer.hpp	/^	NVMatrix* _dE_dy;$/;"	m	class:Layer	access:protected
+Layer::_filter_channel	include/layer.hpp	/^	int _filter_channel;$/;"	m	class:Layer	access:protected
+Layer::_filter_size	include/layer.hpp	/^	int _filter_size;$/;"	m	class:Layer	access:protected
+Layer::_in_channel	include/layer.hpp	/^	int _in_channel;$/;"	m	class:Layer	access:protected
+Layer::_in_size	include/layer.hpp	/^	int _in_size;$/;"	m	class:Layer	access:protected
+Layer::_lr_down_scale	include/layer.hpp	/^	float _lr_down_scale;$/;"	m	class:Layer	access:protected
+Layer::_minibatch_size	include/layer.hpp	/^	int _minibatch_size;$/;"	m	class:Layer	access:protected
+Layer::_momentum	include/layer.hpp	/^	float _momentum; 	$/;"	m	class:Layer	access:protected
+Layer::_num_in	include/layer.hpp	/^	int _num_in;$/;"	m	class:Layer	access:protected
+Layer::_num_out	include/layer.hpp	/^	int _num_out;$/;"	m	class:Layer	access:protected
+Layer::_out_size	include/layer.hpp	/^	int _out_size;$/;"	m	class:Layer	access:protected
+Layer::_pool_size	include/layer.hpp	/^	int _pool_size;$/;"	m	class:Layer	access:protected
+Layer::_stride	include/layer.hpp	/^	int _stride;$/;"	m	class:Layer	access:protected
+Layer::_w	include/layer.hpp	/^	NVMatrix* _w;$/;"	m	class:Layer	access:protected
+Layer::_w_inc	include/layer.hpp	/^	NVMatrix* _w_inc;$/;"	m	class:Layer	access:protected
+Layer::_w_lr	include/layer.hpp	/^	float _w_lr;$/;"	m	class:Layer	access:protected
+Layer::_weight_decay	include/layer.hpp	/^	float _weight_decay;$/;"	m	class:Layer	access:protected
+Layer::_y	include/layer.hpp	/^	NVMatrix* _y;$/;"	m	class:Layer	access:protected
+Layer::computeDerivsOfInput	include/layer.hpp	/^	virtual void computeDerivsOfInput(NVMatrix* dE_dx) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* dE_dx)
+Layer::computeDerivsOfPars	include/layer.hpp	/^	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels = NULL) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x, NVMatrix* labels = NULL)
+Layer::computeOutput	include/layer.hpp	/^	virtual void computeOutput(NVMatrix* x) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x)
+Layer::getBias	include/layer.hpp	/^	inline NVMatrix* getBias() {$/;"	f	class:Layer	access:public	signature:()
+Layer::getDEDY	include/layer.hpp	/^	inline NVMatrix* getDEDY() {$/;"	f	class:Layer	access:public	signature:()
+Layer::getW	include/layer.hpp	/^	inline NVMatrix* getW() {$/;"	f	class:Layer	access:public	signature:()
+Layer::getY	include/layer.hpp	/^	inline NVMatrix* getY() {$/;"	f	class:Layer	access:public	signature:()
+Layer::handle	include/layer.hpp	/^	cublasHandle_t handle;$/;"	m	class:Layer	access:protected
+Layer::initCuda	include/layer.hpp	/^	virtual void initCuda() {}$/;"	f	class:Layer	access:public	signature:()
+Layer::transfarLowerPars	include/layer.hpp	/^	inline void transfarLowerPars() {$/;"	f	class:Layer	access:public	signature:()
+Layer::updatePars	include/layer.hpp	/^	void updatePars() {$/;"	f	class:Layer	access:public	signature:()
+Layer::~Layer	include/layer.hpp	/^	virtual ~Layer() {}	$/;"	f	class:Layer	access:public	signature:()
 LeNetConvPoolLayer	python_util/conv.py	/^class LeNetConvPoolLayer(object):$/;"	c	inherits:object
 LoadCifar10	include/load_layer.hpp	/^	LoadCifar10(ImgInfo<Dtype>* cifar10Info);$/;"	p	class:LoadCifar10	access:public	signature:(ImgInfo<Dtype>* cifar10Info)
 LoadCifar10	include/load_layer.hpp	/^class LoadCifar10 : public LoadLayer<Dtype> {$/;"	c	inherits:LoadLayer
@@ -260,15 +297,28 @@ __init__	python_util/conv.py	/^    def __init__(self, rng, input, filter_shape, 
 __init__	python_util/logistic_sgd.py	/^    def __init__(self, input, n_in, n_out):$/;"	m	class:LogisticRegression	access:public
 __init__	python_util/mlp.py	/^    def __init__(self, rng, input, n_in, n_hidden, n_out):$/;"	m	class:MLP	access:public
 __init__	python_util/mlp.py	/^    def __init__(self, rng, input, n_in, n_out, W=None, b=None,$/;"	m	class:HiddenLayer	access:public
+_b_lr	include/layer.hpp	/^	float _b_lr;$/;"	m	class:Layer	access:protected
+_bias	include/layer.hpp	/^	NVMatrix* _bias;$/;"	m	class:Layer	access:protected
+_bias_inc	include/layer.hpp	/^	NVMatrix* _bias_inc;$/;"	m	class:Layer	access:protected
+_dE_db	include/layer.hpp	/^	NVMatrix* _dE_db;$/;"	m	class:Layer	access:protected
+_dE_dw	include/layer.hpp	/^	NVMatrix* _dE_dw;$/;"	m	class:Layer	access:protected
+_dE_dy	include/layer.hpp	/^	NVMatrix* _dE_dy;$/;"	m	class:Layer	access:protected
 _data	include/matrix.h	/^	float *_data;$/;"	m	class:Matrix	access:private
 _data	preversion/include/matrix.h	/^	float *_data;$/;"	m	class:Matrix	access:private
+_filter_channel	include/layer.hpp	/^	int _filter_channel;$/;"	m	class:Layer	access:protected
+_filter_size	include/layer.hpp	/^	int _filter_size;$/;"	m	class:Layer	access:protected
 _img_channel	include/load_layer.hpp	/^	int _img_channel;$/;"	m	class:LoadLayer	access:protected
 _img_num	include/load_layer.hpp	/^	int _img_num;$/;"	m	class:LoadLayer	access:protected
 _img_sqrt	include/load_layer.hpp	/^	int _img_sqrt;$/;"	m	class:LoadLayer	access:protected
+_in_channel	include/layer.hpp	/^	int _in_channel;$/;"	m	class:Layer	access:protected
+_in_size	include/layer.hpp	/^	int _in_size;$/;"	m	class:Layer	access:protected
 _init	include/matrix.h	/^	void _init(float* data, int numRows, int numCols, bool ownsData);$/;"	p	class:Matrix	access:private	signature:(float* data, int numRows, int numCols, bool ownsData)
 _init	preversion/include/matrix.h	/^	void _init(float* data, int numRows, int numCols, bool ownsData);$/;"	p	class:Matrix	access:private	signature:(float* data, int numRows, int numCols, bool ownsData)
 _init	preversion/src/matrix.cpp	/^void Matrix::_init(float* data, int numRows, int numCols, bool ownsData) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols, bool ownsData)
 _init	src/matrix.cpp	/^void Matrix::_init(float* data, int numRows, int numCols, bool ownsData) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols, bool ownsData)
+_lr_down_scale	include/layer.hpp	/^	float _lr_down_scale;$/;"	m	class:Layer	access:protected
+_minibatch_size	include/layer.hpp	/^	int _minibatch_size;$/;"	m	class:Layer	access:protected
+_momentum	include/layer.hpp	/^	float _momentum; 	$/;"	m	class:Layer	access:protected
 _numCols	include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
 _numCols	preversion/include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
 _numDataBytes	include/matrix.h	/^	int _numDataBytes;$/;"	m	class:Matrix	access:private
@@ -277,13 +327,23 @@ _numElements	include/matrix.h	/^	int _numElements;$/;"	m	class:Matrix	access:pri
 _numElements	preversion/include/matrix.h	/^	int _numElements;$/;"	m	class:Matrix	access:private
 _numRows	include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
 _numRows	preversion/include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+_num_in	include/layer.hpp	/^	int _num_in;$/;"	m	class:Layer	access:protected
+_num_out	include/layer.hpp	/^	int _num_out;$/;"	m	class:Layer	access:protected
 _ori_pix	include/load_layer.hpp	/^	Dtype* _ori_pix;$/;"	m	class:LoadLayer	access:protected
+_out_size	include/layer.hpp	/^	int _out_size;$/;"	m	class:Layer	access:protected
 _ownsData	include/matrix.h	/^	bool _ownsData;$/;"	m	class:Matrix	access:private
 _ownsData	preversion/include/matrix.h	/^	bool _ownsData;$/;"	m	class:Matrix	access:private
+_pool_size	include/layer.hpp	/^	int _pool_size;$/;"	m	class:Layer	access:protected
+_stride	include/layer.hpp	/^	int _stride;$/;"	m	class:Layer	access:protected
 _updateDims	include/matrix.h	/^	void _updateDims(int numRows, int numCols);$/;"	p	class:Matrix	access:private	signature:(int numRows, int numCols)
 _updateDims	preversion/include/matrix.h	/^	void _updateDims(int numRows, int numCols);$/;"	p	class:Matrix	access:private	signature:(int numRows, int numCols)
 _updateDims	preversion/src/matrix.cpp	/^void Matrix::_updateDims(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
 _updateDims	src/matrix.cpp	/^void Matrix::_updateDims(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+_w	include/layer.hpp	/^	NVMatrix* _w;$/;"	m	class:Layer	access:protected
+_w_inc	include/layer.hpp	/^	NVMatrix* _w_inc;$/;"	m	class:Layer	access:protected
+_w_lr	include/layer.hpp	/^	float _w_lr;$/;"	m	class:Layer	access:protected
+_weight_decay	include/layer.hpp	/^	float _weight_decay;$/;"	m	class:Layer	access:protected
+_y	include/layer.hpp	/^	NVMatrix* _y;$/;"	m	class:Layer	access:protected
 apply	include/matrix.h	/^	void apply(Matrix::FUNCTION f); $/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f)
 apply	include/matrix.h	/^	void apply(Matrix::FUNCTION f, Matrix *target);$/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f, Matrix *target)
 apply	preversion/include/matrix.h	/^	void apply(Matrix::FUNCTION f); $/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f)
@@ -292,6 +352,9 @@ apply	preversion/src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f) {$/;"	f
 apply	preversion/src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f, Matrix *target){$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f, Matrix *target)
 apply	src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f) {$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f)
 apply	src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f, Matrix *target){$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f, Matrix *target)
+computeDerivsOfInput	include/layer.hpp	/^	virtual void computeDerivsOfInput(NVMatrix* dE_dx) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* dE_dx)
+computeDerivsOfPars	include/layer.hpp	/^	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels = NULL) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x, NVMatrix* labels = NULL)
+computeOutput	include/layer.hpp	/^	virtual void computeOutput(NVMatrix* x) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x)
 convResultSize	preversion/include/utils.h	/^	int convResultSize;$/;"	m	struct:Pars	access:public
 epsAvgOut	preversion/include/utils.h	/^    float epsAvgOut;$/;"	m	struct:Pars	access:public
 epsHidBias	preversion/include/utils.h	/^    float epsHidBias;$/;"	m	struct:Pars	access:public
@@ -301,8 +364,10 @@ errors	python_util/logistic_sgd.py	/^    def errors(self, y):$/;"	m	class:Logist
 evaluate_lenet5	python_util/conv.py	/^def evaluate_lenet5(learning_rate=0.1, n_epochs=200,$/;"	f	access:public
 experiment	python_util/conv.py	/^def experiment(state, channel):$/;"	f	access:public
 filterSize	preversion/include/utils.h	/^    int filterSize;$/;"	m	struct:Pars	access:public
+getBias	include/layer.hpp	/^	inline NVMatrix* getBias() {$/;"	f	class:Layer	access:public	signature:()
 getCell	include/matrix.h	/^	inline float& getCell(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
 getCell	preversion/include/matrix.h	/^	inline float& getCell(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+getDEDY	include/layer.hpp	/^	inline NVMatrix* getDEDY() {$/;"	f	class:Layer	access:public	signature:()
 getData	include/matrix.h	/^	inline float* getData() const {$/;"	f	class:Matrix	access:public	signature:() const
 getData	preversion/include/matrix.h	/^	inline float* getData() const {$/;"	f	class:Matrix	access:public	signature:() const
 getNumCols	include/matrix.h	/^	inline int getNumCols() const {$/;"	f	class:Matrix	access:public	signature:() const
@@ -317,6 +382,9 @@ getTranspose	include/matrix.h	/^	Matrix* getTranspose();$/;"	p	class:Matrix	acce
 getTranspose	preversion/include/matrix.h	/^	Matrix* getTranspose();$/;"	p	class:Matrix	access:public	signature:()
 getTranspose	preversion/src/matrix.cpp	/^Matrix* Matrix::getTranspose() {$/;"	f	class:Matrix	signature:()
 getTranspose	src/matrix.cpp	/^Matrix* Matrix::getTranspose() {$/;"	f	class:Matrix	signature:()
+getW	include/layer.hpp	/^	inline NVMatrix* getW() {$/;"	f	class:Layer	access:public	signature:()
+getY	include/layer.hpp	/^	inline NVMatrix* getY() {$/;"	f	class:Layer	access:public	signature:()
+handle	include/layer.hpp	/^	cublasHandle_t handle;$/;"	m	class:Layer	access:protected
 img_channel	include/load_layer.hpp	/^	int img_channel;$/;"	m	class:ImgInfo	access:public
 img_size	include/load_layer.hpp	/^	int img_size;$/;"	m	class:ImgInfo	access:public
 img_sqrt	include/load_layer.hpp	/^	int img_sqrt;$/;"	m	class:ImgInfo	access:public
@@ -324,6 +392,7 @@ img_test_num	include/load_layer.hpp	/^	int img_test_num;$/;"	m	class:ImgInfo	acc
 img_train_num	include/load_layer.hpp	/^	int img_train_num;$/;"	m	class:ImgInfo	access:public
 inChannel	preversion/include/utils.h	/^    int inChannel;$/;"	m	struct:Pars	access:public
 inSize	preversion/include/utils.h	/^    int inSize;$/;"	m	struct:Pars	access:public
+initCuda	include/layer.hpp	/^	virtual void initCuda() {}$/;"	f	class:Layer	access:public	signature:()
 initW	preversion/include/utils.h	/^inline void initW(float* a, int length){$/;"	f	signature:(float* a, int length)
 isView	include/matrix.h	/^	inline bool isView() const {$/;"	f	class:Matrix	access:public	signature:() const
 isView	preversion/include/matrix.h	/^	inline bool isView() const {$/;"	f	class:Matrix	access:public	signature:() const
@@ -387,11 +456,14 @@ train_label	include/load_layer.hpp	/^	Dtype* train_label, *train_label_ptr;$/;"	
 train_label_ptr	include/load_layer.hpp	/^	Dtype* train_label, *train_label_ptr;$/;"	m	class:ImgInfo	access:public
 train_pixel	include/load_layer.hpp	/^	Dtype* train_pixel, *train_pixel_ptr;$/;"	m	class:ImgInfo	access:public
 train_pixel_ptr	include/load_layer.hpp	/^	Dtype* train_pixel, *train_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+transfarLowerPars	include/layer.hpp	/^	inline void transfarLowerPars() {$/;"	f	class:Layer	access:public	signature:()
+updatePars	include/layer.hpp	/^	void updatePars() {$/;"	f	class:Layer	access:public	signature:()
 validNum	preversion/include/utils.h	/^    int validNum;$/;"	m	struct:Pars	access:public
 wcAvgOut	preversion/include/utils.h	/^    float wcAvgOut;$/;"	m	struct:Pars	access:public
 wcHidVis	preversion/include/utils.h	/^    float wcHidVis;$/;"	m	struct:Pars	access:public
 ~ImgInfo	include/load_layer.hpp	/^	~ImgInfo();$/;"	p	class:ImgInfo	access:public	signature:()
 ~ImgInfo	src/load_layer.cpp	/^ImgInfo<Dtype>::~ImgInfo(){$/;"	f	class:ImgInfo	signature:()
+~Layer	include/layer.hpp	/^	virtual ~Layer() {}	$/;"	f	class:Layer	access:public	signature:()
 ~LoadCifar10	include/load_layer.hpp	/^	~LoadCifar10();$/;"	p	class:LoadCifar10	access:public	signature:()
 ~LoadCifar10	src/load_layer.cpp	/^LoadCifar10<Dtype>::~LoadCifar10(){$/;"	f	class:LoadCifar10	signature:()
 ~LoadLayer	include/load_layer.hpp	/^	virtual ~LoadLayer() {}$/;"	f	class:LoadLayer	access:public	signature:()

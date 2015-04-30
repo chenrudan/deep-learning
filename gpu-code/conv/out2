@@ -1,5 +1,5 @@
 nvcc -g -O3 -c -Xcompiler -fopenmp ./main_src/main.cu -I./include -o ./obj/main.o
-nvcc -o ./bin/main ./obj/main.o    ./obj/matrix.o   ./obj/nvmatrix_kernel.o  ./obj/utils.o  ./obj/layer_kernel.o  ./obj/convnet.o  ./obj/inner_product_layer.o  ./obj/nvmatrix.o  ./obj/pooling_layer.o  ./obj/logistic.o -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp -lmpi  
+mpicxx -o ./bin/main ./obj/main.o    ./obj/matrix.o   ./obj/nvmatrix_kernel.o  ./obj/utils.o  ./obj/layer_kernel.o  ./obj/convnet.o  ./obj/inner_product_layer.o  ./obj/nvmatrix.o  ./obj/pooling_layer.o  ./obj/logistic.o -L/usr/local/cuda-6.5/lib64 -lcuda -lcudart  -lcublas -lm  -lpthread  -lgomp  -lmpich  
 if [ 0 -eq 1 ] ; then \
 		scp ./bin/main crd@gpu-server1:/home/crd/conv/bin; \
 	fi
@@ -11,83 +11,1011 @@ if [ 1 -eq 1 ]; then \
 train: 50000
 valid: 10000
 batchSize: 100
-n_fetch: 21
-n_push: 29
+n_fetch: 50
+n_push: 49
 ===========cnn1==============
-in_size: 28
-in_channel: 1
+in_size: 32
+in_channel: 3
 filter_size: 5
-filter_channel: 20
+filter_channel: 32
 stride: 1
-w_lr: 5
-b_lr: 10
+w_lr: 0.1
+b_lr: 0.2
 momentum: 0.9
 weight_decay: 0
-lr_scale: 0.9
+lr_scale: 0.95
 ===========pool1==============
-in_size: 24
-in_channel: 20
+in_size: 28
+in_channel: 32
 stride: 0
 pool_size: 2
 ===========cnn2==============
-in_size: 12
-in_channel: 20
+in_size: 14
+in_channel: 32
 filter_size: 5
-filter_channel: 50
+filter_channel: 64
 stride: 1
-w_lr: 1
-b_lr: 1
+w_lr: 0.01
+b_lr: 0.02
 momentum: 0.9
 weight_decay: 0
 lr_scale: 0.95
 ===========pool2==============
-in_size: 8
-in_channel: 50
+in_size: 10
+in_channel: 64
 stride: 0
 pool_size: 2
 ===========inner_product==============
-num_in: 800
+num_in: 1600
 num_out: 500
-w_lr: 1
-b_lr: 2
-momentum: 0.9
-weight_decay: 0
-lr_scale: 0.9
-===========softmax==============
-num_in: 500
-num_out: 10
 w_lr: 0.01
 b_lr: 0.05
 momentum: 0.9
 weight_decay: 0
-lr_scale: 0.9
-done1
-epoch_idx: 0, error: 0.8936,likelihood: 23018.2
-epoch_idx: 1, error: 0.7871,likelihood: 22997.1
-epoch_idx: 2, error: 0.1747,likelihood: 5559.88
-epoch_idx: 3, error: 0.0585,likelihood: 1975.64
-epoch_idx: 4, error: 0.0422,likelihood: 1468.77
-epoch_idx: 5, error: 0.0304,likelihood: 1070.11
-epoch_idx: 6, error: 0.0303,likelihood: 1026.46
-epoch_idx: 7, error: 0.0259,likelihood: 866.863
-epoch_idx: 8, error: 0.0236,likelihood: 804.362
-epoch_idx: 9, error: 0.0242,likelihood: 793.443
-epoch_idx: 10, error: 0.0217,likelihood: 743.117
-epoch_idx: 11, error: 0.0218,likelihood: 748.763
-epoch_idx: 12, error: 0.0229,likelihood: 725.343
-epoch_idx: 13, error: 0.0222,likelihood: 718.119
-epoch_idx: 14, error: 0.0199,likelihood: 662.995
-epoch_idx: 15, error: 0.0207,likelihood: 664.28
-epoch_idx: 16, error: 0.0188,likelihood: 654.006
-epoch_idx: 17, error: 0.0201,likelihood: 662.843
-epoch_idx: 18, error: 0.0179,likelihood: 619.599
-epoch_idx: 19, error: 0.0181,likelihood: 592.63
-epoch_idx: 20, error: 0.017,likelihood: 575.749
-epoch_idx: 21, error: 0.0163,likelihood: 562.181
-epoch_idx: 22, error: 0.0162,likelihood: 559.392
-epoch_idx: 23, error: 0.0159,likelihood: 565.545
-epoch_idx: 24, error: 0.0162,likelihood: 572.951
-epoch_idx: 25, error: 0.0166,likelihood: 582.867
-epoch_idx: 26, error: 0.016,likelihood: 587.412
-epoch_idx: 27, error: 0.0167,likelihood: 605.186
-epoch_idx: 28, error: 0.0177,likelihood: 610.334
+lr_scale: 0.95
+===========softmax==============
+num_in: 500
+num_out: 10
+w_lr: 0.0015
+b_lr: 0.005
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+epoch_idx: 0, error: 0.8817,likelihood: 22973.8
+ 21.19 seconds.
+epoch_idx: 1, error: 0.8587,likelihood: 22900.8
+ 21.02 seconds.
+epoch_idx: 2, error: 0.8367,likelihood: 22786.2
+ 21.05 seconds.
+epoch_idx: 3, error: 0.8158,likelihood: 22686.6
+ 21 seconds.
+epoch_idx: 4, error: 0.8074,likelihood: 22587.2
+ 21.02 seconds.
+epoch_idx: 5, error: 0.7954,likelihood: 22504.5
+ 21.01 seconds.
+epoch_idx: 6, error: 0.7857,likelihood: 22372.1
+ 21.02 seconds.
+epoch_idx: 7, error: 0.7834,likelihood: 22273.5
+ 21.06 seconds.
+epoch_idx: 8, error: 0.771,likelihood: 22143
+ 21.07 seconds.
+epoch_idx: 9, error: 0.7679,likelihood: 22051
+ 21.08 seconds.
+epoch_idx: 10, error: 0.7621,likelihood: 21986.9
+ 21.06 seconds.
+epoch_idx: 11, error: 0.7558,likelihood: 21917.8
+ 21.1 seconds.
+epoch_idx: 12, error: 0.7505,likelihood: 21806.7
+ 21.09 seconds.
+epoch_idx: 13, error: 0.7437,likelihood: 21742.1
+ 21.09 seconds.
+epoch_idx: 14, error: 0.7376,likelihood: 21637
+ 21.08 seconds.
+epoch_idx: 15, error: 0.7304,likelihood: 21623.4
+ 21.07 seconds.
+epoch_idx: 16, error: 0.7266,likelihood: 21595.4
+ 21.08 seconds.
+epoch_idx: 17, error: 0.7139,likelihood: 21454.4
+ 21.06 seconds.
+epoch_idx: 18, error: 0.7183,likelihood: 21463.5
+ 21.08 seconds.
+epoch_idx: 19, error: 0.7097,likelihood: 21335.3
+ 21.07 seconds.
+epoch_idx: 20, error: 0.7136,likelihood: 21381
+ 21.05 seconds.
+epoch_idx: 21, error: 0.7119,likelihood: 21366
+ 21.05 seconds.
+epoch_idx: 22, error: 0.7044,likelihood: 21274.7
+ 21.01 seconds.
+epoch_idx: 23, error: 0.7033,likelihood: 21189.8
+ 21.02 seconds.
+epoch_idx: 24, error: 0.7038,likelihood: 21180.6
+ 21.01 seconds.
+epoch_idx: 25, error: 0.705,likelihood: 21168.2
+ 21.02 seconds.
+epoch_idx: 26, error: 0.6993,likelihood: 21084.7
+ 21.03 seconds.
+epoch_idx: 27, error: 0.6939,likelihood: 20960.8
+ 20.99 seconds.
+epoch_idx: 28, error: 0.6889,likelihood: 20877.6
+ 21.04 seconds.
+epoch_idx: 29, error: 0.6895,likelihood: 20854.4
+ 21.07 seconds.
+epoch_idx: 30, error: 0.6892,likelihood: 20822.7
+ 21.04 seconds.
+epoch_idx: 31, error: 0.6838,likelihood: 20745.3
+ 21.01 seconds.
+epoch_idx: 32, error: 0.6811,likelihood: 20683.7
+ 21.05 seconds.
+epoch_idx: 33, error: 0.6797,likelihood: 20620.5
+ 21.02 seconds.
+epoch_idx: 34, error: 0.6746,likelihood: 20559
+ 21.03 seconds.
+epoch_idx: 35, error: 0.6712,likelihood: 20512.2
+ 21.07 seconds.
+epoch_idx: 36, error: 0.6685,likelihood: 20472.3
+ 21.08 seconds.
+epoch_idx: 37, error: 0.669,likelihood: 20443.6
+ 21.02 seconds.
+epoch_idx: 38, error: 0.6676,likelihood: 20381.2
+ 21.06 seconds.
+epoch_idx: 39, error: 0.6624,likelihood: 20329.6
+ 21.01 seconds.
+epoch_idx: 40, error: 0.6646,likelihood: 20324
+ 21.1 seconds.
+epoch_idx: 41, error: 0.6602,likelihood: 20258.7
+ 20.99 seconds.
+epoch_idx: 42, error: 0.6596,likelihood: 20214
+ 21.03 seconds.
+epoch_idx: 43, error: 0.6546,likelihood: 20142.2
+ 21.06 seconds.
+epoch_idx: 44, error: 0.6519,likelihood: 20073.1
+ 21.02 seconds.
+epoch_idx: 45, error: 0.6513,likelihood: 20073.5
+ 21.08 seconds.
+epoch_idx: 46, error: 0.6475,likelihood: 20020.2
+ 21.07 seconds.
+epoch_idx: 47, error: 0.6454,likelihood: 19960.2
+ 21.01 seconds.
+epoch_idx: 48, error: 0.6395,likelihood: 19880.7
+ 21.07 seconds.
+epoch_idx: 49, error: 0.6374,likelihood: 19825.4
+ 20.99 seconds.
+epoch_idx: 50, error: 0.6364,likelihood: 19809.3
+ 21.06 seconds.
+epoch_idx: 51, error: 0.6339,likelihood: 19778.2
+ 21.03 seconds.
+epoch_idx: 52, error: 0.6327,likelihood: 19733.4
+ 21.06 seconds.
+epoch_idx: 53, error: 0.6301,likelihood: 19667.2
+ 21.04 seconds.
+epoch_idx: 54, error: 0.6283,likelihood: 19630.7
+ 21.03 seconds.
+epoch_idx: 55, error: 0.6282,likelihood: 19627.1
+ 21.03 seconds.
+epoch_idx: 56, error: 0.6265,likelihood: 19582.5
+ 21.05 seconds.
+epoch_idx: 57, error: 0.6269,likelihood: 19546.6
+ 21.06 seconds.
+epoch_idx: 58, error: 0.6259,likelihood: 19504.6
+ 21.05 seconds.
+epoch_idx: 59, error: 0.6235,likelihood: 19462.6
+ 21.04 seconds.
+epoch_idx: 60, error: 0.6235,likelihood: 19452.3
+ 21.05 seconds.
+epoch_idx: 61, error: 0.6221,likelihood: 19416.3
+ 21.01 seconds.
+epoch_idx: 62, error: 0.621,likelihood: 19381.3
+ 21.08 seconds.
+epoch_idx: 63, error: 0.619,likelihood: 19352.2
+ 21.07 seconds.
+epoch_idx: 64, error: 0.6177,likelihood: 19323.2
+ 21.05 seconds.
+epoch_idx: 65, error: 0.6183,likelihood: 19316.2
+ 21.05 seconds.
+epoch_idx: 66, error: 0.6161,likelihood: 19290.1
+ 21.07 seconds.
+epoch_idx: 67, error: 0.6149,likelihood: 19268
+ 21.04 seconds.
+epoch_idx: 68, error: 0.6149,likelihood: 19248.4
+ 21.05 seconds.
+epoch_idx: 69, error: 0.6152,likelihood: 19222.5
+ 21.06 seconds.
+epoch_idx: 70, error: 0.6142,likelihood: 19210.4
+ 21.03 seconds.
+epoch_idx: 71, error: 0.6138,likelihood: 19191.9
+ 21.01 seconds.
+epoch_idx: 72, error: 0.613,likelihood: 19172.2
+ 21.13 seconds.
+epoch_idx: 73, error: 0.6134,likelihood: 19153.5
+ 21.06 seconds.
+epoch_idx: 74, error: 0.6129,likelihood: 19134.6
+ 21 seconds.
+epoch_idx: 75, error: 0.6121,likelihood: 19126.7
+ 21.07 seconds.
+epoch_idx: 76, error: 0.612,likelihood: 19111
+ 21.07 seconds.
+epoch_idx: 77, error: 0.612,likelihood: 19094.9
+ 21.02 seconds.
+epoch_idx: 78, error: 0.6116,likelihood: 19081.2
+ 21.07 seconds.
+epoch_idx: 79, error: 0.6111,likelihood: 19068.3
+ 21.07 seconds.
+epoch_idx: 80, error: 0.6107,likelihood: 19062.1
+ 21.08 seconds.
+epoch_idx: 81, error: 0.6107,likelihood: 19052.4
+ 21.08 seconds.
+epoch_idx: 82, error: 0.6106,likelihood: 19040.1
+ 21.07 seconds.
+epoch_idx: 83, error: 0.6094,likelihood: 19027.4
+ 21.05 seconds.
+epoch_idx: 84, error: 0.6087,likelihood: 19016.4
+ 21.07 seconds.
+epoch_idx: 85, error: 0.609,likelihood: 19009.9
+ 21.08 seconds.
+epoch_idx: 86, error: 0.6095,likelihood: 19000.7
+ 21.01 seconds.
+epoch_idx: 87, error: 0.6098,likelihood: 18988.2
+ 21.06 seconds.
+epoch_idx: 88, error: 0.6091,likelihood: 18981.6
+ 21.01 seconds.
+epoch_idx: 89, error: 0.6093,likelihood: 18973.7
+ 21.06 seconds.
+epoch_idx: 90, error: 0.6096,likelihood: 18968.4
+ 21.02 seconds.
+epoch_idx: 91, error: 0.6092,likelihood: 18962.5
+ 21.06 seconds.
+epoch_idx: 92, error: 0.6088,likelihood: 18954.1
+ 21.02 seconds.
+epoch_idx: 93, error: 0.6084,likelihood: 18947.4
+ 21.08 seconds.
+epoch_idx: 94, error: 0.6078,likelihood: 18938.5
+ 21.01 seconds.
+epoch_idx: 95, error: 0.6082,likelihood: 18933.9
+ 21.05 seconds.
+epoch_idx: 96, error: 0.6078,likelihood: 18928.7
+ 20.99 seconds.
+epoch_idx: 97, error: 0.6072,likelihood: 18922.6
+ 21.07 seconds.
+epoch_idx: 98, error: 0.6079,likelihood: 18916.2
+ 21.03 seconds.
+epoch_idx: 99, error: 0.6073,likelihood: 18911.4
+ 21.02 seconds.
+epoch_idx: 100, error: 0.6069,likelihood: 18908.6
+ 21.11 seconds.
+epoch_idx: 101, error: 0.6069,likelihood: 18904.7
+ 21.07 seconds.
+epoch_idx: 102, error: 0.607,likelihood: 18900.6
+ 21.03 seconds.
+epoch_idx: 103, error: 0.6069,likelihood: 18896.6
+ 21.04 seconds.
+epoch_idx: 104, error: 0.6064,likelihood: 18891.5
+ 21.05 seconds.
+epoch_idx: 105, error: 0.6067,likelihood: 18888.5
+ 21.07 seconds.
+epoch_idx: 106, error: 0.6066,likelihood: 18885.4
+ 21.06 seconds.
+epoch_idx: 107, error: 0.6067,likelihood: 18881.2
+ 21.08 seconds.
+epoch_idx: 108, error: 0.606,likelihood: 18877.9
+ 21.08 seconds.
+epoch_idx: 109, error: 0.6064,likelihood: 18874.7
+ 21.02 seconds.
+epoch_idx: 110, error: 0.6059,likelihood: 18871.5
+ 21.03 seconds.
+epoch_idx: 111, error: 0.6065,likelihood: 18868.7
+ 21.03 seconds.
+epoch_idx: 112, error: 0.6065,likelihood: 18865.6
+ 21.08 seconds.
+epoch_idx: 113, error: 0.6063,likelihood: 18862.7
+ 21.07 seconds.
+epoch_idx: 114, error: 0.6063,likelihood: 18860.8
+ 21.07 seconds.
+epoch_idx: 115, error: 0.6061,likelihood: 18858
+ 21.05 seconds.
+epoch_idx: 116, error: 0.6065,likelihood: 18856
+ 21.06 seconds.
+epoch_idx: 117, error: 0.6065,likelihood: 18853.8
+ 21.06 seconds.
+epoch_idx: 118, error: 0.6063,likelihood: 18852
+ 21.05 seconds.
+epoch_idx: 119, error: 0.6063,likelihood: 18850
+ 21.06 seconds.
+epoch_idx: 120, error: 0.6062,likelihood: 18847.6
+ 21.01 seconds.
+epoch_idx: 121, error: 0.6061,likelihood: 18845.9
+ 21.07 seconds.
+epoch_idx: 122, error: 0.6058,likelihood: 18844.6
+ 21.08 seconds.
+epoch_idx: 123, error: 0.6059,likelihood: 18842.8
+ 21.03 seconds.
+epoch_idx: 124, error: 0.6059,likelihood: 18841
+ 21.03 seconds.
+epoch_idx: 125, error: 0.6058,likelihood: 18839.4
+ 21.04 seconds.
+epoch_idx: 126, error: 0.6059,likelihood: 18838
+ 21.04 seconds.
+epoch_idx: 127, error: 0.6057,likelihood: 18836.8
+ 21.11 seconds.
+epoch_idx: 128, error: 0.6058,likelihood: 18835.5
+ 21.07 seconds.
+epoch_idx: 129, error: 0.6059,likelihood: 18833.9
+ 21.04 seconds.
+epoch_idx: 130, error: 0.606,likelihood: 18832.8
+ 21.06 seconds.
+epoch_idx: 131, error: 0.6059,likelihood: 18831.2
+ 21.12 seconds.
+epoch_idx: 132, error: 0.6058,likelihood: 18830.3
+ 21.12 seconds.
+epoch_idx: 133, error: 0.606,likelihood: 18829.2
+ 21.02 seconds.
+epoch_idx: 134, error: 0.6058,likelihood: 18828
+ 21.05 seconds.
+epoch_idx: 135, error: 0.606,likelihood: 18826.5
+ 21.05 seconds.
+epoch_idx: 136, error: 0.6055,likelihood: 18825.5
+ 21.06 seconds.
+epoch_idx: 137, error: 0.6057,likelihood: 18824.3
+ 21.07 seconds.
+epoch_idx: 138, error: 0.6059,likelihood: 18823.2
+ 21.05 seconds.
+epoch_idx: 139, error: 0.6059,likelihood: 18822.3
+ 21.07 seconds.
+epoch_idx: 140, error: 0.6058,likelihood: 18821.4
+ 21.1 seconds.
+epoch_idx: 141, error: 0.6058,likelihood: 18820.6
+ 21.04 seconds.
+epoch_idx: 142, error: 0.6058,likelihood: 18819.8
+ 21.04 seconds.
+epoch_idx: 143, error: 0.606,likelihood: 18819.3
+ 21.07 seconds.
+epoch_idx: 144, error: 0.606,likelihood: 18818.3
+ 21.1 seconds.
+epoch_idx: 145, error: 0.6061,likelihood: 18817.3
+ 21.04 seconds.
+epoch_idx: 146, error: 0.6061,likelihood: 18816.7
+ 21.1 seconds.
+epoch_idx: 147, error: 0.6065,likelihood: 18816.2
+ 21.04 seconds.
+epoch_idx: 148, error: 0.6066,likelihood: 18815.6
+ 21.01 seconds.
+epoch_idx: 149, error: 0.6065,likelihood: 18815
+ 21.07 seconds.
+epoch_idx: 150, error: 0.6066,likelihood: 18814.4
+ 21.09 seconds.
+epoch_idx: 151, error: 0.6067,likelihood: 18813.9
+ 21.03 seconds.
+epoch_idx: 152, error: 0.6067,likelihood: 18813.4
+ 21.02 seconds.
+epoch_idx: 153, error: 0.6068,likelihood: 18812.8
+ 21.05 seconds.
+epoch_idx: 154, error: 0.6063,likelihood: 18812.3
+ 21.11 seconds.
+epoch_idx: 155, error: 0.6063,likelihood: 18811.7
+ 21.08 seconds.
+epoch_idx: 156, error: 0.6063,likelihood: 18811.3
+ 21.05 seconds.
+epoch_idx: 157, error: 0.6064,likelihood: 18810.9
+ 21.05 seconds.
+epoch_idx: 158, error: 0.6065,likelihood: 18810.4
+ 21.05 seconds.
+epoch_idx: 159, error: 0.6063,likelihood: 18810
+ 21 seconds.
+epoch_idx: 160, error: 0.6063,likelihood: 18809.6
+ 21.04 seconds.
+epoch_idx: 161, error: 0.6067,likelihood: 18809.1
+ 21.05 seconds.
+epoch_idx: 162, error: 0.6067,likelihood: 18808.6
+ 21.03 seconds.
+epoch_idx: 163, error: 0.6064,likelihood: 18808.3
+ 21.05 seconds.
+epoch_idx: 164, error: 0.6064,likelihood: 18808
+ 21.09 seconds.
+epoch_idx: 165, error: 0.6065,likelihood: 18807.6
+ 21.02 seconds.
+epoch_idx: 166, error: 0.6066,likelihood: 18807.2
+ 21.02 seconds.
+epoch_idx: 167, error: 0.6061,likelihood: 18806.9
+ 21.06 seconds.
+epoch_idx: 168, error: 0.6061,likelihood: 18806.4
+ 21.05 seconds.
+epoch_idx: 169, error: 0.6065,likelihood: 18806.1
+ 21.05 seconds.
+epoch_idx: 170, error: 0.6063,likelihood: 18805.9
+ 21.06 seconds.
+epoch_idx: 171, error: 0.6066,likelihood: 18805.6
+ 21.01 seconds.
+epoch_idx: 172, error: 0.6062,likelihood: 18805.3
+ 21.04 seconds.
+epoch_idx: 173, error: 0.6061,likelihood: 18805.1
+ 21 seconds.
+epoch_idx: 174, error: 0.6061,likelihood: 18804.8
+ 21.1 seconds.
+epoch_idx: 175, error: 0.6062,likelihood: 18804.7
+ 21.08 seconds.
+epoch_idx: 176, error: 0.6061,likelihood: 18804.4
+ 21.03 seconds.
+epoch_idx: 177, error: 0.6061,likelihood: 18804.2
+ 21.06 seconds.
+epoch_idx: 178, error: 0.6059,likelihood: 18804
+ 21.03 seconds.
+epoch_idx: 179, error: 0.6061,likelihood: 18803.9
+ 21.08 seconds.
+epoch_idx: 180, error: 0.6061,likelihood: 18803.6
+ 21.03 seconds.
+epoch_idx: 181, error: 0.6062,likelihood: 18803.4
+ 21.1 seconds.
+epoch_idx: 182, error: 0.6061,likelihood: 18803.2
+ 21.04 seconds.
+epoch_idx: 183, error: 0.6062,likelihood: 18803
+ 21.02 seconds.
+epoch_idx: 184, error: 0.6061,likelihood: 18802.9
+ 21.11 seconds.
+epoch_idx: 185, error: 0.6063,likelihood: 18802.8
+ 21.07 seconds.
+epoch_idx: 186, error: 0.6061,likelihood: 18802.6
+ 21.06 seconds.
+epoch_idx: 187, error: 0.6063,likelihood: 18802.4
+ 21.11 seconds.
+epoch_idx: 188, error: 0.6063,likelihood: 18802.3
+ 21.03 seconds.
+epoch_idx: 189, error: 0.6063,likelihood: 18802.1
+ 21.08 seconds.
+epoch_idx: 190, error: 0.6064,likelihood: 18802
+ 21.02 seconds.
+epoch_idx: 191, error: 0.6063,likelihood: 18801.9
+ 21.03 seconds.
+epoch_idx: 192, error: 0.6063,likelihood: 18801.8
+ 21.07 seconds.
+epoch_idx: 193, error: 0.6064,likelihood: 18801.7
+ 21.06 seconds.
+epoch_idx: 194, error: 0.6063,likelihood: 18801.6
+ 21.06 seconds.
+epoch_idx: 195, error: 0.6065,likelihood: 18801.5
+ 21.09 seconds.
+epoch_idx: 196, error: 0.6063,likelihood: 18801.4
+ 21.07 seconds.
+epoch_idx: 197, error: 0.6063,likelihood: 18801.2
+ 21.01 seconds.
+epoch_idx: 198, error: 0.6064,likelihood: 18801.1
+ 21.04 seconds.
+epoch_idx: 199, error: 0.6064,likelihood: 18801.1
+ 21.02 seconds.
+epoch_idx: 200, error: 0.6062,likelihood: 18801
+ 21.05 seconds.
+epoch_idx: 201, error: 0.6065,likelihood: 18800.9
+ 21.04 seconds.
+epoch_idx: 202, error: 0.6066,likelihood: 18800.8
+ 21.07 seconds.
+epoch_idx: 203, error: 0.6064,likelihood: 18800.7
+ 21.06 seconds.
+epoch_idx: 204, error: 0.6063,likelihood: 18800.6
+ 21 seconds.
+epoch_idx: 205, error: 0.6064,likelihood: 18800.6
+ 21.04 seconds.
+epoch_idx: 206, error: 0.6064,likelihood: 18800.5
+ 21.06 seconds.
+epoch_idx: 207, error: 0.6064,likelihood: 18800.5
+ 21.03 seconds.
+epoch_idx: 208, error: 0.6065,likelihood: 18800.3
+ 21.07 seconds.
+epoch_idx: 209, error: 0.6064,likelihood: 18800.4
+ 21.1 seconds.
+epoch_idx: 210, error: 0.6064,likelihood: 18800.2
+ 21.03 seconds.
+epoch_idx: 211, error: 0.6065,likelihood: 18800.2
+ 21.03 seconds.
+epoch_idx: 212, error: 0.6064,likelihood: 18800.1
+ 21.04 seconds.
+epoch_idx: 213, error: 0.6066,likelihood: 18800
+ 21.08 seconds.
+epoch_idx: 214, error: 0.6064,likelihood: 18800
+ 21.07 seconds.
+epoch_idx: 215, error: 0.6066,likelihood: 18799.9
+ 21.07 seconds.
+epoch_idx: 216, error: 0.6065,likelihood: 18799.9
+ 21.05 seconds.
+epoch_idx: 217, error: 0.6065,likelihood: 18799.8
+ 21.04 seconds.
+epoch_idx: 218, error: 0.6065,likelihood: 18799.8
+ 21.06 seconds.
+epoch_idx: 219, error: 0.6065,likelihood: 18799.8
+ 21.08 seconds.
+epoch_idx: 220, error: 0.6065,likelihood: 18799.7
+ 21.07 seconds.
+epoch_idx: 221, error: 0.6064,likelihood: 18799.7
+ 21.03 seconds.
+epoch_idx: 222, error: 0.6066,likelihood: 18799.6
+ 21.02 seconds.
+epoch_idx: 223, error: 0.6066,likelihood: 18799.6
+ 21.08 seconds.
+epoch_idx: 224, error: 0.6066,likelihood: 18799.6
+ 21.02 seconds.
+epoch_idx: 225, error: 0.6065,likelihood: 18799.4
+ 21.02 seconds.
+epoch_idx: 226, error: 0.6065,likelihood: 18799.5
+ 21.07 seconds.
+epoch_idx: 227, error: 0.6064,likelihood: 18799.5
+ 21.05 seconds.
+epoch_idx: 228, error: 0.6064,likelihood: 18799.4
+ 21.08 seconds.
+epoch_idx: 229, error: 0.6064,likelihood: 18799.4
+ 21.06 seconds.
+epoch_idx: 230, error: 0.6067,likelihood: 18799.4
+ 21.08 seconds.
+epoch_idx: 231, error: 0.6064,likelihood: 18799.3
+ 21.03 seconds.
+epoch_idx: 232, error: 0.6065,likelihood: 18799.3
+ 21.08 seconds.
+epoch_idx: 233, error: 0.6065,likelihood: 18799.3
+ 21.04 seconds.
+epoch_idx: 234, error: 0.6064,likelihood: 18799.3
+ 21.02 seconds.
+epoch_idx: 235, error: 0.6064,likelihood: 18799.3
+ 21.05 seconds.
+epoch_idx: 236, error: 0.6065,likelihood: 18799.2
+ 21.06 seconds.
+epoch_idx: 237, error: 0.6065,likelihood: 18799.3
+ 21.07 seconds.
+epoch_idx: 238, error: 0.6065,likelihood: 18799.2
+ 21.05 seconds.
+epoch_idx: 239, error: 0.6065,likelihood: 18799.1
+ 21.07 seconds.
+epoch_idx: 240, error: 0.6064,likelihood: 18799.2
+ 21.05 seconds.
+epoch_idx: 241, error: 0.6065,likelihood: 18799.2
+ 21.04 seconds.
+epoch_idx: 242, error: 0.6065,likelihood: 18799.2
+ 21.03 seconds.
+epoch_idx: 243, error: 0.6065,likelihood: 18799.1
+ 21.03 seconds.
+epoch_idx: 244, error: 0.6065,likelihood: 18799.2
+ 21.06 seconds.
+epoch_idx: 245, error: 0.6067,likelihood: 18799.1
+ 21.01 seconds.
+epoch_idx: 246, error: 0.6065,likelihood: 18799.1
+ 21.06 seconds.
+epoch_idx: 247, error: 0.6064,likelihood: 18799.1
+ 21.05 seconds.
+epoch_idx: 248, error: 0.6064,likelihood: 18799
+ 21.07 seconds.
+epoch_idx: 249, error: 0.6064,likelihood: 18799
+ 21.04 seconds.
+epoch_idx: 250, error: 0.6065,likelihood: 18799
+ 21.06 seconds.
+epoch_idx: 251, error: 0.6064,likelihood: 18799
+ 21.02 seconds.
+epoch_idx: 252, error: 0.6064,likelihood: 18799
+ 21.04 seconds.
+epoch_idx: 253, error: 0.6065,likelihood: 18799
+ 21.04 seconds.
+epoch_idx: 254, error: 0.6066,likelihood: 18799.1
+ 21.12 seconds.
+epoch_idx: 255, error: 0.6065,likelihood: 18799
+ 21.08 seconds.
+epoch_idx: 256, error: 0.6066,likelihood: 18799
+ 20.99 seconds.
+epoch_idx: 257, error: 0.6067,likelihood: 18799
+ 21.01 seconds.
+epoch_idx: 258, error: 0.6065,likelihood: 18799
+ 21.09 seconds.
+epoch_idx: 259, error: 0.6064,likelihood: 18798.9
+ 21.1 seconds.
+epoch_idx: 260, error: 0.6064,likelihood: 18799
+ 21.06 seconds.
+epoch_idx: 261, error: 0.6065,likelihood: 18798.9
+ 21.09 seconds.
+epoch_idx: 262, error: 0.6064,likelihood: 18798.9
+ 21.09 seconds.
+epoch_idx: 263, error: 0.6065,likelihood: 18799
+ 21.08 seconds.
+epoch_idx: 264, error: 0.6064,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 265, error: 0.6066,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 266, error: 0.6065,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 267, error: 0.6065,likelihood: 18798.9
+ 21.02 seconds.
+epoch_idx: 268, error: 0.6065,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 269, error: 0.6065,likelihood: 18798.9
+ 21.1 seconds.
+epoch_idx: 270, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 271, error: 0.6065,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 272, error: 0.6066,likelihood: 18798.9
+ 21.09 seconds.
+epoch_idx: 273, error: 0.6064,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 274, error: 0.6064,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 275, error: 0.6065,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 276, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 277, error: 0.6065,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 278, error: 0.6064,likelihood: 18798.8
+ 21.01 seconds.
+epoch_idx: 279, error: 0.6064,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 280, error: 0.6065,likelihood: 18799
+ 21.03 seconds.
+epoch_idx: 281, error: 0.6065,likelihood: 18798.8
+ 21 seconds.
+epoch_idx: 282, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 283, error: 0.6065,likelihood: 18798.9
+ 21 seconds.
+epoch_idx: 284, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 285, error: 0.6065,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 286, error: 0.6064,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 287, error: 0.6065,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 288, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 289, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 290, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 291, error: 0.6066,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 292, error: 0.6064,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 293, error: 0.6064,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 294, error: 0.6065,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 295, error: 0.6065,likelihood: 18798.7
+ 21.06 seconds.
+epoch_idx: 296, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 297, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 298, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 299, error: 0.6064,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 300, error: 0.6065,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 301, error: 0.6065,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 302, error: 0.6065,likelihood: 18798.9
+ 21.1 seconds.
+epoch_idx: 303, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 304, error: 0.6065,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 305, error: 0.6064,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 306, error: 0.6064,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 307, error: 0.6064,likelihood: 18798.7
+ 21.07 seconds.
+epoch_idx: 308, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 309, error: 0.6065,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 310, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 311, error: 0.6064,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 312, error: 0.6066,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 313, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 314, error: 0.6065,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 315, error: 0.6064,likelihood: 18798.9
+ 21.03 seconds.
+epoch_idx: 316, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 317, error: 0.6064,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 318, error: 0.6065,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 319, error: 0.6066,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 320, error: 0.6065,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 321, error: 0.6064,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 322, error: 0.6067,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 323, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 324, error: 0.6066,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 325, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 326, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 327, error: 0.6065,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 328, error: 0.6066,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 329, error: 0.6065,likelihood: 18798.7
+ 21.06 seconds.
+epoch_idx: 330, error: 0.6066,likelihood: 18798.9
+ 21.1 seconds.
+epoch_idx: 331, error: 0.6064,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 332, error: 0.6063,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 333, error: 0.6066,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 334, error: 0.6064,likelihood: 18798.8
+ 21 seconds.
+epoch_idx: 335, error: 0.6066,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 336, error: 0.6065,likelihood: 18798.8
+ 21.1 seconds.
+epoch_idx: 337, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 338, error: 0.6064,likelihood: 18798.8
+ 21.01 seconds.
+epoch_idx: 339, error: 0.6067,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 340, error: 0.6065,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 341, error: 0.6065,likelihood: 18798.9
+ 21.01 seconds.
+epoch_idx: 342, error: 0.6065,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 343, error: 0.6065,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 344, error: 0.6064,likelihood: 18798.8
+ 21.09 seconds.
+epoch_idx: 345, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 346, error: 0.6065,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 347, error: 0.6065,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 348, error: 0.6065,likelihood: 18798.9
+ 21.02 seconds.
+epoch_idx: 349, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 350, error: 0.6065,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 351, error: 0.6064,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 352, error: 0.6066,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 353, error: 0.6066,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 354, error: 0.6065,likelihood: 18798.9
+ 21.03 seconds.
+epoch_idx: 355, error: 0.6065,likelihood: 18798.8
+ 21.01 seconds.
+epoch_idx: 356, error: 0.6065,likelihood: 18798.9
+ 21.03 seconds.
+epoch_idx: 357, error: 0.6066,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 358, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 359, error: 0.6064,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 360, error: 0.6066,likelihood: 18798.8
+ 20.98 seconds.
+epoch_idx: 361, error: 0.6065,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 362, error: 0.6064,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 363, error: 0.6065,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 364, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 365, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 366, error: 0.6065,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 367, error: 0.6066,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 368, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 369, error: 0.6064,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 370, error: 0.6065,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 371, error: 0.6065,likelihood: 18798.8
+ 21.11 seconds.
+epoch_idx: 372, error: 0.6065,likelihood: 18798.9
+ 21.09 seconds.
+epoch_idx: 373, error: 0.6064,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 374, error: 0.6066,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 375, error: 0.6065,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 376, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 377, error: 0.6064,likelihood: 18798.9
+ 21.09 seconds.
+epoch_idx: 378, error: 0.6065,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 379, error: 0.6065,likelihood: 18798.9
+ 21.02 seconds.
+epoch_idx: 380, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 381, error: 0.6065,likelihood: 18798.8
+ 21.09 seconds.
+epoch_idx: 382, error: 0.6065,likelihood: 18798.9
+ 21.11 seconds.
+epoch_idx: 383, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 384, error: 0.6065,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 385, error: 0.6065,likelihood: 18798.7
+ 21.02 seconds.
+epoch_idx: 386, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 387, error: 0.6065,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 388, error: 0.6065,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 389, error: 0.6065,likelihood: 18798.9
+ 21.1 seconds.
+epoch_idx: 390, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 391, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 392, error: 0.6066,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 393, error: 0.6064,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 394, error: 0.6064,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 395, error: 0.6066,likelihood: 18798.7
+ 21.05 seconds.
+epoch_idx: 396, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 397, error: 0.6064,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 398, error: 0.6065,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 399, error: 0.6065,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 400, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 401, error: 0.6064,likelihood: 18798.8
+ 21.09 seconds.
+epoch_idx: 402, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 403, error: 0.6064,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 404, error: 0.6067,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 405, error: 0.6064,likelihood: 18798.8
+ 21 seconds.
+epoch_idx: 406, error: 0.6064,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 407, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 408, error: 0.6064,likelihood: 18798.9
+ 21.1 seconds.
+epoch_idx: 409, error: 0.6063,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 410, error: 0.6066,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 411, error: 0.6065,likelihood: 18798.8
+ 21.1 seconds.
+epoch_idx: 412, error: 0.6065,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 413, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 414, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 415, error: 0.6065,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 416, error: 0.6066,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 417, error: 0.6064,likelihood: 18798.8
+ 21.12 seconds.
+epoch_idx: 418, error: 0.6065,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 419, error: 0.6064,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 420, error: 0.6065,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 421, error: 0.6065,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 422, error: 0.6066,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 423, error: 0.6065,likelihood: 18798.9
+ 21.12 seconds.
+epoch_idx: 424, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 425, error: 0.6064,likelihood: 18798.9
+ 21.02 seconds.
+epoch_idx: 426, error: 0.6066,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 427, error: 0.6065,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 428, error: 0.6065,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 429, error: 0.6065,likelihood: 18798.7
+ 21.06 seconds.
+epoch_idx: 430, error: 0.6065,likelihood: 18798.8
+ 21 seconds.
+epoch_idx: 431, error: 0.6064,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 432, error: 0.6064,likelihood: 18798.9
+ 21.03 seconds.
+epoch_idx: 433, error: 0.6066,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 434, error: 0.6066,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 435, error: 0.6065,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 436, error: 0.6065,likelihood: 18798.8
+ 21.1 seconds.
+epoch_idx: 437, error: 0.6066,likelihood: 18798.9
+ 21 seconds.
+epoch_idx: 438, error: 0.6066,likelihood: 18798.9
+ 21.03 seconds.
+epoch_idx: 439, error: 0.6065,likelihood: 18798.8
+ 20.99 seconds.
+epoch_idx: 440, error: 0.6065,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 441, error: 0.6065,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 442, error: 0.6064,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 443, error: 0.6065,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 444, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 445, error: 0.6065,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 446, error: 0.6064,likelihood: 18798.8
+ 21 seconds.
+epoch_idx: 447, error: 0.6065,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 448, error: 0.6065,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 449, error: 0.6064,likelihood: 18798.8
+ 21.02 seconds.
+epoch_idx: 450, error: 0.6064,likelihood: 18798.7
+ 21.03 seconds.
+epoch_idx: 451, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 452, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 453, error: 0.6066,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 454, error: 0.6065,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 455, error: 0.6065,likelihood: 18798.9
+ 21.11 seconds.
+epoch_idx: 456, error: 0.6066,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 457, error: 0.6065,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 458, error: 0.6064,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 459, error: 0.6064,likelihood: 18798.9
+ 21.05 seconds.
+epoch_idx: 460, error: 0.6065,likelihood: 18798.9
+ 21.07 seconds.
+epoch_idx: 461, error: 0.6066,likelihood: 18798.8
+ 21.07 seconds.
+epoch_idx: 462, error: 0.6065,likelihood: 18798.8
+ 21.12 seconds.
+epoch_idx: 463, error: 0.6063,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 464, error: 0.6066,likelihood: 18798.9
+ 21.06 seconds.
+epoch_idx: 465, error: 0.6066,likelihood: 18798.8
+ 21.08 seconds.
+epoch_idx: 466, error: 0.6064,likelihood: 18798.8
+ 21.1 seconds.
+epoch_idx: 467, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 468, error: 0.6066,likelihood: 18798.9
+ 21.08 seconds.
+epoch_idx: 469, error: 0.6065,likelihood: 18798.7
+ 21.04 seconds.
+epoch_idx: 470, error: 0.6064,likelihood: 18798.8
+ 21.03 seconds.
+epoch_idx: 471, error: 0.6065,likelihood: 18798.8
+ 21.04 seconds.
+epoch_idx: 472, error: 0.6065,likelihood: 18798.9
+ 21.03 seconds.
+epoch_idx: 473, error: 0.6064,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 474, error: 0.6065,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 475, error: 0.6064,likelihood: 18798.8
+ 21.05 seconds.
+epoch_idx: 476, error: 0.6064,likelihood: 18798.9
+ 21.04 seconds.
+epoch_idx: 477, error: 0.6066,likelihood: 18798.8
+ 21.06 seconds.
+epoch_idx: 478, error: 0.6065,likelihood: 18798.9
+ 21.05 seconds.

@@ -437,7 +437,7 @@ targets[0] = prod;
 
 __global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos, \
 		const int conv_forward_size, const int pool_forward_size, \
-		const int max_pool_size){
+		const int max_pool_size, const int stride){
 	const int numFilters = gridDim.y;
 	const int imgIdx = blockIdx.x;
 	const int filtIdx = blockIdx.y;
@@ -487,7 +487,7 @@ __global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos,
 
 __global__ void compute_dE_dy_max(float* dE_dy_i, float* out, int* maxPoolPos, \
 		const int conv_forward_size, const int pool_forward_size, \
-		const int max_pool_size){
+		const int max_pool_size, const int stride){
 
 	int convPixs = conv_forward_size * conv_forward_size;
 	int poolPixs = pool_forward_size * pool_forward_size;

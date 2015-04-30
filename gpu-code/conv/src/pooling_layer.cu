@@ -11,7 +11,8 @@ PoolingLayer::PoolingLayer(pars* network){
 	this->_in_size                  = network->in_size;
 	this->_in_channel               = network->in_channel;
 	this->_pool_size				= network->pool_size;
-	this->_out_size					= this->_in_size / this->_pool_size;
+	this->_stride					= network->stride;
+	this->_out_size					= (_in_size - _pool_size) / _stride + 1;
 
 	//w_hk的learning rate
 	this->_w_lr                     = network->w_lr;
@@ -74,7 +75,7 @@ void PoolingLayer::computeOutputs(NVMatrix* x){
 	dim3 threads = dim3(ceil(_out_size / 16.0) * 16,  ceil(_out_size / 16.0) * 16);
 	//24*24,pooling到12*12
 	max_pooling<<<blocks, threads, sizeof(float) * _in_size * _in_size>>>(x->getDevData(), \
-			_y->getDevData(), _max_pos, _in_size, _out_size, _pool_size);  
+			_y->getDevData(), _max_pos, _in_size, _out_size, _pool_size, _stride);  
 	cudaThreadSynchronize();
 
 }
@@ -87,7 +88,7 @@ void PoolingLayer::computeDerivsOfInput(NVMatrix* dE_dx){
 	dE_dx->zeros();
 	compute_dE_dy_max<<<blocks, threads>>>(_dE_dy->getDevData(), \
 			dE_dx->getDevData(), _max_pos, _in_size, \
-			_out_size, _pool_size);
+			_out_size, _pool_size, _stride);
 	cudaThreadSynchronize();
 
 //_dE_dy->showValue("dedy");
