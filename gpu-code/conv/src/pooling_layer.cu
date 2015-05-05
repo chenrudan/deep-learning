@@ -74,9 +74,20 @@ void PoolingLayer::computeOutputs(NVMatrix* x){
 	dim3 blocks = dim3(_minibatch_size, _in_channel);
 	dim3 threads = dim3(ceil(_out_size / 16.0) * 16,  ceil(_out_size / 16.0) * 16);
 	//24*24,pooling到12*12
-	max_pooling<<<blocks, threads, sizeof(float) * _in_size * _in_size>>>(x->getDevData(), \
+/*	x->reValue(27);
+	int length = _minibatch_size * _in_size * _in_size * _in_channel;
+	float* tmp = new float[length];
+	memset(tmp, 0, sizeof(float) * length);
+	tmp[4] = 1;
+	cudaMemcpy(x->getDevData(), tmp, sizeof(float) * length, cudaMemcpyHostToDevice);
+*/
+	max_pooling<<<blocks, threads, sizeof(float)*_pool_size*_out_size*_pool_size*_out_size>>>(x->getDevData(), \
 			_y->getDevData(), _max_pos, _in_size, _out_size, _pool_size, _stride);  
 	cudaThreadSynchronize();
+
+//x->showValue("x");
+//_y->showValue("y");
+
 
 }
 
@@ -86,7 +97,9 @@ void PoolingLayer::computeDerivsOfInput(NVMatrix* dE_dx){
 	dim3 threads = dim3(ceil(_out_size / 16.0) * 16,  ceil(_out_size / 16.0) * 16);
 	//dE_dy_h, 16*16*24*24
 	dE_dx->zeros();
-	compute_dE_dy_max<<<blocks, threads>>>(_dE_dy->getDevData(), \
+//_dE_dy->reValue(13);
+	
+	compute_dE_dy_max<<<blocks, threads, sizeof(float)*_in_size*_in_size>>>(_dE_dy->getDevData(), \
 			dE_dx->getDevData(), _max_pos, _in_size, \
 			_out_size, _pool_size, _stride);
 	cudaThreadSynchronize();
