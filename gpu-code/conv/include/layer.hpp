@@ -52,7 +52,7 @@ public:
 
 	virtual void initCuda() {}
 	virtual void computeOutput(NVMatrix* x) {}
-	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels = NULL) {}
+	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels) {}
 	virtual void computeDerivsOfInput(NVMatrix* dE_dx) {}
 
 	void updatePars(bool isShow = false) {

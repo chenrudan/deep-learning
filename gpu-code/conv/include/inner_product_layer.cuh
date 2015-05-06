@@ -20,6 +20,7 @@ public:
 
 	void initCuda();
 	void computeOutputs(NVMatrix* x);
+	using Layer::computeDerivsOfPars;
 	void computeDerivsOfPars(NVMatrix* x);
 	void computeDerivsOfInput(NVMatrix* dE_dx);
 
