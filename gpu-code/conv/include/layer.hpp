@@ -37,6 +37,7 @@ protected:
 	int _num_out;
 	//if the layer is convolution or pooling, choose this group
 	int _in_size;
+	int _pad;
 	int _in_channel;
 	int _filter_size;
 	int _filter_channel;
@@ -68,6 +69,14 @@ public:
 
 		_bias_inc->add(_dE_db, _momentum, -_b_lr / _minibatch_size);
 		_bias->add(_bias_inc, 1, 1);
+	}
+
+	inline void stopWeightDecay() {
+		_weight_decay = 0;
+	}
+
+	inline void changeLrDownScale(float scale) {
+		_lr_down_scale *= scale;
 	}
 
 	inline void transfarLowerPars() {

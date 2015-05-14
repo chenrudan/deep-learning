@@ -21,13 +21,14 @@ __device__ float sigmoid(float x) {
 
 
 __global__ void im2col_img(const float* conv_result, float* targets, \
-		const int numKernels, const int widthNoChannel, const int width, \
-		const int img_size, const int filter_channel, \
+		const int numKernels, const int img_size, const int filter_channel, \
 		const int img_channel, const int filter_size, const int conv_forward_size, \
 		const int conv_stride){
 
 	const int imgPixs = img_size * img_size;
 	const int convPixs = conv_forward_size * conv_forward_size;
+	const int widthNoChannel = filter_size * filter_size;
+	const int width = widthNoChannel * filter_channel;
 	int index;
 	//这个numkernel比conv要大
 	CUDA_KERNEL_LOOP(idx, numKernels){
@@ -66,8 +67,8 @@ __global__ void im2col_img(const float* conv_result, float* targets, \
 }
 
 __global__ void im2col_filt(const float* imgs, float* targets, \
-		const int numKernels, const int widthNoChannel, const int width, \
-		const int heightNoBatch, const int img_size, const int img_channel, \
+		const int numKernels, const int img_size, const int padded_img_size, \
+		const int img_channel, \
 		const int filter_size, const int conv_forward_size, \
 		const int conv_step_size){
 
@@ -75,6 +76,9 @@ __global__ void im2col_filt(const float* imgs, float* targets, \
 	if(idx < numKernels){
 		int imgPixs = img_size * img_size;
 		int filPixs = filter_size * filter_size;
+		int width = filPixs * img_channel;
+		int heightNoBatch = conv_forward_size * conv_forward_size;
+		int pad = (padded_img_size - img_size) / 2;
 
 		//此处的width指的是5*5*3,height指的是24*24
 		const int channelIdx = (idx % width) / filPixs;
@@ -87,19 +91,26 @@ __global__ void im2col_filt(const float* imgs, float* targets, \
 		const int convRow = heightIdx / conv_forward_size;
 		const int convCol = heightIdx % conv_forward_size;
 		//输入图片的位置
-		imgs += imgIdx * img_channel * imgPixs + channelIdx * imgPixs \
-				+ (convRow * conv_step_size + filtRow) * img_size \
-				+ (convCol * conv_step_size + filtCol); 
-		//输出图片的位置
-		targets[idx] = imgs[0];
+		const int imgRow = convRow * conv_step_size + filtRow;
+		const int imgCol = convCol * conv_step_size + filtCol;
+		const int lowerBound = pad;
+		const int higherBound = padded_img_size - pad;
+		if(imgRow >= lowerBound && imgRow < higherBound \
+			&& imgCol >= lowerBound && imgCol < higherBound){
+			imgs += imgIdx * img_channel * imgPixs + channelIdx * imgPixs \
+					+ (imgRow - pad) * img_size \
+					+ (imgCol - pad); 
+			//输出图片的位置
+			targets[idx] = imgs[0];
+		}
 	}
 	__syncthreads();
 
 }
 
 __global__ void im2col_conv(const float* imgs, float* targets, \
-		const int numKernels, const int widthNoBatch, const int width, \
-		const int heightNoChannel, const int img_size, \
+		const int numKernels, const int minibatch, const int img_size, \
+		const int padded_img_size, \
 		const int img_channel, const int filter_size, const int conv_forward_size, \
 		const int conv_step_size){
 
@@ -107,6 +118,11 @@ __global__ void im2col_conv(const float* imgs, float* targets, \
 	const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if(idx < numKernels){
 		int imgPixs = img_size * img_size;
+		int widthNoBatch = conv_forward_size * conv_forward_size;
+		int width = widthNoBatch * minibatch;
+		int heightNoChannel = filter_size * filter_size;
+		int pad = (padded_img_size - img_size) / 2;
+
 		//此处的width指的是100*24*24,height指的是5*5*3
 		const int imgIdx = (idx % width) / widthNoBatch;
 		//widthIdx指的是conv*conv的id
@@ -119,11 +135,18 @@ __global__ void im2col_conv(const float* imgs, float* targets, \
 		const int filtRow = heightIdx / filter_size;
 		const int filtCol = heightIdx % filter_size;
 		//输入图片的位置
-		imgs += imgIdx * img_channel * imgPixs + channelIdx * imgPixs \
-				+ (convRow * conv_step_size + filtRow) * img_size \
-				+ (convCol * conv_step_size + filtCol); 
-		//输出图片的位置
-		targets[idx] = imgs[0];
+		const int imgRow = convRow * conv_step_size + filtRow;
+		const int imgCol = convCol * conv_step_size + filtCol;
+		const int lowerBound = pad;
+		const int higherBound = padded_img_size - pad;
+		if(imgRow >= lowerBound && imgRow < higherBound \
+			&& imgCol >= lowerBound && imgCol < higherBound){
+			imgs += imgIdx * img_channel * imgPixs + channelIdx * imgPixs \
+					+ (imgRow - pad) * img_size \
+					+ (imgCol - pad); 
+			//输出图片的位置
+			targets[idx] = imgs[0];
+		}
 	}
 	__syncthreads();
 
@@ -149,18 +172,28 @@ __global__ void reshape_w(float* un_w, const float* w, \
 
 __global__ void reshape_In(float* in, const float* un_in, \
 		const int numKernels, const int in_size, \
-		const int img_channel){
+		const int padded_img_size, const int img_channel){
 
 	int index;
 	CUDA_KERNEL_LOOP(idx, numKernels){
 
 		int imgPixs = in_size * in_size;
+		int paddedImgPixs = padded_img_size * padded_img_size;
+		int pad = (padded_img_size - in_size) / 2;
 		const int dstRow = idx / img_channel;
 		const int dstCol = idx % img_channel;
-		const int oriCol = dstCol * imgPixs + dstRow % imgPixs;
-		const int oriRow = dstRow / imgPixs;
-		index = oriRow * imgPixs * img_channel + oriCol;
-		in[index] = un_in[idx]; 
+		const int imgIdx = dstRow / paddedImgPixs;
+		const int imgRow = (dstRow % paddedImgPixs) / padded_img_size; 
+		const int imgCol = (dstRow % paddedImgPixs) % padded_img_size; 
+		const int lowerBound = pad;
+		const int higherBound = padded_img_size - pad;
+		if(imgRow >= lowerBound && imgRow < higherBound \
+			&& imgCol >= lowerBound && imgCol < higherBound){
+				index = imgIdx * img_channel * imgPixs + dstCol * imgPixs \
+						+ (imgRow - pad) * in_size \
+						+ (imgCol - pad); 
+			in[index] = un_in[idx]; 
+		}
 	}
 }
 

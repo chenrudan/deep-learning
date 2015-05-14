@@ -24,9 +24,11 @@ ConvNet::ConvNet(pars* netWork){
 	//out原值的参数
 	this->_minibatch_size         	= netWork->minibatch_size;
 	this->_in_size				 	= netWork->in_size;
+	this->_pad						= netWork->pad;
+	this->_padded_in_size			= _in_size + _pad * 2;
 	this->_filter_size			 	= netWork->filter_size;
 	this->_stride              		= netWork->stride;
-	this->_out_size		 			= (_in_size - _filter_size) / _stride + 1;
+	this->_out_size		 			= (_padded_in_size - _filter_size) / _stride + 1;
 	this->_in_channel			 	= netWork->in_channel;
 	this->_lr_down_scale			= netWork->lr_down_scale;
 	this->_filt_pixs				= _filter_size * _filter_size;
@@ -88,7 +90,7 @@ void ConvNet::initCuda() {
 	ranged_dE_dx = new NVMatrix(_minibatch_size * _conv_pixs, _filter_channel);
 	dE_db_tmp = new NVMatrix(_minibatch_size, _filter_channel);
 
-	unrolled_conv = new NVMatrix(_minibatch_size * _in_size * _in_size, \
+	unrolled_conv = new NVMatrix(_minibatch_size * _padded_in_size * _padded_in_size, \
 			_filter_size * _filter_size * _filter_channel);
 	ranged_w = new NVMatrix(_filter_channel * _filt_pixs, _in_channel);
 	unranged_in = new NVMatrix(_minibatch_size * _in_size * _in_size, _in_channel);
@@ -107,13 +109,14 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 
 	int num_kernel = _minibatch_size * _conv_pixs * _filt_pixs *_in_channel;
 	int num_block = num_kernel / 1024 + 1;
-	//_x->reValue(32);
-	//_w->reValue(1.0f);
+//	_x->reValue(32);
+//	_w->reValue(1.0f);
 	//_bias->reValue(2.0f);
+	cudaMemset(unrolled_x1->getDevData(), 0, sizeof(float) * num_kernel);
 	im2col_filt<<<num_block, 1024>>>(_x->getDevData(), \
-			unrolled_x1->getDevData(), num_kernel, _filt_pixs, \
-			_filt_pixs * _in_channel, _conv_pixs, _in_size, _in_channel, \
-			_filter_size, _out_size, _stride);
+			unrolled_x1->getDevData(), num_kernel, \
+			_in_size, _padded_in_size, \
+			_in_channel, _filter_size, _out_size, _stride);
 
 	unrolled_x1->rightMult(_w, 1, unranged_y, handle);
 
@@ -123,7 +126,7 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 	num_block = num_kernel / 1024 + 1;
 	reshape_y<<<num_block, 1024>>>(unranged_y->getDevData(), _y->getDevData(), \
 			num_kernel, _out_size, _filter_channel);
-	//unrolled_x1->showValue("data");
+//	unrolled_x1->showValue("data");
 	//_w->showValue("whk");
 	//_y->showValue("yh");
 }
@@ -144,13 +147,13 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 	int num_kernel = _minibatch_size * _conv_pixs * _filt_pixs * _in_channel;
 	int num_block = num_kernel / 1024 + 1;
 
-	//_x->reValue(3072);
+//	x->reValue(32);
 	//另外一种排列方式，因为需要排列的是24*24的块
 
+	cudaMemset(unrolled_x2->getDevData(), 0, sizeof(float) * num_kernel);
 	im2col_conv<<<num_block, 1024>>>(x->getDevData(), \
 			unrolled_x2->getDevData(), num_kernel, \
-			_conv_pixs, _conv_pixs * _minibatch_size, \
-			_filt_pixs, _in_size, _in_channel, _filter_size, \
+			_minibatch_size, _in_size, _padded_in_size, _in_channel, _filter_size, \
 			_out_size, _stride);	
 	//	}
 	//_x->showValue("data1");
@@ -184,7 +187,7 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 
 	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(float) * num_kernel);
 	im2col_img<<<num_block, 1024>>>(_dE_dx_sigmoid->getDevData(), unrolled_conv->getDevData(), \
-			num_kernel, _filt_pixs, _filt_pixs * _filter_channel, _in_size, _filter_channel, \
+			num_kernel, _padded_in_size, _filter_channel, \
 			_in_channel, _filter_size, _out_size, _stride);
 	cudaThreadSynchronize();
 
@@ -199,8 +202,11 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 	unrolled_conv->rightMult(ranged_w, 1, unranged_in, handle);
 	num_kernel = _minibatch_size * _in_size * _in_size * _in_channel;
 	num_block = num_kernel / 1024 + 1;
+
+unranged_in->reValue(32*20);
+
 	reshape_In<<<num_block, 1024>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
-			num_kernel, _in_size, _in_channel);
+			num_kernel, _in_size, _padded_in_size, _in_channel);
 	cudaThreadSynchronize();
 
 //t = clock() - t;
@@ -209,8 +215,8 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 //	_w->showValue("whk");
 //	ranged_w->showValue("rangWhk");
 //	unrolled_conv->showValue("unrolledconv");
-//	unranged_in->showValue("unrangIN");
-//	dE_dx->showValue("dx");
+	unranged_in->showValue("unrangIN");
+	dE_dx->showValue("dx");
 
 }
 /*

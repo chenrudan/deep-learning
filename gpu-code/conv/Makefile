@@ -6,6 +6,7 @@ MPICXX = mpicxx
 LINK = mpicxx
 CCFLAGS = -c
 NVCCFLAGS = -g -O3 -c -Xcompiler -fopenmp
+PTXFLAGES = --machine 64
 
 LIB = -L/usr/local/cuda-6.5/lib64 -lcuda -lcudart  -lcublas -lm  -lpthread  -lgomp  -lmpich
 INCLUDES = -I./include

@@ -23,13 +23,9 @@ using namespace std;
 
 #define THREAD_END 100000
 enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
-	SWAP_CNN2_W_PUSH, SWAP_CNN2_BIAS_PUSH,	\
-	SWAP_CNN3_W_PUSH, SWAP_CNN3_BIAS_PUSH,	\
 	SWAP_INNER1_W_PUSH, SWAP_INNER1_BIAS_PUSH, \
 	SWAP_SOFTMAX_W_PUSH, SWAP_SOFTMAX_BIAS_PUSH, \
 	SWAP_CNN1_W_FETCH, SWAP_CNN1_BIAS_FETCH, \
-	SWAP_CNN2_W_FETCH, SWAP_CNN2_BIAS_FETCH, \
-	SWAP_CNN3_W_FETCH, SWAP_CNN3_BIAS_FETCH, \
 	SWAP_INNER1_W_FETCH, SWAP_INNER1_BIAS_FETCH, \
 	SWAP_SOFTMAX_W_FETCH, SWAP_SOFTMAX_BIAS_FETCH};
 
@@ -65,60 +61,24 @@ void managerNode(pars* layer_pars){
 		<< "\nstride: " << layer_pars[1].stride \
 		<< "\npool_size: " << layer_pars[1].pool_size;
 	
-	cout << "\n===========cnn2==============" \
-		<< "\nin_size: " << layer_pars[2].in_size \
-		<< "\nin_channel: " << layer_pars[2].in_channel \
-		<< "\nfilter_size: " << layer_pars[2].filter_size \
-		<< "\nfilter_channel: " << layer_pars[2].filter_channel \
-		<< "\nstride: " << layer_pars[2].stride \
+
+	cout << "\n===========inner_product1==============" \
+		<< "\nnum_in: " << layer_pars[2].num_in \
+		<< "\nnum_out: " << layer_pars[2].num_out \
 		<< "\nw_lr: " << layer_pars[2].w_lr \
 		<< "\nb_lr: " << layer_pars[2].b_lr \
 		<< "\nmomentum: " << layer_pars[2].momentum \
 		<< "\nweight_decay: " << layer_pars[2].weight_decay \
 		<< "\nlr_scale: " << layer_pars[2].lr_down_scale;
 
-	cout << "\n===========pool2==============" \
-		<< "\nin_size: " << layer_pars[3].in_size \
-		<< "\nin_channel: " << layer_pars[3].in_channel \
-		<< "\nstride: " << layer_pars[3].stride \
-		<< "\npool_size: " << layer_pars[3].pool_size;
-
-	cout << "\n===========cnn3==============" \
-		<< "\nin_size: " << layer_pars[4].in_size \
-		<< "\nin_channel: " << layer_pars[4].in_channel \
-		<< "\nfilter_size: " << layer_pars[4].filter_size \
-		<< "\nfilter_channel: " << layer_pars[4].filter_channel \
-		<< "\nstride: " << layer_pars[4].stride \
-		<< "\nw_lr: " << layer_pars[4].w_lr \
-		<< "\nb_lr: " << layer_pars[4].b_lr \
-		<< "\nmomentum: " << layer_pars[4].momentum \
-		<< "\nweight_decay: " << layer_pars[4].weight_decay \
-		<< "\nlr_scale: " << layer_pars[4].lr_down_scale;
-
-	cout << "\n===========pool3==============" \
-		<< "\nin_size: " << layer_pars[5].in_size \
-		<< "\nin_channel: " << layer_pars[5].in_channel \
-		<< "\nstride: " << layer_pars[5].stride \
-		<< "\npool_size: " << layer_pars[5].pool_size;
-
-
-	cout << "\n===========inner_product1==============" \
-		<< "\nnum_in: " << layer_pars[6].num_in \
-		<< "\nnum_out: " << layer_pars[6].num_out \
-		<< "\nw_lr: " << layer_pars[6].w_lr \
-		<< "\nb_lr: " << layer_pars[6].b_lr \
-		<< "\nmomentum: " << layer_pars[6].momentum \
-		<< "\nweight_decay: " << layer_pars[6].weight_decay \
-		<< "\nlr_scale: " << layer_pars[6].lr_down_scale;
-
 	cout << "\n===========softmax==============" \
-		<< "\nnum_in: " << layer_pars[7].num_in \
-		<< "\nnum_out: " << layer_pars[7].num_out \
-		<< "\nw_lr: " << layer_pars[7].w_lr \
-		<< "\nb_lr: " << layer_pars[7].b_lr \
-		<< "\nmomentum: " << layer_pars[7].momentum \
-		<< "\nweight_decay: " << layer_pars[7].weight_decay \
-		<< "\nlr_scale: " << layer_pars[7].lr_down_scale << endl;
+		<< "\nnum_in: " << layer_pars[3].num_in \
+		<< "\nnum_out: " << layer_pars[3].num_out \
+		<< "\nw_lr: " << layer_pars[3].w_lr \
+		<< "\nb_lr: " << layer_pars[3].b_lr \
+		<< "\nmomentum: " << layer_pars[3].momentum \
+		<< "\nweight_decay: " << layer_pars[3].weight_decay \
+		<< "\nlr_scale: " << layer_pars[3].lr_down_scale << endl;
 
 
 	int cnn1_in_len = layer_pars[0].in_size * layer_pars[0].in_size * layer_pars[0].in_channel;
@@ -126,19 +86,11 @@ void managerNode(pars* layer_pars){
 			* layer_pars[0].filter_size * layer_pars[0].in_channel;
 	int cnn1_b_len = layer_pars[0].filter_channel;
 
-	int cnn2_w_len = layer_pars[2].filter_channel * layer_pars[2].filter_size \
-			* layer_pars[2].filter_size * layer_pars[2].in_channel;
-	int cnn2_b_len = layer_pars[2].filter_channel;
+	int inner1_w_len = layer_pars[2].num_in * layer_pars[2].num_out;
+	int inner1_b_len = layer_pars[2].num_out;
 
-	int cnn3_w_len = layer_pars[4].filter_channel * layer_pars[4].filter_size \
-			* layer_pars[4].filter_size * layer_pars[4].in_channel;
-	int cnn3_b_len = layer_pars[4].filter_channel;
-
-	int inner1_w_len = layer_pars[6].num_in * layer_pars[6].num_out;
-	int inner1_b_len = layer_pars[6].num_out;
-
-	int softmax_w_len = layer_pars[7].num_in * layer_pars[7].num_out;
-	int softmax_b_len = layer_pars[7].num_out;
+	int softmax_w_len = layer_pars[3].num_in * layer_pars[3].num_out;
+	int softmax_b_len = layer_pars[3].num_out;
 
 	int train_data_len_part = layer_pars[0].num_train * cnn1_in_len / (num_process - 1);
 	int train_label_len_part = layer_pars[0].num_train / (num_process - 1);
@@ -186,39 +138,21 @@ cout << "done6\n";
 			layer_pars[0].filter_channel);
 	NVMatrix* cnn1_bias = new NVMatrix(1, layer_pars[0].filter_channel);
 
-	NVMatrix* cnn2_w = new NVMatrix(layer_pars[2].filter_size * \
-			layer_pars[2].filter_size * layer_pars[2].in_channel, \
-			layer_pars[2].filter_channel);
-	NVMatrix* cnn2_bias = new NVMatrix(1, layer_pars[2].filter_channel);
+	NVMatrix* inner1_w = new NVMatrix(inner1_w_len / layer_pars[2].num_out, layer_pars[2].num_out);
+	NVMatrix* inner1_bias = new NVMatrix(1, layer_pars[2].num_out);
 
-	NVMatrix* cnn3_w = new NVMatrix(layer_pars[4].filter_size * \
-			layer_pars[4].filter_size * layer_pars[4].in_channel, \
-			layer_pars[4].filter_channel);
-	NVMatrix* cnn3_bias = new NVMatrix(1, layer_pars[4].filter_channel);
-
-	NVMatrix* inner1_w = new NVMatrix(inner1_w_len / layer_pars[6].num_out, layer_pars[6].num_out);
-	NVMatrix* inner1_bias = new NVMatrix(1, layer_pars[6].num_out);
-
-
-	NVMatrix* softmax_w = new NVMatrix(softmax_w_len / layer_pars[7].num_out, layer_pars[7].num_out);
-	NVMatrix* softmax_bias = new NVMatrix(1, layer_pars[7].num_out);
+	NVMatrix* softmax_w = new NVMatrix(softmax_w_len / layer_pars[3].num_out, layer_pars[3].num_out);
+	NVMatrix* softmax_bias = new NVMatrix(1, layer_pars[3].num_out);
 
 cout << "done5\n";
 	gaussRand(cnn1_w, 0.01);
 //	initW(cnn1_w);
-	gaussRand(cnn2_w, 0.01);
-//	initW(cnn2_w);
-	gaussRand(cnn3_w, 0.01);
-//	initW(cnn3_w);
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
-	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
-	cudaMemset(cnn3_bias->getDevData(), 0, sizeof(float) * cnn3_b_len);
-
-//	gaussRand(inner1_w, 0.01);
-	initW(inner1_w);
+	gaussRand(inner1_w, 0.1);
+//	initW(inner1_w);
 	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-//	gaussRand(softmax_w, 0.1);
-	initW(softmax_w);
+	gaussRand(softmax_w, 0.1);
+//	initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
 	//	readPars(hHidVis, "hHidVis_t1.bin");
@@ -228,10 +162,6 @@ cout << "done5\n";
 
 	MPI_Bcast(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_w->getDevData(), cnn3_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_bias->getDevData(), cnn3_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -251,15 +181,12 @@ cout << "done5\n";
 
 	//pro进程，每个进程进行的数据交换次数，0123是push，4567是fetch
 	//4个数据地址，8个线程来分别实现两种操作
-	const int trans_ops = 20;
-	const int num_pars_type = 10;
+	const int trans_ops = 12;
+	const int num_pars_type = 6;
 	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
-			cnn2_w->getDevData(), cnn2_bias->getDevData(), \
-			cnn3_w->getDevData(), cnn3_bias->getDevData(), \
 			inner1_w->getDevData(), inner1_bias->getDevData(), \
 			softmax_w->getDevData(), softmax_bias->getDevData()};
-	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
-				cnn3_w_len, cnn3_b_len, inner1_w_len, inner1_b_len, \
+	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, inner1_w_len, inner1_b_len, \
 				softmax_w_len, softmax_b_len};
 
 	#pragma omp parallel num_threads(trans_ops * (num_process - 1)) 
@@ -294,10 +221,6 @@ cout << "done5\n";
 	delete valid_label;
 	delete cnn1_w;
 	delete cnn1_bias;
-	delete cnn2_w;
-	delete cnn2_bias;
-	delete cnn3_w;
-	delete cnn3_bias;
 	delete inner1_w;
 	delete inner1_bias;
 	delete softmax_w;
@@ -314,19 +237,11 @@ void workerNode(pars* layer_pars){
 			* layer_pars[0].filter_size * layer_pars[0].in_channel;
 	int cnn1_b_len = layer_pars[0].filter_channel;
 
-	int cnn2_w_len = layer_pars[2].filter_channel * layer_pars[2].filter_size \
-			* layer_pars[2].filter_size * layer_pars[2].in_channel;
-	int cnn2_b_len = layer_pars[2].filter_channel;
+	int inner1_w_len = layer_pars[2].num_in * layer_pars[2].num_out;
+	int inner1_b_len = layer_pars[2].num_out;
 
-	int cnn3_w_len = layer_pars[4].filter_channel * layer_pars[4].filter_size \
-			* layer_pars[4].filter_size * layer_pars[4].in_channel;
-	int cnn3_b_len = layer_pars[4].filter_channel;
-
-	int inner1_w_len = layer_pars[6].num_in * layer_pars[6].num_out;
-	int inner1_b_len = layer_pars[6].num_out;
-
-	int softmax_w_len = layer_pars[7].num_in * layer_pars[7].num_out;
-	int softmax_b_len = layer_pars[7].num_out;
+	int softmax_w_len = layer_pars[3].num_in * layer_pars[3].num_out;
+	int softmax_b_len = layer_pars[3].num_out;
 
 	int mini_data_len = layer_pars->minibatch_size * cnn1_in_len;
 	int mini_label_len = layer_pars->minibatch_size;
@@ -343,31 +258,15 @@ cout << "done4\n";
 	PoolingLayer pool1(layer_pars + 1);
 	pool1.initCuda();
 
-	ConvNet cnn2(layer_pars + 2);
-	cnn2.initCuda();
-
-	PoolingLayer pool2(layer_pars + 3);
-	pool2.initCuda();
-
-	ConvNet cnn3(layer_pars + 4);
-	cnn3.initCuda();
-
-	PoolingLayer pool3(layer_pars + 5);
-	pool3.initCuda();
-
-	InnerProductLayer inner1(layer_pars + 6);
+	InnerProductLayer inner1(layer_pars + 2);
 	inner1.initCuda();
 
-	Logistic softmax1(layer_pars + 7);
+	Logistic softmax1(layer_pars + 3);
 	softmax1.initCuda();
 
 
 	NVMatrix* cnn1_w = cnn1.getW();
 	NVMatrix* cnn1_bias = cnn1.getBias();
-	NVMatrix* cnn2_w = cnn2.getW();
-	NVMatrix* cnn2_bias = cnn2.getBias();
-	NVMatrix* cnn3_w = cnn3.getW();
-	NVMatrix* cnn3_bias = cnn3.getBias();
 	NVMatrix* inner1_w = inner1.getW();
 	NVMatrix* inner1_bias = inner1.getBias();
 	NVMatrix* softmax_w = softmax1.getW();
@@ -375,10 +274,6 @@ cout << "done4\n";
 
 	MPI_Bcast(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_w->getDevData(), cnn3_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_bias->getDevData(), cnn3_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -410,25 +305,14 @@ cout << "done2\n";
 	NVMatrix* cnn1_dE_dy;
 	NVMatrix* pool1_y;
 	NVMatrix* pool1_dE_dy;
-	NVMatrix* cnn2_y;
-	NVMatrix* cnn2_dE_dy;
-	NVMatrix* pool2_y;
-	NVMatrix* pool2_dE_dy;
-	NVMatrix* cnn3_y;
-	NVMatrix* cnn3_dE_dy;
-	NVMatrix* pool3_y;
-	NVMatrix* pool3_dE_dy;
 	NVMatrix* inner1_y;
 	NVMatrix* inner1_dE_dy;
 
-	const int num_pars_type = 10;
+	const int num_pars_type = 6;
 	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
-			cnn2_w->getDevData(), cnn2_bias->getDevData(), \
-			cnn3_w->getDevData(), cnn3_bias->getDevData(), \
 			inner1_w->getDevData(), inner1_bias->getDevData(), \
 			softmax_w->getDevData(), softmax_bias->getDevData()};
-	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
-				cnn3_w_len, cnn3_b_len, inner1_w_len, inner1_b_len, \
+	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, inner1_w_len, inner1_b_len, \
 			     softmax_w_len, softmax_b_len};
 
 	clock_t t;
@@ -441,17 +325,12 @@ cout << "done2\n";
 if(epoch_idx > 1){
 	cnn1_w->showValue("cnn1w");
 	cnn1_bias->showValue("cnn1b");
-	cnn2_w->showValue("cnn2w");
-	cnn2_bias->showValue("cnn2b");
-	inner1_w->showValue("innerw");
-	cnn3_w->showValue("cnn3w");
-	cnn3_bias->showValue("cnn3b");
 	inner1_w->showValue("inner1w");
 	inner1_bias->showValue("inner1b");
 	softmax_w->showValue("softmaxw");
 	softmax_bias->showValue("softmaxb");
-}
-*/
+}*/
+
 		for(int batch_idx = 0; batch_idx < layer_pars->num_minibatch; batch_idx++){
 
 			mini_data->changePtrFromStart(train_data->getDevData(), \
@@ -463,15 +342,7 @@ if(epoch_idx > 1){
 			cnn1_y = cnn1.getY();
 			pool1.computeOutputs(cnn1_y);
 			pool1_y = pool1.getY();
-			cnn2.computeOutputs(pool1_y);			
-			cnn2_y = cnn2.getY();
-			pool2.computeOutputs(cnn2_y);
-			pool2_y = pool2.getY();
-			cnn3.computeOutputs(pool2_y);
-			cnn3_y = cnn3.getY();
-			pool3.computeOutputs(cnn3_y);
-			pool3_y = pool3.getY();
-			inner1.computeOutputs(pool3_y);
+			inner1.computeOutputs(pool1_y);
 			inner1_y = inner1.getY();
 			softmax1.computeOutputs(inner1_y);
 			softmax1.computeError(mini_label, error);
@@ -479,26 +350,14 @@ if(epoch_idx > 1){
 			softmax1.computeDerivsOfPars(inner1_y, mini_label);
 			inner1_dE_dy = inner1.getDEDY();
 			softmax1.computeDerivsOfInput(inner1_dE_dy);
-			inner1.computeDerivsOfPars(pool3_y);
-			pool3_dE_dy = pool3.getDEDY();
-			inner1.computeDerivsOfInput(pool3_dE_dy);
-			cnn3_dE_dy = cnn3.getDEDY();
-			pool3.computeDerivsOfInput(cnn3_dE_dy);
-			cnn3.computeDerivsOfPars(pool2_y);
-			pool2_dE_dy = pool2.getDEDY();
-			cnn3.computeDerivsOfInput(pool2_dE_dy);
-			cnn2_dE_dy = cnn2.getDEDY();
-			pool2.computeDerivsOfInput(cnn2_dE_dy);
-			cnn2.computeDerivsOfPars(pool1_y);
+			inner1.computeDerivsOfPars(pool1_y);
 			pool1_dE_dy = pool1.getDEDY();
-			cnn2.computeDerivsOfInput(pool1_dE_dy);
+			inner1.computeDerivsOfInput(pool1_dE_dy);
 			cnn1_dE_dy = cnn1.getDEDY();
 			pool1.computeDerivsOfInput(cnn1_dE_dy);
 			cnn1.computeDerivsOfPars(mini_data);
 
 			cnn1.updatePars();
-			cnn2.updatePars();
-			cnn3.updatePars();
 			inner1.updatePars();
 			softmax1.updatePars();
 
@@ -562,15 +421,7 @@ if(epoch_idx > 1){
 					cnn1_y = cnn1.getY();
 					pool1.computeOutputs(cnn1_y);
 					pool1_y = pool1.getY();
-					cnn2.computeOutputs(pool1_y);			
-					cnn2_y = cnn2.getY();
-					pool2.computeOutputs(cnn2_y);
-					pool2_y = pool2.getY();
-					cnn3.computeOutputs(pool2_y);			
-					cnn3_y = cnn3.getY();
-					pool3.computeOutputs(cnn3_y);
-					pool3_y = pool3.getY();
-					inner1.computeOutputs(pool3_y);
+					inner1.computeOutputs(pool1_y);
 					inner1_y = inner1.getY();
 					softmax1.computeOutputs(inner1_y);
 					loglihoodValid += softmax1.computeError(mini_label, errorValid);
@@ -600,15 +451,22 @@ if(epoch_idx > 1){
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-	/*	
-		if((epoch_idx + 1) % 4){
+		if((epoch_idx + 1) % 4 == 0){
 			cnn1.transfarLowerPars();
-			cnn2.transfarLowerPars();
-			cnn3.transfarLowerPars();
 			inner1.transfarLowerPars();
 			softmax1.transfarLowerPars();
-		} 
-*/
+		}
+	/*	
+		if((epoch_idx + 1) % 30 == 0){
+			cnn1.changeLrDownScale(0.5);
+			inner1.changeLrDownScale(0.5);
+			softmax1.changeLrDownScale(0.5);
+		}
+		if(epoch_idx == 10){
+			cnn1.stopWeightDecay();
+			inner1.stopWeightDecay();
+			softmax1.stopWeightDecay();
+		}*/
 
 	}
 	if(rank == 1){
@@ -651,22 +509,16 @@ int main(int argc, char** argv){
     }
 */
 
-	const int num_layer = 8;
+	const int num_layer = 4;
 
 	pars* layer_pars = new pars[num_layer];
 
-	layer_pars[0].w_lr = 0.001;
-	layer_pars[0].b_lr = 0.001;
+	layer_pars[0].w_lr = 0.01;
+	layer_pars[0].b_lr = 0.01;
 	layer_pars[2].w_lr = 0.001;
 	layer_pars[2].b_lr = 0.001;
-	layer_pars[4].w_lr = 0.001;
-	layer_pars[4].b_lr = 0.001;
-
-	layer_pars[6].w_lr = 0.0001;
-	layer_pars[6].b_lr = 0.0001;
-	layer_pars[7].w_lr = 0.0000001;
-	layer_pars[7].b_lr = 0.0000001;
-
+	layer_pars[3].w_lr = 0.000001;
+	layer_pars[3].b_lr = 0.0001;
 
 
 //	layer_pars[0].w_lr = 5;
@@ -675,18 +527,16 @@ int main(int argc, char** argv){
 	layer_pars[0].weight_decay = 0;
 	layer_pars[0].in_size = 32; 
 	layer_pars[0].in_channel = 3;
-	layer_pars[0].filter_size = 4;
-	layer_pars[0].filter_channel = 32; 
+	layer_pars[0].filter_size = 7;
+	layer_pars[0].filter_channel = 16; 
 	layer_pars[0].stride = 1;
-	layer_pars[0].pad = 2;
-	layer_pars[0].padded_in_size = layer_pars[0].in_size + 2 * layer_pars[0].pad;
-	layer_pars[0].out_size = (layer_pars[0].padded_in_size - layer_pars[0].filter_size) / layer_pars[0].stride + 1;
+	layer_pars[0].out_size = (layer_pars[0].in_size - layer_pars[0].filter_size) / layer_pars[0].stride + 1;
 	layer_pars[0].num_train = 50000;
 	layer_pars[0].num_valid = 10000;
 	layer_pars[0].minibatch_size = 100;
 	layer_pars[0].num_minibatch = layer_pars[0].num_train / (layer_pars[0].minibatch_size * (num_process - 1));
 	layer_pars[0].num_validbatch = layer_pars[0].num_valid / (layer_pars[0].minibatch_size * (num_process - 1));
-	layer_pars[0].num_epoch = 500; 
+	layer_pars[0].num_epoch = 200; 
 	layer_pars[0].n_push = 49;
 	layer_pars[0].n_fetch = 50;
 	layer_pars[0].lr_down_scale = 0.95;
@@ -694,7 +544,7 @@ int main(int argc, char** argv){
 	layer_pars[1].in_size = layer_pars[0].out_size; 
 	layer_pars[1].in_channel = layer_pars[0].filter_channel;
 	layer_pars[1].filter_channel = layer_pars[0].filter_channel;
-	layer_pars[1].pool_size = 3;
+	layer_pars[1].pool_size = 2;
 	layer_pars[1].stride = 2;
 	layer_pars[1].out_size = (layer_pars[0].out_size - layer_pars[1].pool_size) \
 					 / layer_pars[1].stride + 1;
@@ -704,67 +554,19 @@ int main(int argc, char** argv){
 //	layer_pars[2].b_lr = 2;
 	layer_pars[2].momentum = 0.9;
 	layer_pars[2].weight_decay = 0;
-	layer_pars[2].in_size = layer_pars[1].out_size; 
-	layer_pars[2].in_channel = layer_pars[1].filter_channel;
-	layer_pars[2].filter_size = 3;
-	layer_pars[2].filter_channel = 32; 
-	layer_pars[2].stride = 1;
-	layer_pars[2].pad = 2;
-	layer_pars[2].padded_in_size = layer_pars[2].in_size + 2 * layer_pars[2].pad;
-	layer_pars[2].out_size = (layer_pars[2].padded_in_size - layer_pars[2].filter_size) / layer_pars[2].stride + 1;
+	layer_pars[2].num_in = layer_pars[1].out_size * layer_pars[1].out_size * layer_pars[1].filter_channel;
+	layer_pars[2].num_out = 1000;
 	layer_pars[2].minibatch_size = layer_pars[0].minibatch_size;
 	layer_pars[2].lr_down_scale = 0.95;
 
-	layer_pars[3].in_size = layer_pars[2].out_size; 
-	layer_pars[3].in_channel = layer_pars[2].filter_channel;
-	layer_pars[3].filter_channel = layer_pars[2].filter_channel;
-	layer_pars[3].pool_size = 2;
-	layer_pars[3].stride = 2;
-	layer_pars[3].out_size = (layer_pars[2].out_size - layer_pars[3].pool_size) \
-					 / layer_pars[3].stride + 1;
-	layer_pars[3].minibatch_size = layer_pars[2].minibatch_size;
-
-//	layer_pars[4].w_lr = 1;
-//	layer_pars[4].b_lr = 2;
-	layer_pars[4].momentum = 0.9;
-	layer_pars[4].weight_decay = 0;
-	layer_pars[4].in_size = layer_pars[3].out_size; 
-	layer_pars[4].in_channel = layer_pars[3].filter_channel;
-	layer_pars[4].filter_size = 2;
-	layer_pars[4].filter_channel = 64; 
-	layer_pars[4].stride = 1;
-	layer_pars[4].pad = 0;
-	layer_pars[4].out_size = (layer_pars[4].in_size - layer_pars[4].filter_size) / layer_pars[4].stride + 1;
-	layer_pars[4].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[4].lr_down_scale = 0.95;
-
-	layer_pars[5].in_size = layer_pars[4].out_size; 
-	layer_pars[5].in_channel = layer_pars[4].filter_channel;
-	layer_pars[5].filter_channel = layer_pars[4].filter_channel;
-	layer_pars[5].pool_size = 2;
-	layer_pars[5].stride = 2;
-	layer_pars[5].out_size = (layer_pars[4].out_size - layer_pars[5].pool_size) \
-					 / layer_pars[5].stride + 1;
-	layer_pars[5].minibatch_size = layer_pars[0].minibatch_size;
-
-//	layer_pars[6].w_lr = 1;
-//	layer_pars[6].b_lr = 2;
-	layer_pars[6].momentum = 0.9;
-	layer_pars[6].weight_decay = 0;
-	layer_pars[6].num_in = layer_pars[5].out_size * layer_pars[5].out_size * layer_pars[5].filter_channel;
-	layer_pars[6].num_out = 64;
-	layer_pars[6].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[6].lr_down_scale = 0.95;
-
-//	layer_pars[7].w_lr = 1;
-//	layer_pars[7].b_lr = 2;
-	layer_pars[7].momentum = 0.9;
-	layer_pars[7].weight_decay = 0;
-	layer_pars[7].num_in = layer_pars[6].num_out;
-	layer_pars[7].num_out = 10;
-	layer_pars[7].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[7].lr_down_scale = 0.95;
-
+//	layer_pars[3].w_lr = 1;
+//	layer_pars[3].b_lr = 2;
+	layer_pars[3].momentum = 0.9;
+	layer_pars[3].weight_decay = 0;
+	layer_pars[3].num_in = layer_pars[2].num_out;
+	layer_pars[3].num_out = 10;
+	layer_pars[3].minibatch_size = layer_pars[0].minibatch_size;
+	layer_pars[3].lr_down_scale = 0.85;
 
 
 	if(rank == 0){ 

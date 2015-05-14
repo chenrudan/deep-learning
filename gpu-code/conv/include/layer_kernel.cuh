@@ -13,20 +13,19 @@
 
 
 __global__ void im2col_img(const float* conv_result, float* targets, \
-		const int numKernels, const int widthNoChannel, const int width, \
-		const int img_size, const int filter_channel, \
+		const int numKernels, const int img_size, const int filter_channel, \
 		const int img_channel, const int filter_size, const int conv_forward_size, \
 		const int conv_stride);
 
 __global__ void im2col_filt(const float* imgs, float* targets, \
-		const int numKernels, const int widthNoChannel, const int width, \
-		const int heightNoBatch, const int img_size, const int img_channel, \
+		const int numKernels, const int img_size, const int padded_img_size, \
+		const int img_channel, \
 		const int filter_size, const int conv_forward_size, \
 		const int conv_step_size);
 
 __global__ void im2col_conv(const float* imgs, float* targets, \
-		const int numKernels, const int widthNoBatch, const int width, \
-		const int heightNoChannel, const int img_size, \
+		const int numKernels, const int minibatch, const int img_size, \
+		const int padded_img_size, 
 		const int img_channel, const int filter_size, const int conv_forward_size, \
 		const int conv_step_size);
 
@@ -36,7 +35,7 @@ __global__ void reshape_w(float* un_w, const float* w, \
 
 __global__ void reshape_In(float* in, const float* un_in, \
 		const int numKernels, const int in_size, \
-		const int img_channel);
+		const int padded_img_size, const int img_channel);
 
 __global__ void reshape_y(const float* un_y_h, float* y_h, const int numKernels, \
 		const int conv_forward_size, const int filter_channel);

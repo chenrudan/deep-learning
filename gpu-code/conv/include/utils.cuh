@@ -18,6 +18,7 @@ typedef struct Pars{
 	float lr_down_scale;
 
     int in_size;
+	int pad;
     int in_channel;
 	int out_size;
     int filter_size;
@@ -25,6 +26,7 @@ typedef struct Pars{
 	int num_in;
     int num_out;
 	int stride;
+	int padded_in_size;
 	int pool_size;
     int num_train;
     int num_valid;
