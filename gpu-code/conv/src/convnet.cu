@@ -203,7 +203,7 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 	num_kernel = _minibatch_size * _in_size * _in_size * _in_channel;
 	num_block = num_kernel / 1024 + 1;
 
-unranged_in->reValue(32*20);
+//unranged_in->reValue(32*20);
 
 	reshape_In<<<num_block, 1024>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
 			num_kernel, _in_size, _padded_in_size, _in_channel);
@@ -215,8 +215,8 @@ unranged_in->reValue(32*20);
 //	_w->showValue("whk");
 //	ranged_w->showValue("rangWhk");
 //	unrolled_conv->showValue("unrolledconv");
-	unranged_in->showValue("unrangIN");
-	dE_dx->showValue("dx");
+//	unranged_in->showValue("unrangIN");
+//	dE_dx->showValue("dx");
 
 }
 /*
