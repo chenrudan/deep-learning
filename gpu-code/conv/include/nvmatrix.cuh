@@ -107,7 +107,6 @@ public:
 		     float scaleB, float scaleC);
 	void add(NVMatrix* b, float scaleThis, float scale);
 	//add multi cols to one col
-	NVMatrix* sumCol();
 	void sumCol(NVMatrix* target);
 	void sumRow(NVMatrix* target);
 

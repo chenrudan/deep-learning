@@ -93,7 +93,7 @@ void ConvNet::initCuda() {
 	unrolled_conv = new NVMatrix(_minibatch_size * _padded_in_size * _padded_in_size, \
 			_filter_size * _filter_size * _filter_channel);
 	ranged_w = new NVMatrix(_filter_channel * _filt_pixs, _in_channel);
-	unranged_in = new NVMatrix(_minibatch_size * _in_size * _in_size, _in_channel);
+	unranged_in = new NVMatrix(_minibatch_size * _padded_in_size * _padded_in_size, _in_channel);
 
 
 	this->_w_inc->zeros();
@@ -181,7 +181,7 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 
 void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 
-	int num_kernel = _minibatch_size * _in_size * _in_size * _filt_pixs * _filter_channel;
+	int num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _filt_pixs * _filter_channel;
 	int num_block = 4096;
 //	int num_block = num_kernel / 1024 + 1;
 
@@ -200,10 +200,10 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 	cudaThreadSynchronize();
 
 	unrolled_conv->rightMult(ranged_w, 1, unranged_in, handle);
-	num_kernel = _minibatch_size * _in_size * _in_size * _in_channel;
-	num_block = num_kernel / 1024 + 1;
+	num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
+	num_block = 4096;
 
-//unranged_in->reValue(32*20);
+//unranged_in->reValue(32*12);
 
 	reshape_In<<<num_block, 1024>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
 			num_kernel, _in_size, _padded_in_size, _in_channel);
@@ -219,18 +219,6 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 //	dE_dx->showValue("dx");
 
 }
-/*
-void ConvNet::updatePars(){
-
-	_w_inc->addSum(_w, _dE_dw, _momentum, -_weight_decay, \
-			-_w_lr / _minibatch_size);
-	_w->add(_w_inc, 1, 1);
-
-	_bias_inc->add(_dE_db, _momentum, -_b_lr / _minibatch_size);
-	_bias->add(_bias_inc, 1, 1);
-
-}
-*/
 
 
 

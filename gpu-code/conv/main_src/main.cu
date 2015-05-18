@@ -204,7 +204,7 @@ cout << "done6\n";
 	NVMatrix* softmax_bias = new NVMatrix(1, layer_pars[7].num_out);
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.01);
+	gaussRand(cnn1_w, 0.0001);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
@@ -214,11 +214,11 @@ cout << "done5\n";
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
 	cudaMemset(cnn3_bias->getDevData(), 0, sizeof(float) * cnn3_b_len);
 
-//	gaussRand(inner1_w, 0.01);
-	initW(inner1_w);
+	gaussRand(inner1_w, 0.1);
+//	initW(inner1_w);
 	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-//	gaussRand(softmax_w, 0.1);
-	initW(softmax_w);
+	gaussRand(softmax_w, 0.1);
+//	initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
 	//	readPars(hHidVis, "hHidVis_t1.bin");
@@ -248,6 +248,11 @@ cout << "done5\n";
 				valid_label_len_part, MPI_FLOAT, i, i, MPI_COMM_WORLD);
 
 	}
+	delete cifar10_info;
+	delete train_data;
+	delete train_label;
+	delete valid_data;
+	delete valid_label;
 
 	//pro进程，每个进程进行的数据交换次数，0123是push，4567是fetch
 	//4个数据地址，8个线程来分别实现两种操作
@@ -287,11 +292,6 @@ cout << "done5\n";
 		}
 	}
 
-	delete cifar10_info;
-	delete train_data;
-	delete train_label;
-	delete valid_data;
-	delete valid_label;
 	delete cnn1_w;
 	delete cnn1_bias;
 	delete cnn2_w;
@@ -392,7 +392,6 @@ cout << "done4\n";
 	NVMatrix* mini_data = new NVMatrix(layer_pars->minibatch_size, cnn1_in_len);
 	NVMatrix* mini_label = new NVMatrix(layer_pars->minibatch_size, 1);
 
-cout << "done1\n";
 	MPI_Status status;
 	MPI_Recv(train_data->getDevData(), train_data_len_part, \
 			MPI_FLOAT, 0, rank, MPI_COMM_WORLD, &status);
@@ -403,7 +402,7 @@ cout << "done1\n";
 	MPI_Recv(valid_label->getDevData(), valid_label_len_part, \
 			MPI_FLOAT, 0, rank, MPI_COMM_WORLD, &status);
 
-cout << "done2\n";
+cout << "done9\n";
 	int passMsg = 0;
 
 	NVMatrix* cnn1_y;
@@ -494,7 +493,9 @@ if(epoch_idx > 1){
 			cnn2.computeDerivsOfInput(pool1_dE_dy);
 			cnn1_dE_dy = cnn1.getDEDY();
 			pool1.computeDerivsOfInput(cnn1_dE_dy);
+cout << "done12\n";
 			cnn1.computeDerivsOfPars(mini_data);
+cout << "done15\n";
 
 			cnn1.updatePars();
 			cnn2.updatePars();
@@ -619,6 +620,10 @@ if(epoch_idx > 1){
 
 	delete mini_data;
 	delete mini_label;
+	delete train_data;
+	delete train_label;
+	delete valid_data;
+	delete valid_label;
 }
 
 int main(int argc, char** argv){
@@ -656,16 +661,16 @@ int main(int argc, char** argv){
 	pars* layer_pars = new pars[num_layer];
 
 	layer_pars[0].w_lr = 0.001;
-	layer_pars[0].b_lr = 0.001;
+	layer_pars[0].b_lr = 0.002;
 	layer_pars[2].w_lr = 0.001;
-	layer_pars[2].b_lr = 0.001;
+	layer_pars[2].b_lr = 0.002;
 	layer_pars[4].w_lr = 0.001;
-	layer_pars[4].b_lr = 0.001;
+	layer_pars[4].b_lr = 0.002;
 
-	layer_pars[6].w_lr = 0.0001;
-	layer_pars[6].b_lr = 0.0001;
-	layer_pars[7].w_lr = 0.0000001;
-	layer_pars[7].b_lr = 0.0000001;
+	layer_pars[6].w_lr = 0.001;
+	layer_pars[6].b_lr = 0.002;
+	layer_pars[7].w_lr = 0.00001;
+	layer_pars[7].b_lr = 0.00002;
 
 
 
@@ -675,7 +680,7 @@ int main(int argc, char** argv){
 	layer_pars[0].weight_decay = 0;
 	layer_pars[0].in_size = 32; 
 	layer_pars[0].in_channel = 3;
-	layer_pars[0].filter_size = 4;
+	layer_pars[0].filter_size = 5;
 	layer_pars[0].filter_channel = 32; 
 	layer_pars[0].stride = 1;
 	layer_pars[0].pad = 2;
@@ -696,8 +701,8 @@ int main(int argc, char** argv){
 	layer_pars[1].filter_channel = layer_pars[0].filter_channel;
 	layer_pars[1].pool_size = 3;
 	layer_pars[1].stride = 2;
-	layer_pars[1].out_size = (layer_pars[0].out_size - layer_pars[1].pool_size) \
-					 / layer_pars[1].stride + 1;
+	layer_pars[1].out_size = ceil(((layer_pars[0].out_size - layer_pars[1].pool_size) * 1.0f) \
+					 / layer_pars[1].stride) + 1;
 	layer_pars[1].minibatch_size = layer_pars[0].minibatch_size;
 
 //	layer_pars[2].w_lr = 1;
@@ -706,7 +711,7 @@ int main(int argc, char** argv){
 	layer_pars[2].weight_decay = 0;
 	layer_pars[2].in_size = layer_pars[1].out_size; 
 	layer_pars[2].in_channel = layer_pars[1].filter_channel;
-	layer_pars[2].filter_size = 3;
+	layer_pars[2].filter_size = 5;
 	layer_pars[2].filter_channel = 32; 
 	layer_pars[2].stride = 1;
 	layer_pars[2].pad = 2;
@@ -718,10 +723,10 @@ int main(int argc, char** argv){
 	layer_pars[3].in_size = layer_pars[2].out_size; 
 	layer_pars[3].in_channel = layer_pars[2].filter_channel;
 	layer_pars[3].filter_channel = layer_pars[2].filter_channel;
-	layer_pars[3].pool_size = 2;
+	layer_pars[3].pool_size = 3;
 	layer_pars[3].stride = 2;
-	layer_pars[3].out_size = (layer_pars[2].out_size - layer_pars[3].pool_size) \
-					 / layer_pars[3].stride + 1;
+	layer_pars[3].out_size = ceil(((layer_pars[2].out_size - layer_pars[3].pool_size) * 1.0f)\
+					 / layer_pars[3].stride) + 1;
 	layer_pars[3].minibatch_size = layer_pars[2].minibatch_size;
 
 //	layer_pars[4].w_lr = 1;
@@ -730,10 +735,10 @@ int main(int argc, char** argv){
 	layer_pars[4].weight_decay = 0;
 	layer_pars[4].in_size = layer_pars[3].out_size; 
 	layer_pars[4].in_channel = layer_pars[3].filter_channel;
-	layer_pars[4].filter_size = 2;
+	layer_pars[4].filter_size = 5;
 	layer_pars[4].filter_channel = 64; 
 	layer_pars[4].stride = 1;
-	layer_pars[4].pad = 0;
+	layer_pars[4].pad = 2;
 	layer_pars[4].out_size = (layer_pars[4].in_size - layer_pars[4].filter_size) / layer_pars[4].stride + 1;
 	layer_pars[4].minibatch_size = layer_pars[0].minibatch_size;
 	layer_pars[4].lr_down_scale = 0.95;
@@ -743,8 +748,8 @@ int main(int argc, char** argv){
 	layer_pars[5].filter_channel = layer_pars[4].filter_channel;
 	layer_pars[5].pool_size = 2;
 	layer_pars[5].stride = 2;
-	layer_pars[5].out_size = (layer_pars[4].out_size - layer_pars[5].pool_size) \
-					 / layer_pars[5].stride + 1;
+	layer_pars[5].out_size = ceil(((layer_pars[4].out_size - layer_pars[5].pool_size) * 1.0f) \
+					 / layer_pars[5].stride) + 1;
 	layer_pars[5].minibatch_size = layer_pars[0].minibatch_size;
 
 //	layer_pars[6].w_lr = 1;

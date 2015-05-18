@@ -384,12 +384,6 @@ void NVMatrix::compactCol(NVMatrix* ori, const int internal) {
 }
 
 
-NVMatrix* NVMatrix::sumCol(){
-	NVMatrix *sumVec = new NVMatrix( _numRows, 1);
-	sumCol(sumVec);
-	return sumVec;
-}
-
 void NVMatrix::sumCol(NVMatrix* target){
 	const unsigned int width = _numCols;
 	const unsigned int height = _numRows;

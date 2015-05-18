@@ -21,6 +21,7 @@ void initW(NVMatrix* nvMat){
             a[i] = ((k - 100)/100.0)*bound; 
     }   
 	nvMat->copyFromHost(a, length);
+	delete a;
 }
 
 void gaussRand(NVMatrix* nvMat, float var, float mean){
@@ -34,6 +35,7 @@ void gaussRand(NVMatrix* nvMat, float var, float mean){
 		a[i] = gaussGen(var, mean); 
     } 
     nvMat->copyFromHost(a, length);
+	delete a;
 }
 
 float gaussGen(float var, float mean)

@@ -4,6 +4,7 @@
 
 #include "pooling_layer.cuh"
 #include "layer_kernel.cuh"
+#include <cmath>
 
 using namespace std;
 
@@ -12,7 +13,7 @@ PoolingLayer::PoolingLayer(pars* network){
 	this->_in_channel               = network->in_channel;
 	this->_pool_size				= network->pool_size;
 	this->_stride					= network->stride;
-	this->_out_size					= (_in_size - _pool_size) / _stride + 1;
+	this->_out_size					= ceil(((_in_size - _pool_size)*1.0f) / _stride) + 1;
 
 	//w_hk的learning rate
 	this->_w_lr                     = network->w_lr;
@@ -39,6 +40,7 @@ PoolingLayer::~PoolingLayer() {
 	delete  _dE_dy;
 	//	delete _dE_db;
 	//	delete _dE_dw;
+	cudaFree(_max_pos);
 	cublasDestroy(handle);
 }
 
