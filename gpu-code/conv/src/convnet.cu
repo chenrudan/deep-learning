@@ -25,7 +25,7 @@ ConvNet::ConvNet(pars* netWork){
 	this->_minibatch_size         	= netWork->minibatch_size;
 	this->_in_size				 	= netWork->in_size;
 	this->_pad						= netWork->pad;
-	this->_padded_in_size			= _in_size + _pad * 2;
+	this->_padded_in_size			= netWork->padded_in_size;
 	this->_filter_size			 	= netWork->filter_size;
 	this->_stride              		= netWork->stride;
 	this->_out_size		 			= (_padded_in_size - _filter_size) / _stride + 1;
@@ -57,6 +57,8 @@ ConvNet::~ConvNet() {
 	delete unrolled_conv;
 	delete ranged_w;
 	delete unranged_in;
+	if(_pad > 0)
+		delete padded_x;
 
 	cublasDestroy(handle);
 }
@@ -79,6 +81,9 @@ void ConvNet::initCuda() {
 
 	this->_w_inc		 = new NVMatrix(_w);
 	this->_bias_inc		 = new NVMatrix(_bias);
+
+	if(_pad > 0)
+		this->padded_x = new NVMatrix(_minibatch_size, _in_channel * _padded_in_size * _padded_in_size);
 
 	//中间变量
 	unrolled_x1 = new NVMatrix(_minibatch_size * _conv_pixs, \
@@ -106,16 +111,29 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 
 	//100*3*28*28 * 5*5, then add to 100*28*28 * 5*5
 
-
-	int num_kernel = _minibatch_size * _conv_pixs * _filt_pixs *_in_channel;
-	int num_block = num_kernel / 1024 + 1;
-//	_x->reValue(32);
+	int num_kernel;
+	int num_block;
+//	_x->reValue(28);
 //	_w->reValue(1.0f);
 	//_bias->reValue(2.0f);
+
+	if(_pad > 0){
+		num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
+		num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+					: (num_kernel / MAX_NUM_THREAD + 1);
+		cudaMemset(padded_x->getDevData(), 0, sizeof(float) * num_kernel);
+		ori_to_padding<<<num_block, MAX_NUM_THREAD>>>(_x->getDevData(), padded_x->getDevData(), num_kernel, \
+				_in_size, _padded_in_size, _in_channel);
+	}else
+		padded_x = _x;
+
+//padded_x->showValue("padding");
+	num_kernel = _minibatch_size * _conv_pixs * _filt_pixs *_in_channel;
+	num_block = num_kernel / MAX_NUM_THREAD + 1;
 	cudaMemset(unrolled_x1->getDevData(), 0, sizeof(float) * num_kernel);
-	im2col_filt<<<num_block, 1024>>>(_x->getDevData(), \
+	im2col_filt<<<num_block, MAX_NUM_THREAD>>>(padded_x->getDevData(), \
 			unrolled_x1->getDevData(), num_kernel, \
-			_in_size, _padded_in_size, \
+			_padded_in_size, \
 			_in_channel, _filter_size, _out_size, _stride);
 
 	unrolled_x1->rightMult(_w, 1, unranged_y, handle);
@@ -123,8 +141,9 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 	unranged_y->addRowVector(_bias);
 
 	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
-	num_block = num_kernel / 1024 + 1;
-	reshape_y<<<num_block, 1024>>>(unranged_y->getDevData(), _y->getDevData(), \
+	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+				: (num_kernel / MAX_NUM_THREAD + 1);
+	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), _y->getDevData(), \
 			num_kernel, _out_size, _filter_channel);
 //	unrolled_x1->showValue("data");
 	//_w->showValue("whk");
@@ -144,25 +163,38 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 
 //_dE_dy->showValue("dedy");
 //_dE_dx_sigmoid->showValue("dedxsigmoid");
-	int num_kernel = _minibatch_size * _conv_pixs * _filt_pixs * _in_channel;
-	int num_block = num_kernel / 1024 + 1;
-
-//	x->reValue(32);
+	int num_kernel;
+	int num_block;
+//	x->reValue(28);
+//	x->showValue("x");
 	//另外一种排列方式，因为需要排列的是24*24的块
+	if(_pad > 0){
+		num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
+		num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+					: (num_kernel / MAX_NUM_THREAD + 1);
+		ori_to_padding<<<num_block, MAX_NUM_THREAD>>>(x->getDevData(), padded_x->getDevData(), num_kernel, \
+				_in_size, _padded_in_size, _in_channel);
+	}else
+		padded_x = x;
+//	padded_x->showValue("pad");
 
+	num_kernel = _minibatch_size * _conv_pixs * _filt_pixs * _in_channel;
+	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+					: (num_kernel / MAX_NUM_THREAD + 1);
 	cudaMemset(unrolled_x2->getDevData(), 0, sizeof(float) * num_kernel);
-	im2col_conv<<<num_block, 1024>>>(x->getDevData(), \
+	im2col_conv<<<num_block, MAX_NUM_THREAD>>>(padded_x->getDevData(), \
 			unrolled_x2->getDevData(), num_kernel, \
-			_minibatch_size, _in_size, _padded_in_size, _in_channel, _filter_size, \
+			_minibatch_size, _padded_in_size, _in_channel, _filter_size, \
 			_out_size, _stride);	
-	//	}
-	//_x->showValue("data1");
-	//_dE_dx_sigmoid->reValue(12544);
-//unrolled_x2->showValue("data");
+
+//	unrolled_x2->showValue("x2");
+//	_dE_dx_sigmoid->reValue(23);
+//unrolled_x2->reValue(1);
 
 	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
-	num_block = num_kernel / 1024 + 1;
-	reshape_dE_dx_sigmoid<<<num_block, 1024>>>(ranged_dE_dx->getDevData(), \
+	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+				: (num_kernel / MAX_NUM_THREAD + 1);
+	reshape_dE_dx_sigmoid<<<num_block, MAX_NUM_THREAD>>>(ranged_dE_dx->getDevData(), \
 			_dE_dx_sigmoid->getDevData(), num_kernel, _out_size, _filter_channel);
 
 	unrolled_x2->rightMult(ranged_dE_dx, 1, _dE_dw, handle);
@@ -182,30 +214,30 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 
 	int num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _filt_pixs * _filter_channel;
-	int num_block = 4096;
-//	int num_block = num_kernel / 1024 + 1;
+	int	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+				: (num_kernel / MAX_NUM_THREAD + 1);
 
 	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(float) * num_kernel);
-	im2col_img<<<num_block, 1024>>>(_dE_dx_sigmoid->getDevData(), unrolled_conv->getDevData(), \
+	im2col_img<<<num_block, MAX_NUM_THREAD>>>(_dE_dx_sigmoid->getDevData(), unrolled_conv->getDevData(), \
 			num_kernel, _padded_in_size, _filter_channel, \
 			_in_channel, _filter_size, _out_size, _stride);
 	cudaThreadSynchronize();
 
 //_w->reValue(50);
 	num_kernel = _filter_channel * _filt_pixs * _in_channel;
-	num_block = num_kernel / 1024 + 1;
-	reshape_w<<<num_block, 1024>>>(ranged_w->getDevData(), \
+	num_block = num_kernel / MAX_NUM_THREAD + 1;
+	reshape_w<<<num_block, MAX_NUM_THREAD>>>(ranged_w->getDevData(), \
 			_w->getDevData(), num_kernel, _filter_size, \
 			_filter_channel, _in_channel);
 	cudaThreadSynchronize();
 
 	unrolled_conv->rightMult(ranged_w, 1, unranged_in, handle);
 	num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
-	num_block = 4096;
-
+	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+				: (num_kernel / MAX_NUM_THREAD + 1);
 //unranged_in->reValue(32*12);
 
-	reshape_In<<<num_block, 1024>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
+	reshape_In<<<num_block, MAX_NUM_THREAD>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
 			num_kernel, _in_size, _padded_in_size, _in_channel);
 	cudaThreadSynchronize();
 

@@ -101,13 +101,19 @@ void PoolingLayer::computeDerivsOfInput(NVMatrix* dE_dx){
 	dE_dx->zeros();
 //_dE_dy->reValue(13);
 	
+/*
+int length = dE_dx->getNumRows()*dE_dx->getNumCols();
+int* tmp = new int[length];
+cudaMemcpy(tmp, _max_pos, sizeof(int)*length, cudaMemcpyDeviceToHost);
+cout << "maxpos\n";
+for(int i = 0; i < length; i++){
+	cout << tmp[i] << " ";
+}*/
+
 	compute_dE_dy_max<<<blocks, threads, sizeof(float)*_in_size*_in_size>>>(_dE_dy->getDevData(), \
 			dE_dx->getDevData(), _max_pos, _in_size, \
 			_out_size, _pool_size, _stride);
 	cudaThreadSynchronize();
-
-//_dE_dy->showValue("dedy");
-//dE_dx->showValue("dedx");
 
 }
 

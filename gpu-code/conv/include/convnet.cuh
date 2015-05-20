@@ -11,6 +11,9 @@
 #include "matrix.h"
 #include "nvmatrix.cuh"
 
+#define MAX_NUM_KERNEL 4096
+#define MAX_NUM_THREAD 1024
+
 class ConvNet : public Layer{
 
 private:
@@ -25,6 +28,7 @@ private:
 	NVMatrix* unranged_in;
 
 	NVMatrix* _dE_dx_sigmoid;
+	NVMatrix* padded_x;
 		
 	int _filt_pixs;
 	int _conv_pixs;

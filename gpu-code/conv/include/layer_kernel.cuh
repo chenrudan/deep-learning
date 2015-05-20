@@ -10,7 +10,8 @@
 	for (int i = blockIdx.x * blockDim.x + threadIdx.x; \
 			i < (n); \
 			i += blockDim.x * gridDim.x)
-
+__global__ void ori_to_padding(const float* src, float* dst, const int numKernels, \
+        const int img_size, const int padded_img_size, const int img_channel);
 
 __global__ void im2col_img(const float* conv_result, float* targets, \
 		const int numKernels, const int img_size, const int filter_channel, \
@@ -18,14 +19,12 @@ __global__ void im2col_img(const float* conv_result, float* targets, \
 		const int conv_stride);
 
 __global__ void im2col_filt(const float* imgs, float* targets, \
-		const int numKernels, const int img_size, const int padded_img_size, \
-		const int img_channel, \
+		const int numKernels, const int img_size, const int img_channel, \
 		const int filter_size, const int conv_forward_size, \
 		const int conv_step_size);
 
 __global__ void im2col_conv(const float* imgs, float* targets, \
 		const int numKernels, const int minibatch, const int img_size, \
-		const int padded_img_size, 
 		const int img_channel, const int filter_size, const int conv_forward_size, \
 		const int conv_step_size);
 

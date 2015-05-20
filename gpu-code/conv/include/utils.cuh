@@ -46,9 +46,9 @@ void gaussRand(NVMatrix* nvMat, float var = 1, float mean = 0);
 
 float gaussGen(float var, float mean);
 
-void readPars(Matrix* par, string filename);
+void readPars(NVMatrix* par, string filename);
 
-void savePars(Matrix* par, string filename);
+void savePars(NVMatrix* par, string filename);
 
 void readData(NVMatrix* nvData, string filename, bool isData, int addZerosInFront = 0);
 
