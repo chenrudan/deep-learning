@@ -474,9 +474,15 @@ if(epoch_idx > 1){
 		cout << " " << ((float)t/CLOCKS_PER_SEC) / layer_pars->num_epoch << " seconds.\n";
 		t = clock();
 	}
+	savePars(cnn1_w, "./pars/cifar10/cnn1_w_t1.bin");
+	savePars(cnn1_y, "./pars/cifar10/cnn1_y_t1.bin");   
 
 	delete mini_data;
 	delete mini_label;
+	delete train_data;
+	delete train_label;
+	delete valid_data;
+	delete valid_label;
 }
 
 int main(int argc, char** argv){
@@ -516,7 +522,7 @@ int main(int argc, char** argv){
 	layer_pars[0].w_lr = 0.01;
 	layer_pars[0].b_lr = 0.02;
 	layer_pars[2].w_lr = 0.005;
-	layer_pars[2].b_lr = 0.005;
+	layer_pars[2].b_lr = 0.01;
 	layer_pars[3].w_lr = 0.00001;
 	layer_pars[3].b_lr = 0.0001;
 
@@ -527,10 +533,10 @@ int main(int argc, char** argv){
 	layer_pars[0].weight_decay = 0;
 	layer_pars[0].in_size = 32; 
 	layer_pars[0].in_channel = 3;
-	layer_pars[0].filter_size = 6;
+	layer_pars[0].filter_size = 5;
 	layer_pars[0].filter_channel = 16; 
 	layer_pars[0].stride = 1;
-	layer_pars[0].pad = 3;
+	layer_pars[0].pad = 2;
 	layer_pars[0].padded_in_size = layer_pars[0].in_size + 2 * layer_pars[0].pad;
 	layer_pars[0].out_size = (layer_pars[0].padded_in_size - layer_pars[0].filter_size) / layer_pars[0].stride + 1;
 	layer_pars[0].num_train = 50000;
@@ -538,7 +544,7 @@ int main(int argc, char** argv){
 	layer_pars[0].minibatch_size = 100;
 	layer_pars[0].num_minibatch = layer_pars[0].num_train / (layer_pars[0].minibatch_size * (num_process - 1));
 	layer_pars[0].num_validbatch = layer_pars[0].num_valid / (layer_pars[0].minibatch_size * (num_process - 1));
-	layer_pars[0].num_epoch = 500; 
+	layer_pars[0].num_epoch = 200; 
 	layer_pars[0].n_push = 49;
 	layer_pars[0].n_fetch = 50;
 	layer_pars[0].lr_down_scale = 0.95;
@@ -548,8 +554,8 @@ int main(int argc, char** argv){
 	layer_pars[1].filter_channel = layer_pars[0].filter_channel;
 	layer_pars[1].pool_size = 3;
 	layer_pars[1].stride = 2;
-	layer_pars[1].out_size = (layer_pars[0].out_size - layer_pars[1].pool_size) \
-					 / layer_pars[1].stride + 1;
+	layer_pars[1].out_size = ceil(((layer_pars[1].in_size - layer_pars[1].pool_size) * 1.0f) \
+	                     / layer_pars[1].stride) + 1;
 	layer_pars[1].minibatch_size = layer_pars[0].minibatch_size;
 
 //	layer_pars[2].w_lr = 1;

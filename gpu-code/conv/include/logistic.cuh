@@ -21,7 +21,7 @@ public:
 	
 	void initCuda();
 	void computeOutputs(NVMatrix* x);
-	double computeError(const NVMatrix* labels, int& num_error);
+	double computeError(NVMatrix* labels, int& num_error);
 	void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels);
 	void computeDerivsOfInput(NVMatrix* dE_dx);
 //	void updatePars();

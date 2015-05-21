@@ -67,14 +67,13 @@ void Logistic::computeOutputs(NVMatrix* x){
 //_y->showValue("yj1");
 }
 
-double Logistic::computeError(const NVMatrix* labels, int& num_error){
+double Logistic::computeError(NVMatrix* labels, int& num_error){
 
 	Matrix* h_labels = new Matrix(labels->getNumRows(), labels->getNumCols());
 	labels->copyToHost(h_labels);
 
 	Matrix* y_CPU = new Matrix(_y->getNumRows(), _y->getNumCols());
 	_y->copyToHost(y_CPU);
-
 	Matrix* correct_probs = new Matrix(_y->getNumRows(), 1);
 	NVMatrix* d_max_pos_of_out = new NVMatrix(_y->getNumRows(), 1);
 	_y->maxPosInRow(d_max_pos_of_out);

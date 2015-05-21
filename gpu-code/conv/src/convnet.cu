@@ -113,9 +113,9 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 
 	int num_kernel;
 	int num_block;
-//	_x->reValue(28);
+//	_x->reValue(32);
 //	_w->reValue(1.0f);
-	//_bias->reValue(2.0f);
+//	_bias->reValue(2.0f);
 
 	if(_pad > 0){
 		num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
@@ -145,7 +145,7 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 				: (num_kernel / MAX_NUM_THREAD + 1);
 	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), _y->getDevData(), \
 			num_kernel, _out_size, _filter_channel);
-//	unrolled_x1->showValue("data");
+	//unrolled_x1->showValue("data");
 	//_w->showValue("whk");
 	//_y->showValue("yh");
 }
@@ -165,9 +165,10 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 //_dE_dx_sigmoid->showValue("dedxsigmoid");
 	int num_kernel;
 	int num_block;
-//	x->reValue(28);
+//	x->reValue(32);
 //	x->showValue("x");
 	//另外一种排列方式，因为需要排列的是24*24的块
+/*
 	if(_pad > 0){
 		num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
 		num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
@@ -176,6 +177,8 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 				_in_size, _padded_in_size, _in_channel);
 	}else
 		padded_x = x;
+*/
+
 //	padded_x->showValue("pad");
 
 	num_kernel = _minibatch_size * _conv_pixs * _filt_pixs * _in_channel;
@@ -188,7 +191,7 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 			_out_size, _stride);	
 
 //	unrolled_x2->showValue("x2");
-//	_dE_dx_sigmoid->reValue(23);
+//	_dE_dx_sigmoid->reValue(32);
 //unrolled_x2->reValue(1);
 
 	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
@@ -235,7 +238,7 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 	num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
-//unranged_in->reValue(32*12);
+//unranged_in->reValue(20*32);
 
 	reshape_In<<<num_block, MAX_NUM_THREAD>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
 			num_kernel, _in_size, _padded_in_size, _in_channel);

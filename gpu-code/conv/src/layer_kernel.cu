@@ -33,7 +33,7 @@ __global__ void ori_to_padding(const float* src, float* dst, const int numKernel
 		const int imgRow = (srcCol % imgPixs) / img_size; 
 		const int imgCol = (srcCol % imgPixs) % img_size; 
 		index = imgIdx * img_channel * paddedImgPixs + imgChannelIdx * paddedImgPixs \
-					+ (imgRow + pad) * img_size \
+					+ (imgRow + pad) * padded_img_size \
 					+ (imgCol + pad); 
 		dst[index] = src[idx]; 
 	}
@@ -279,11 +279,11 @@ __global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos,
 
 		for(int i = 0; i < max_pool_size; i++){
 			for(int j = 0; j < max_pool_size; j++){
-				int convRow = threadIdx.x * stride + i;
-				int convCol = threadIdx.y * stride + j;
-				int shRow = threadIdx.x * max_pool_size + i;
-				int shCol = threadIdx.y * max_pool_size + j;
-				if(convRow <= conv_forward_size && convCol <= conv_forward_size){
+				int convRow = threadIdx.y * stride + i;
+				int convCol = threadIdx.x * stride + j;
+				int shRow = threadIdx.y * max_pool_size + i;
+				int shCol = threadIdx.x * max_pool_size + j;
+				if(convRow < conv_forward_size && convCol < conv_forward_size){
 					shFeatureMap[shRow * pool_forward_size * max_pool_size + shCol] \
 						= convOutputs[convRow * conv_forward_size + convCol];
 				}
@@ -299,7 +299,7 @@ __global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos,
 		myShFM +=  threadIdx.y * max_pool_size * pool_forward_size * max_pool_size \
 				   + threadIdx.x * max_pool_size;
 
-		float max_value = -10000;
+		float max_value = myShFM[0];
 		int max_pos = 0;
 		for(int i = 0; i < max_pool_size; i++){
 			for(int j = 0; j < max_pool_size; j++){
