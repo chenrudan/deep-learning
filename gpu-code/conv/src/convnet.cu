@@ -127,7 +127,7 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 	}else
 		padded_x = _x;
 
-//padded_x->showValue("padding");
+//	padded_x->showValue("padding");
 	num_kernel = _minibatch_size * _conv_pixs * _filt_pixs *_in_channel;
 	num_block = num_kernel / MAX_NUM_THREAD + 1;
 	cudaMemset(unrolled_x1->getDevData(), 0, sizeof(float) * num_kernel);
@@ -146,8 +146,8 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), _y->getDevData(), \
 			num_kernel, _out_size, _filter_channel);
 	//unrolled_x1->showValue("data");
-	//_w->showValue("whk");
-	//_y->showValue("yh");
+//	_w->showValue("whk");
+	_y->showValue("yh");
 }
 
 
@@ -220,13 +220,15 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 	int	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
 
+//_dE_dx_sigmoid->reValue(16);
+
 	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(float) * num_kernel);
 	im2col_img<<<num_block, MAX_NUM_THREAD>>>(_dE_dx_sigmoid->getDevData(), unrolled_conv->getDevData(), \
 			num_kernel, _padded_in_size, _filter_channel, \
 			_in_channel, _filter_size, _out_size, _stride);
 	cudaThreadSynchronize();
 
-//_w->reValue(50);
+//_w->reValue(1.0f);
 	num_kernel = _filter_channel * _filt_pixs * _in_channel;
 	num_block = num_kernel / MAX_NUM_THREAD + 1;
 	reshape_w<<<num_block, MAX_NUM_THREAD>>>(ranged_w->getDevData(), \
@@ -238,7 +240,8 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 	num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
-//unranged_in->reValue(20*32);
+
+//unranged_in->reValue(20*16);
 
 	reshape_In<<<num_block, MAX_NUM_THREAD>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
 			num_kernel, _in_size, _padded_in_size, _in_channel);
@@ -248,9 +251,9 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 //cout << "3: " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
 //t = clock();
 //	_w->showValue("whk");
-//	ranged_w->showValue("rangWhk");
 //	unrolled_conv->showValue("unrolledconv");
-//	unranged_in->showValue("unrangIN");
+//	ranged_w->showValue("rangWhk");
+//		unranged_in->showValue("unrangIN");
 //	dE_dx->showValue("dx");
 
 }

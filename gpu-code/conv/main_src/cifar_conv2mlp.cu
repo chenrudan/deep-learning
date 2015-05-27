@@ -181,11 +181,11 @@ cout << "done5\n";
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
 
-//	gaussRand(inner1_w, 0.1);
-	initW(inner1_w);
+	gaussRand(inner1_w, 0.01);
+//	initW(inner1_w);
 	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-//	gaussRand(softmax_w, 0.1);
-	initW(softmax_w);
+	gaussRand(softmax_w, 0.1);
+//	initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
 /*
@@ -390,19 +390,15 @@ cout << "done9\n";
 
 	for(int epoch_idx = 0; epoch_idx < layer_pars->num_epoch; epoch_idx++){
 		int error = 0;
+
 /*
 if(epoch_idx > 1){
-	cnn1_w->showValue("cnn1w");
-	cnn1_bias->showValue("cnn1b");
-	cnn2_w->showValue("cnn2w");
-	cnn2_bias->showValue("cnn2b");
-	inner1_w->showValue("innerw");
-	inner1_w->showValue("inner1w");
-	inner1_bias->showValue("inner1b");
+//	cnn1_w->showValue("cnn1w");
+//	cnn2_w->showValue("cnn2w");
+//	inner1_w->showValue("inner1w");
 	softmax_w->showValue("softmaxw");
-	softmax_bias->showValue("softmaxb");
-}
-*/
+}*/
+
 		for(int batch_idx = 0; batch_idx < layer_pars->num_minibatch; batch_idx++){
 
 			mini_data->changePtrFromStart(train_data->getDevData(), \
@@ -552,13 +548,13 @@ if(epoch_idx > 1){
 			savePars(softmax_w, "./pars/softmax_w_t1.bin");
 			savePars(softmax_bias, "./pars/softmax_bias_t1.bin");
 		}*/
-	
+	/*
 		if((epoch_idx + 1) % 4 == 0){
 			cnn1.transfarLowerPars();
 			cnn2.transfarLowerPars();
 			inner1.transfarLowerPars();
 			softmax1.transfarLowerPars();
-		} 
+		}*/ 
 
 	
 	}
@@ -614,14 +610,14 @@ int main(int argc, char** argv){
 
 	pars* layer_pars = new pars[num_layer];
 
-	layer_pars[0].w_lr = 0.001;
-	layer_pars[0].b_lr = 0.002;
+	layer_pars[0].w_lr = 0.01;
+	layer_pars[0].b_lr = 0.01;
 	layer_pars[2].w_lr = 0.001;
-	layer_pars[2].b_lr = 0.002;
-	layer_pars[4].w_lr = 0.01;
-	layer_pars[4].b_lr = 0.02;
-	layer_pars[5].w_lr = 0.01;
-	layer_pars[5].b_lr = 0.1;
+	layer_pars[2].b_lr = 0.001;
+	layer_pars[4].w_lr = 0.1;
+	layer_pars[4].b_lr = 0.2;
+	layer_pars[5].w_lr = 1;
+	layer_pars[5].b_lr = 1;
 
 
 
@@ -632,14 +628,14 @@ int main(int argc, char** argv){
 	layer_pars[0].in_size = 32; 
 	layer_pars[0].in_channel = 1;
 	layer_pars[0].filter_size = 5;
-	layer_pars[0].filter_channel = 20; 
+	layer_pars[0].filter_channel = 16; 
 	layer_pars[0].stride = 1;
-	layer_pars[0].pad = 2;
+	layer_pars[0].pad = 0;
 	layer_pars[0].padded_in_size = layer_pars[0].in_size + 2 * layer_pars[0].pad;
 	layer_pars[0].out_size = (layer_pars[0].padded_in_size - layer_pars[0].filter_size) / layer_pars[0].stride + 1;
 	layer_pars[0].num_train = 50000;
 	layer_pars[0].num_valid = 10000;
-	layer_pars[0].minibatch_size = 20;
+	layer_pars[0].minibatch_size = 100;
 	layer_pars[0].num_minibatch = layer_pars[0].num_train / (layer_pars[0].minibatch_size * (num_process - 1));
 	layer_pars[0].num_validbatch = layer_pars[0].num_valid / (layer_pars[0].minibatch_size * (num_process - 1));
 	layer_pars[0].num_epoch = 50; 
@@ -663,9 +659,9 @@ int main(int argc, char** argv){
 	layer_pars[2].in_size = layer_pars[1].out_size; 
 	layer_pars[2].in_channel = layer_pars[1].filter_channel;
 	layer_pars[2].filter_size = 5;
-	layer_pars[2].filter_channel = 50; 
+	layer_pars[2].filter_channel = 32; 
 	layer_pars[2].stride = 1;
-	layer_pars[2].pad = 2;
+	layer_pars[2].pad = 0;
 	layer_pars[2].padded_in_size = layer_pars[2].in_size + 2 * layer_pars[2].pad;
 	layer_pars[2].out_size = (layer_pars[2].padded_in_size - layer_pars[2].filter_size) / layer_pars[2].stride + 1;
 	layer_pars[2].minibatch_size = layer_pars[0].minibatch_size;
@@ -685,7 +681,7 @@ int main(int argc, char** argv){
 	layer_pars[4].momentum = 0.9;
 	layer_pars[4].weight_decay = 0;
 	layer_pars[4].num_in = layer_pars[3].out_size * layer_pars[3].out_size * layer_pars[3].filter_channel;
-	layer_pars[4].num_out = 1000;
+	layer_pars[4].num_out = 500;
 	layer_pars[4].minibatch_size = layer_pars[0].minibatch_size;
 	layer_pars[4].lr_down_scale = 0.95;
 

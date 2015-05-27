@@ -61,10 +61,10 @@ void Logistic::initCuda() {
 void Logistic::computeOutputs(NVMatrix* x){
 //x->showValue("data");
 	x->rightMult(_w, 1, _y, handle);
+//_w->showValue("w");
+//_y->showValue("yj1");
 	_y->addRowVector(_bias);
 	_y->apply(NVMatrix::SOFTMAX);
-
-//_y->showValue("yj1");
 }
 
 double Logistic::computeError(NVMatrix* labels, int& num_error){
@@ -113,6 +113,7 @@ void Logistic::computeDerivsOfPars(NVMatrix* x, NVMatrix* labels){
 	x->getTranspose(data_T);
 
 	data_T->rightMult(_dE_dy, 1, _dE_dw, handle);
+//	_y->showValue("ysoftmax");
 	_dE_dy->sumRow(_dE_db);
 
 	delete data_T;
@@ -125,15 +126,5 @@ void Logistic::computeDerivsOfInput(NVMatrix* dE_dx){
 	delete w_T;
 }
 
-/*
-void Logistic::updatePars(){
-	_w_inc->addSum(_w, _dE_dw, _momentum, -_weight_decay, \
-			-_w_lr / _minibatch_size);
-	_w->add(_w_inc, 1, 1);
-
-	_bias_inc->add(_dE_db, _momentum, -_b_lr / _minibatch_size);
-	_bias->add(_bias_inc, 1, 1);
-}
-*/
 
 

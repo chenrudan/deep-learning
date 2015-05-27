@@ -62,11 +62,12 @@ void InnerProductLayer::initCuda() {
 }
 
 void InnerProductLayer::computeOutputs(NVMatrix* x){ 
-	//x->showValue("data");
+//	x->showValue("data");
+//	_w->showValue("w");
 	x->rightMult(_w, 1, _y, handle);
 	_y->addRowVector(_bias);
 	_y->apply(NVMatrix::SIGMOID);
-	//_y->showValue("yj1");
+//	_y->showValue("yj1");
 }
 
 void InnerProductLayer::computeDerivsOfPars(NVMatrix* x){
@@ -83,6 +84,7 @@ void InnerProductLayer::computeDerivsOfPars(NVMatrix* x){
 	data_T->rightMult(_dE_dx_sigmoid, 1, _dE_dw, handle);
 	_dE_dx_sigmoid->sumRow(_dE_db);
 
+//_dE_dw->showValue("dedwinner");
 	delete data_T;
 }
 

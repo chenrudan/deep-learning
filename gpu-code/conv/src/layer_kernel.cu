@@ -77,12 +77,7 @@ __global__ void im2col_img(const float* conv_result, float* targets, \
 				index += convRow * conv_forward_size + convCol;
 				targets[idx] = conv_result[index];
 			}
-			//			else
-			//				targets[idx] = 0;
 		}
-		//		else
-		//			targets[idx] = 0;
-		//输出图片的位置
 	}
 	__syncthreads();
 
