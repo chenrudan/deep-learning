@@ -147,7 +147,7 @@ void ConvNet::computeOutputs(NVMatrix* _x){
 			num_kernel, _out_size, _filter_channel);
 	//unrolled_x1->showValue("data");
 //	_w->showValue("whk");
-	_y->showValue("yh");
+//	_y->showValue("yh");
 }
 
 

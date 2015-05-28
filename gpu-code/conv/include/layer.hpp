@@ -82,6 +82,7 @@ public:
 	inline void transfarLowerPars() {
 		_w_lr *= _lr_down_scale;
 		_b_lr *= _lr_down_scale;
+		cout << _w_lr << ":" << _b_lr ;
 	}
 
 	inline NVMatrix* getW() {
