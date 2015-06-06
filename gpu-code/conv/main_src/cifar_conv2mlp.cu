@@ -548,8 +548,9 @@ if(epoch_idx > 1){
 			savePars(softmax_w, "./pars/softmax_w_t1.bin");
 			savePars(softmax_bias, "./pars/softmax_bias_t1.bin");
 		}*/
+	
 
-		if((epoch_idx + 1) % 4 == 0){
+		if((epoch_idx + 1) % 5 == 0){
 			cout << "------cnn1-----\n";
 			cnn1.transfarLowerPars();
 			cout << "\n------cnn2-----\n";
@@ -559,7 +560,10 @@ if(epoch_idx > 1){
 			cout << "\n------softmax1-----\n";
 			softmax1.transfarLowerPars();
 			cout << endl;
-		} 
+		}
+if(epoch_idx == 40){
+	softmax1.changeLrDownScale(0.9);
+}
 
 	
 	}
@@ -615,14 +619,18 @@ int main(int argc, char** argv){
 
 	pars* layer_pars = new pars[num_layer];
 
-	layer_pars[0].w_lr = 0.8;
-	layer_pars[0].b_lr = 0.1;
-	layer_pars[2].w_lr = 0.5;
-	layer_pars[2].b_lr = 0.1;
-	layer_pars[4].w_lr = 0.001;
-	layer_pars[4].b_lr = 0.005;
-	layer_pars[5].w_lr = 0.0001;
-	layer_pars[5].b_lr = 0.0001;
+	layer_pars[0].w_lr = 1;
+	layer_pars[0].b_lr = 0.5;
+	layer_pars[0].lr_down_scale = 0.8;
+	layer_pars[2].w_lr = 0.1;
+	layer_pars[2].b_lr = 0.5;
+	layer_pars[2].lr_down_scale = 0.8;
+	layer_pars[4].w_lr = 0.01;
+	layer_pars[4].b_lr = 0.05;
+	layer_pars[4].lr_down_scale = 0.9;
+	layer_pars[5].w_lr = 0.01;
+	layer_pars[5].b_lr = 0.005;
+	layer_pars[5].lr_down_scale = 0.8;
 
 
 //	layer_pars[0].w_lr = 5;
@@ -634,7 +642,7 @@ int main(int argc, char** argv){
 	layer_pars[0].filter_size = 5;
 	layer_pars[0].filter_channel = 16; 
 	layer_pars[0].stride = 1;
-	layer_pars[0].pad = 0;
+	layer_pars[0].pad = 2;
 	layer_pars[0].padded_in_size = layer_pars[0].in_size + 2 * layer_pars[0].pad;
 	layer_pars[0].out_size = (layer_pars[0].padded_in_size - layer_pars[0].filter_size) / layer_pars[0].stride + 1;
 	layer_pars[0].num_train = 50000;
@@ -642,10 +650,9 @@ int main(int argc, char** argv){
 	layer_pars[0].minibatch_size = 100;
 	layer_pars[0].num_minibatch = layer_pars[0].num_train / (layer_pars[0].minibatch_size * (num_process - 1));
 	layer_pars[0].num_validbatch = layer_pars[0].num_valid / (layer_pars[0].minibatch_size * (num_process - 1));
-	layer_pars[0].num_epoch = 500; 
+	layer_pars[0].num_epoch = 1000; 
 	layer_pars[0].n_push = 49;
 	layer_pars[0].n_fetch = 50;
-	layer_pars[0].lr_down_scale = 0.9;
 
 	layer_pars[1].in_size = layer_pars[0].out_size; 
 	layer_pars[1].in_channel = layer_pars[0].filter_channel;
@@ -665,11 +672,10 @@ int main(int argc, char** argv){
 	layer_pars[2].filter_size = 5;
 	layer_pars[2].filter_channel = 32; 
 	layer_pars[2].stride = 1;
-	layer_pars[2].pad = 0;
+	layer_pars[2].pad = 2;
 	layer_pars[2].padded_in_size = layer_pars[2].in_size + 2 * layer_pars[2].pad;
 	layer_pars[2].out_size = (layer_pars[2].padded_in_size - layer_pars[2].filter_size) / layer_pars[2].stride + 1;
 	layer_pars[2].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[2].lr_down_scale = 0.9;
 
 	layer_pars[3].in_size = layer_pars[2].out_size; 
 	layer_pars[3].in_channel = layer_pars[2].filter_channel;
@@ -687,7 +693,6 @@ int main(int argc, char** argv){
 	layer_pars[4].num_in = layer_pars[3].out_size * layer_pars[3].out_size * layer_pars[3].filter_channel;
 	layer_pars[4].num_out = 500;
 	layer_pars[4].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[4].lr_down_scale = 0.95;
 
 //	layer_pars[5].w_lr = 1;
 //	layer_pars[5].b_lr = 2;
@@ -696,7 +701,6 @@ int main(int argc, char** argv){
 	layer_pars[5].num_in = layer_pars[4].num_out;
 	layer_pars[5].num_out = 10;
 	layer_pars[5].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[5].lr_down_scale = 0.95;
 
 
 

@@ -76,13 +76,19 @@ public:
 	}
 
 	inline void changeLrDownScale(float scale) {
-		_lr_down_scale *= scale;
+		_lr_down_scale = scale;
+	}
+
+	inline void transfarLowerPars(float scale) {
+		_w_lr *= scale;
+		_b_lr *= scale;
+		cout << _w_lr << ":" << _b_lr << "\n";
 	}
 
 	inline void transfarLowerPars() {
 		_w_lr *= _lr_down_scale;
 		_b_lr *= _lr_down_scale;
-		cout << _w_lr << ":" << _b_lr ;
+		cout << _w_lr << ":" << _b_lr << "\n";
 	}
 
 	inline NVMatrix* getW() {

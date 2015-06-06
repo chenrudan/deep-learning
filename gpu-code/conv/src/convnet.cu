@@ -216,6 +216,8 @@ void ConvNet::computeDerivsOfPars(NVMatrix* x){
 
 void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 
+//	clock_t t = clock();
+//cout << "\n----------";
 	int num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _filt_pixs * _filter_channel;
 	int	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
@@ -228,6 +230,8 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 			_in_channel, _filter_size, _out_size, _stride);
 	cudaThreadSynchronize();
 
+//printTime(t, "im2col_img");
+
 //_w->reValue(1.0f);
 	num_kernel = _filter_channel * _filt_pixs * _in_channel;
 	num_block = num_kernel / MAX_NUM_THREAD + 1;
@@ -236,7 +240,12 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 			_filter_channel, _in_channel);
 	cudaThreadSynchronize();
 
+//printTime(t, "reshape_w");
+
 	unrolled_conv->rightMult(ranged_w, 1, unranged_in, handle);
+
+//printTime(t, "rightMult");
+
 	num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
@@ -247,9 +256,7 @@ void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
 			num_kernel, _in_size, _padded_in_size, _in_channel);
 	cudaThreadSynchronize();
 
-//t = clock() - t;
-//cout << "3: " << ((float)t/CLOCKS_PER_SEC) << " seconds.\n";
-//t = clock();
+//printTime(t, "reshape_In");
 //	_w->showValue("whk");
 //	unrolled_conv->showValue("unrolledconv");
 //	ranged_w->showValue("rangWhk");

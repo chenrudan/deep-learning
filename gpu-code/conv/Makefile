@@ -4,8 +4,8 @@ CC = g++ -std=c++0x
 NVCC = nvcc
 MPICXX = mpicxx
 LINK = mpicxx
-CCFLAGS = -c
-NVCCFLAGS = -g -O3 -c -Xcompiler -fopenmp
+CCFLAGS = -c -pg
+NVCCFLAGS = -g -pg -O3 -c -Xcompiler -fopenmp 
 PTXFLAGES = --machine 64
 
 LIB = -L/usr/local/cuda-6.5/lib64 -lcuda -lcudart  -lcublas -lm  -lpthread  -lgomp  -lmpich
@@ -29,7 +29,7 @@ CXX_OBJS += $(subst $(SRCS_DIR), $(OBJ_DIR), ${CXX_SRCS:.cpp=.o})
 CU_OBJS += $(subst $(SRCS_DIR), $(OBJ_DIR), ${CU_SRCS:.cu=.o})
 
 TARGET ?= main
-MULTI_PROCESS ?= 0
+MULTI_PROCESS ?= 1
 MULTI_MECHINE ?= 0
 OPEN_MPI ?= 0
 NUM_PROCESS ?= 2

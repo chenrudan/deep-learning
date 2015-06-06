@@ -20,7 +20,6 @@ private:
 	float* _devData;
 	bool _ownsData;
 	static cudaDeviceProp deviceProps;
-	
 
 public:	
 	enum FUNCTIONS {LOG, EXP, RECIPROCAL, SOFTMAX, SIGMOID};
@@ -88,7 +87,6 @@ public:
 	float* slice(float* &out, int rowStart);
 
 	void checkBounds(int startRow, int endRow, int startCol, int endCol) const;
-	NVMatrix* getTranspose();
 	void getTranspose(NVMatrix* target);
 
     void rightMult(NVMatrix* b, float scaleAB, NVMatrix* target, \

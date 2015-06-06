@@ -1,0 +1,1162 @@
+===========overall==============done4
+
+train: 50000
+valid: 10000
+batchSize: 100
+n_fetch: 50
+n_push: 49
+===========inner_product1==============
+num_in: 3072
+num_out: 1000
+w_lr: 0.002
+b_lr: 0.002
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========softmax==============
+num_in: 1000
+num_out: 10
+w_lr: 0.0001
+b_lr: 0.0001
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+done8
+done7
+done6
+done5
+done1
+done2
+epoch_idx: 0, error: 0.7986,likelihood: 22641.4
+1.8 seconds.
+epoch_idx: 1, error: 0.7861,likelihood: 22420.9
+1.76 seconds.
+epoch_idx: 2, error: 0.7736,likelihood: 22277.8
+1.8 seconds.
+epoch_idx: 3, error: 0.7636,likelihood: 22174.8
+1.77 seconds.
+epoch_idx: 4, error: 0.7595,likelihood: 22094.8
+1.8 seconds.
+epoch_idx: 5, error: 0.7548,likelihood: 22029
+1.77 seconds.
+epoch_idx: 6, error: 0.7501,likelihood: 21973.6
+1.77 seconds.
+epoch_idx: 7, error: 0.7483,likelihood: 21926.3
+1.76 seconds.
+epoch_idx: 8, error: 0.7465,likelihood: 21886.8
+1.77 seconds.
+epoch_idx: 9, error: 0.744,likelihood: 21851.3
+1.79 seconds.
+epoch_idx: 10, error: 0.7417,likelihood: 21819.8
+1.79 seconds.
+epoch_idx: 11, error: 0.7405,likelihood: 21791.7
+1.72 seconds.
+epoch_idx: 12, error: 0.7388,likelihood: 21768.5
+1.74 seconds.
+epoch_idx: 13, error: 0.7379,likelihood: 21746.5
+1.76 seconds.
+epoch_idx: 14, error: 0.7363,likelihood: 21726.3
+1.75 seconds.
+epoch_idx: 15, error: 0.7351,likelihood: 21707.8
+1.75 seconds.
+epoch_idx: 16, error: 0.7335,likelihood: 21692.4
+1.74 seconds.
+epoch_idx: 17, error: 0.7338,likelihood: 21677.5
+1.81 seconds.
+epoch_idx: 18, error: 0.7339,likelihood: 21663.2
+1.79 seconds.
+epoch_idx: 19, error: 0.7337,likelihood: 21649.9
+1.73 seconds.
+epoch_idx: 20, error: 0.7343,likelihood: 21638.8
+1.78 seconds.
+epoch_idx: 21, error: 0.734,likelihood: 21627.7
+1.79 seconds.
+epoch_idx: 22, error: 0.7338,likelihood: 21617
+1.78 seconds.
+epoch_idx: 23, error: 0.7332,likelihood: 21606.8
+1.79 seconds.
+epoch_idx: 24, error: 0.7338,likelihood: 21598.3
+1.76 seconds.
+epoch_idx: 25, error: 0.7333,likelihood: 21589.7
+1.74 seconds.
+epoch_idx: 26, error: 0.7334,likelihood: 21581.3
+1.79 seconds.
+epoch_idx: 27, error: 0.7327,likelihood: 21573.2
+1.77 seconds.
+epoch_idx: 28, error: 0.7318,likelihood: 21566.3
+1.8 seconds.
+epoch_idx: 29, error: 0.732,likelihood: 21559.5
+1.72 seconds.
+epoch_idx: 30, error: 0.7318,likelihood: 21552.7
+1.76 seconds.
+epoch_idx: 31, error: 0.7313,likelihood: 21546.1
+1.72 seconds.
+epoch_idx: 32, error: 0.7314,likelihood: 21540.5
+1.81 seconds.
+epoch_idx: 33, error: 0.7311,likelihood: 21534.8
+1.81 seconds.
+epoch_idx: 34, error: 0.7313,likelihood: 21529.2
+1.72 seconds.
+epoch_idx: 35, error: 0.7314,likelihood: 21523.8
+1.77 seconds.
+epoch_idx: 36, error: 0.7309,likelihood: 21519.1
+1.81 seconds.
+epoch_idx: 37, error: 0.7306,likelihood: 21514.4
+1.76 seconds.
+epoch_idx: 38, error: 0.7303,likelihood: 21509.8
+1.8 seconds.
+epoch_idx: 39, error: 0.7303,likelihood: 21505.3
+1.77 seconds.
+epoch_idx: 40, error: 0.73,likelihood: 21501.3
+1.73 seconds.
+epoch_idx: 41, error: 0.7301,likelihood: 21497.4
+1.76 seconds.
+epoch_idx: 42, error: 0.7297,likelihood: 21493.5
+1.77 seconds.
+epoch_idx: 43, error: 0.7298,likelihood: 21489.8
+1.72 seconds.
+epoch_idx: 44, error: 0.7293,likelihood: 21486.4
+1.79 seconds.
+epoch_idx: 45, error: 0.7293,likelihood: 21483.1
+1.74 seconds.
+epoch_idx: 46, error: 0.7296,likelihood: 21479.8
+1.73 seconds.
+epoch_idx: 47, error: 0.7298,likelihood: 21476.7
+1.74 seconds.
+epoch_idx: 48, error: 0.7298,likelihood: 21473.8
+1.75 seconds.
+epoch_idx: 49, error: 0.7299,likelihood: 21471
+1.76 seconds.
+epoch_idx: 50, error: 0.73,likelihood: 21468.3
+1.74 seconds.
+
+
+===========overall==============
+train: 50000
+valid: 10000
+batchSize: 100
+n_fetch: 50
+n_push: 49
+===========cnn1==============
+in_size: 32
+in_channel: 3
+filter_size: 4
+filter_channel: 16
+stride: 1
+w_lr: 0.01
+b_lr: 0.02
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========pool1==============
+in_size: 29
+in_channel: 16
+stride: 2
+pool_size: 3
+===========inner_product1==============
+num_in: 3136
+num_out: 1000
+w_lr: 0.005
+b_lr: 0.01
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========softmax==============
+num_in: 1000
+num_out: 10
+w_lr: 1e-05
+b_lr: 0.0001
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+done8
+done7
+done6
+done5
+done1
+done2
+epoch_idx: 0, error: 0.8819,likelihood: 22902.3
+7.17 seconds.
+epoch_idx: 1, error: 0.8374,likelihood: 22708.8
+7.22 seconds.
+epoch_idx: 2, error: 0.8175,likelihood: 22541.6
+7.22 seconds.
+epoch_idx: 3, error: 0.7951,likelihood: 22379.2
+7.23 seconds.
+epoch_idx: 4, error: 0.7869,likelihood: 22278.3
+7.23 seconds.
+epoch_idx: 5, error: 0.7771,likelihood: 22160.3
+7.22 seconds.
+epoch_idx: 6, error: 0.7705,likelihood: 22070.1
+7.23 seconds.
+epoch_idx: 7, error: 0.7609,likelihood: 21962.5
+7.21 seconds.
+epoch_idx: 8, error: 0.7532,likelihood: 21882.7
+7.24 seconds.
+epoch_idx: 9, error: 0.7454,likelihood: 21775.2
+7.2 seconds.
+epoch_idx: 10, error: 0.7358,likelihood: 21665
+7.22 seconds.
+epoch_idx: 11, error: 0.7284,likelihood: 21547.1
+7.2 seconds.
+epoch_idx: 12, error: 0.7229,likelihood: 21467.8
+7.2 seconds.
+epoch_idx: 13, error: 0.7172,likelihood: 21348.6
+7.19 seconds.
+epoch_idx: 14, error: 0.7092,likelihood: 21217.5
+7.2 seconds.
+epoch_idx: 15, error: 0.7017,likelihood: 21099.7
+7.22 seconds.
+epoch_idx: 16, error: 0.696,likelihood: 21015
+7.17 seconds.
+epoch_idx: 17, error: 0.6888,likelihood: 20897.8
+7.2 seconds.
+epoch_idx: 18, error: 0.6825,likelihood: 20796
+7.19 seconds.
+epoch_idx: 19, error: 0.6778,likelihood: 20709.1
+7.18 seconds.
+epoch_idx: 20, error: 0.6761,likelihood: 20660.1
+7.2 seconds.
+epoch_idx: 21, error: 0.6739,likelihood: 20587.6
+7.19 seconds.
+epoch_idx: 22, error: 0.6697,likelihood: 20516.6
+7.19 seconds.
+epoch_idx: 23, error: 0.6663,likelihood: 20456.4
+7.21 seconds.
+epoch_idx: 24, error: 0.6651,likelihood: 20426.8
+7.2 seconds.
+epoch_idx: 25, error: 0.661,likelihood: 20373.7
+7.17 seconds.
+epoch_idx: 26, error: 0.659,likelihood: 20324.6
+7.21 seconds.
+epoch_idx: 27, error: 0.6572,likelihood: 20275.7
+7.19 seconds.
+epoch_idx: 28, error: 0.6547,likelihood: 20252.2
+7.21 seconds.
+epoch_idx: 29, error: 0.6528,likelihood: 20207.3
+7.19 seconds.
+epoch_idx: 30, error: 0.6502,likelihood: 20159.6
+7.18 seconds.
+epoch_idx: 31, error: 0.6483,likelihood: 20112.1
+7.2 seconds.
+epoch_idx: 32, error: 0.6481,likelihood: 20091
+7.19 seconds.
+epoch_idx: 33, error: 0.6458,likelihood: 20045.8
+7.16 seconds.
+epoch_idx: 34, error: 0.644,likelihood: 19998.2
+7.18 seconds.
+epoch_idx: 35, error: 0.642,likelihood: 19946.6
+7.19 seconds.
+epoch_idx: 36, error: 0.641,likelihood: 19927
+7.15 seconds.
+epoch_idx: 37, error: 0.6395,likelihood: 19880.3
+7.17 seconds.
+epoch_idx: 38, error: 0.6361,likelihood: 19831.7
+7.21 seconds.
+epoch_idx: 39, error: 0.6344,likelihood: 19781.5
+7.17 seconds.
+epoch_idx: 40, error: 0.6337,likelihood: 19761.9
+7.19 seconds.
+epoch_idx: 41, error: 0.6326,likelihood: 19713.9
+7.16 seconds.
+epoch_idx: 42, error: 0.6306,likelihood: 19661.1
+7.17 seconds.
+epoch_idx: 43, error: 0.6271,likelihood: 19608.7
+7.18 seconds.
+epoch_idx: 44, error: 0.6271,likelihood: 19591.3
+7.15 seconds.
+epoch_idx: 45, error: 0.6243,likelihood: 19541.9
+7.17 seconds.
+epoch_idx: 46, error: 0.6214,likelihood: 19491.2
+7.16 seconds.
+epoch_idx: 47, error: 0.6189,likelihood: 19440.5
+7.17 seconds.
+epoch_idx: 48, error: 0.6182,likelihood: 19425.8
+7.17 seconds.
+epoch_idx: 49, error: 0.6173,likelihood: 19377.7
+7.17 seconds.
+epoch_idx: 50, error: 0.6148,likelihood: 19328.1
+7.16 seconds.
+epoch_idx: 51, error: 0.6121,likelihood: 19280.6
+7.17 seconds.
+epoch_idx: 52, error: 0.6115,likelihood: 19266.8
+7.18 seconds.
+epoch_idx: 53, error: 0.6095,likelihood: 19220.6
+7.16 seconds.
+epoch_idx: 54, error: 0.6075,likelihood: 19175
+7.14 seconds.
+epoch_idx: 55, error: 0.6063,likelihood: 19129.6
+7.16 seconds.
+epoch_idx: 56, error: 0.6057,likelihood: 19117.2
+7.17 seconds.
+epoch_idx: 57, error: 0.6046,likelihood: 19076.7
+7.17 seconds.
+epoch_idx: 58, error: 0.6024,likelihood: 19035.4
+7.18 seconds.
+epoch_idx: 59, error: 0.601,likelihood: 18995
+7.15 seconds.
+epoch_idx: 60, error: 0.6004,likelihood: 18983.8
+7.21 seconds.
+epoch_idx: 61, error: 0.5986,likelihood: 18948
+7.19 seconds.
+epoch_idx: 62, error: 0.5986,likelihood: 18911.8
+7.16 seconds.
+epoch_idx: 63, error: 0.5971,likelihood: 18876.9
+7.17 seconds.
+epoch_idx: 64, error: 0.597,likelihood: 18867.1
+7.17 seconds.
+epoch_idx: 65, error: 0.5963,likelihood: 18837.3
+7.18 seconds.
+epoch_idx: 66, error: 0.5939,likelihood: 18806.6
+7.17 seconds.
+epoch_idx: 67, error: 0.5925,likelihood: 18777.5
+7.15 seconds.
+epoch_idx: 68, error: 0.5928,likelihood: 18768.2
+7.16 seconds.
+epoch_idx: 69, error: 0.5918,likelihood: 18743.3
+7.15 seconds.
+epoch_idx: 70, error: 0.5917,likelihood: 18717.5
+7.15 seconds.
+epoch_idx: 71, error: 0.5918,likelihood: 18693.3
+7.14 seconds.
+epoch_idx: 72, error: 0.592,likelihood: 18684.7
+7.16 seconds.
+epoch_idx: 73, error: 0.5911,likelihood: 18664.5
+7.19 seconds.
+epoch_idx: 74, error: 0.5911,likelihood: 18643.5
+7.12 seconds.
+epoch_idx: 75, error: 0.5908,likelihood: 18623
+7.18 seconds.
+epoch_idx: 76, error: 0.5906,likelihood: 18615.1
+7.18 seconds.
+epoch_idx: 77, error: 0.5903,likelihood: 18598.6
+7.16 seconds.
+epoch_idx: 78, error: 0.5897,likelihood: 18581.3
+7.17 seconds.
+epoch_idx: 79, error: 0.5892,likelihood: 18564.3
+7.17 seconds.
+epoch_idx: 80, error: 0.5891,likelihood: 18557.1
+7.16 seconds.
+epoch_idx: 81, error: 0.5882,likelihood: 18543.6
+7.17 seconds.
+epoch_idx: 82, error: 0.5887,likelihood: 18529.1
+7.16 seconds.
+epoch_idx: 83, error: 0.588,likelihood: 18515.1
+7.15 seconds.
+epoch_idx: 84, error: 0.5884,likelihood: 18508.5
+7.17 seconds.
+epoch_idx: 85, error: 0.5879,likelihood: 18497.3
+7.17 seconds.
+epoch_idx: 86, error: 0.5878,likelihood: 18485.4
+7.19 seconds.
+epoch_idx: 87, error: 0.5871,likelihood: 18473.8
+7.14 seconds.
+epoch_idx: 88, error: 0.5873,likelihood: 18467.9
+7.15 seconds.
+epoch_idx: 89, error: 0.5871,likelihood: 18458.8
+7.16 seconds.
+epoch_idx: 90, error: 0.5868,likelihood: 18449.1
+7.16 seconds.
+epoch_idx: 91, error: 0.5868,likelihood: 18439.5
+7.16 seconds.
+epoch_idx: 92, error: 0.5866,likelihood: 18434
+7.16 seconds.
+epoch_idx: 93, error: 0.5859,likelihood: 18426.5
+7.16 seconds.
+epoch_idx: 94, error: 0.5854,likelihood: 18418.3
+7.16 seconds.
+epoch_idx: 95, error: 0.5853,likelihood: 18410.2
+7.19 seconds.
+epoch_idx: 96, error: 0.5849,likelihood: 18405.3
+7.14 seconds.
+epoch_idx: 97, error: 0.585,likelihood: 18399.1
+7.17 seconds.
+epoch_idx: 98, error: 0.585,likelihood: 18392.3
+7.18 seconds.
+epoch_idx: 99, error: 0.5845,likelihood: 18385.7
+7.17 seconds.
+
+
+===========overall==============
+train: 50000
+valid: 10000
+batchSize: 100
+n_fetch: 50
+n_push: 49
+===========cnn1==============
+in_size: 32
+in_channel: 3
+filter_size: 4
+filter_channel: 16
+stride: 1
+w_lr: 0.01
+b_lr: 0.01
+momentum: 0.9
+weight_decay: 1e-05
+lr_scale: 0.8
+===========pool1==============
+in_size: 29
+in_channel: 16
+stride: 2
+pool_size: 3
+===========inner_product1==============
+num_in: 3136
+num_out: 1000
+w_lr: 0.005
+b_lr: 0.01
+momentum: 0.9
+weight_decay: 1e-05
+lr_scale: 0.8
+===========softmax==============
+num_in: 1000
+num_out: 10
+w_lr: 2e-06
+b_lr: 1e-05
+momentum: 0.9
+weight_decay: 1e-05
+lr_scale: 0.8
+done8
+done7
+done6
+done5
+done1
+done2
+epoch_idx: 0, error: 0.8787,likelihood: 22900
+7.22 seconds.
+epoch_idx: 1, error: 0.8343,likelihood: 22730.9
+7.21 seconds.
+epoch_idx: 2, error: 0.8174,likelihood: 22577.6
+7.24 seconds.
+epoch_idx: 3, error: 0.8004,likelihood: 22445.5
+7.25 seconds.
+epoch_idx: 4, error: 0.7832,likelihood: 22267.2
+7.27 seconds.
+epoch_idx: 5, error: 0.7697,likelihood: 22150.7
+7.28 seconds.
+epoch_idx: 6, error: 0.7603,likelihood: 22050.3
+7.26 seconds.
+epoch_idx: 7, error: 0.7499,likelihood: 21957.1
+7.27 seconds.
+epoch_idx: 8, error: 0.7243,likelihood: 21736.8
+7.27 seconds.
+epoch_idx: 9, error: 0.716,likelihood: 21669.9
+7.3 seconds.
+epoch_idx: 10, error: 0.7122,likelihood: 21609.3
+7.24 seconds.
+epoch_idx: 11, error: 0.7048,likelihood: 21493.2
+7.24 seconds.
+epoch_idx: 12, error: 0.6897,likelihood: 21283.2
+7.26 seconds.
+epoch_idx: 13, error: 0.6878,likelihood: 21210
+7.27 seconds.
+epoch_idx: 14, error: 0.6854,likelihood: 21147
+7.28 seconds.
+epoch_idx: 15, error: 0.683,likelihood: 21091
+7.27 seconds.
+epoch_idx: 16, error: 0.6679,likelihood: 20907.1
+7.28 seconds.
+epoch_idx: 17, error: 0.6677,likelihood: 20852.1
+7.27 seconds.
+epoch_idx: 18, error: 0.6657,likelihood: 20809.4
+7.26 seconds.
+epoch_idx: 19, error: 0.664,likelihood: 20769.2
+7.24 seconds.
+epoch_idx: 20, error: 0.6532,likelihood: 20591.3
+7.27 seconds.
+epoch_idx: 21, error: 0.6524,likelihood: 20545.6
+7.26 seconds.
+epoch_idx: 22, error: 0.6521,likelihood: 20510.7
+7.25 seconds.
+epoch_idx: 23, error: 0.6512,likelihood: 20478.6
+7.23 seconds.
+epoch_idx: 24, error: 0.6399,likelihood: 20302.6
+7.28 seconds.
+epoch_idx: 25, error: 0.6394,likelihood: 20263.1
+7.26 seconds.
+epoch_idx: 26, error: 0.6379,likelihood: 20233.7
+7.26 seconds.
+epoch_idx: 27, error: 0.6368,likelihood: 20207.8
+7.26 seconds.
+epoch_idx: 28, error: 0.6237,likelihood: 20046.3
+7.28 seconds.
+epoch_idx: 29, error: 0.6221,likelihood: 20012.2
+7.28 seconds.
+epoch_idx: 30, error: 0.6208,likelihood: 19988.1
+7.26 seconds.
+epoch_idx: 31, error: 0.6202,likelihood: 19966
+7.26 seconds.
+epoch_idx: 32, error: 0.6113,likelihood: 19829
+7.26 seconds.
+epoch_idx: 33, error: 0.611,likelihood: 19798.5
+7.24 seconds.
+epoch_idx: 34, error: 0.6106,likelihood: 19778
+7.27 seconds.
+epoch_idx: 35, error: 0.61,likelihood: 19760.6
+7.26 seconds.
+epoch_idx: 36, error: 0.6071,likelihood: 19650.5
+7.22 seconds.
+epoch_idx: 37, error: 0.6059,likelihood: 19623
+7.27 seconds.
+epoch_idx: 38, error: 0.6059,likelihood: 19605.9
+7.26 seconds.
+epoch_idx: 39, error: 0.6056,likelihood: 19591.6
+7.23 seconds.
+epoch_idx: 40, error: 0.6012,likelihood: 19509.1
+7.26 seconds.
+epoch_idx: 41, error: 0.6006,likelihood: 19484.5
+7.24 seconds.
+epoch_idx: 42, error: 0.6002,likelihood: 19469.9
+7.26 seconds.
+epoch_idx: 43, error: 0.5996,likelihood: 19458
+7.24 seconds.
+epoch_idx: 44, error: 0.5982,likelihood: 19398.5
+7.24 seconds.
+epoch_idx: 45, error: 0.5982,likelihood: 19377
+7.26 seconds.
+epoch_idx: 46, error: 0.598,likelihood: 19364.5
+7.25 seconds.
+epoch_idx: 47, error: 0.5974,likelihood: 19354.5
+7.21 seconds.
+epoch_idx: 48, error: 0.5973,likelihood: 19312.7
+7.26 seconds.
+epoch_idx: 49, error: 0.598,likelihood: 19294.2
+7.26 seconds.
+epoch_idx: 50, error: 0.5976,likelihood: 19283.2
+7.25 seconds.
+epoch_idx: 51, error: 0.5977,likelihood: 19274.8
+7.23 seconds.
+epoch_idx: 52, error: 0.5986,likelihood: 19245.6
+7.24 seconds.
+epoch_idx: 53, error: 0.5989,likelihood: 19230.2
+7.26 seconds.
+epoch_idx: 54, error: 0.5987,likelihood: 19220.7
+7.25 seconds.
+epoch_idx: 55, error: 0.5986,likelihood: 19213.3
+7.24 seconds.
+epoch_idx: 56, error: 0.5994,likelihood: 19193.2
+7.24 seconds.
+epoch_idx: 57, error: 0.5993,likelihood: 19180.8
+7.25 seconds.
+epoch_idx: 58, error: 0.5992,likelihood: 19172.6
+7.25 seconds.
+epoch_idx: 59, error: 0.5991,likelihood: 19166.2
+7.23 seconds.
+epoch_idx: 60, error: 0.5987,likelihood: 19152.1
+7.23 seconds.
+epoch_idx: 61, error: 0.5982,likelihood: 19142.2
+7.23 seconds.
+epoch_idx: 62, error: 0.5982,likelihood: 19135.3
+7.24 seconds.
+epoch_idx: 63, error: 0.5979,likelihood: 19129.8
+7.25 seconds.
+epoch_idx: 64, error: 0.598,likelihood: 19119.8
+
+===========overall==============
+train: 50000
+valid: 10000
+batchSize: 100
+n_fetch: 50
+n_push: 49
+===========cnn1==============
+in_size: 32
+in_channel: 3
+filter_size: 5
+filter_channel: 16
+stride: 1
+w_lr: 1
+b_lr: 0.5
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.8
+===========pool1==============
+in_size: 32
+in_channel: 16
+stride: 2
+pool_size: 3
+===========cnn2==============
+in_size: 16
+in_channel: 16
+filter_size: 5
+filter_channel: 32
+stride: 1
+w_lr: 0.1
+b_lr: 0.5
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.8
+===========pool2==============
+in_size: 16
+in_channel: 32
+stride: 2
+pool_size: 3
+===========inner_product1==============
+num_in: 2048
+num_out: 500
+w_lr: 0.01
+b_lr: 0.05
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.9
+===========softmax==============
+num_in: 500
+num_out: 10
+w_lr: 0.01
+b_lr: 0.005
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.8
+done8
+done7
+done6
+done5
+done9
+epoch_idx: 0, error: 0.9,likelihood: 23076.7
+17.25 seconds.
+epoch_idx: 1, error: 0.9,likelihood: 23044.4
+17.12 seconds.
+epoch_idx: 2, error: 0.9,likelihood: 23030.4
+17.03 seconds.
+epoch_idx: 3, error: 0.9,likelihood: 23015.8
+16.87 seconds.
+epoch_idx: 4, error: 0.8522,likelihood: 22971.1
+16.92 seconds.
+------cnn1-----
+0.8:0.4
+------cnn2-----
+0.08:0.4
+------inner1-----
+0.009:0.045
+------softmax1-----
+0.008:0.004
+epoch_idx: 5, error: 0.8492,likelihood: 22887.4
+17.11 seconds.
+epoch_idx: 6, error: 0.853,likelihood: 22857
+16.91 seconds.
+epoch_idx: 7, error: 0.8563,likelihood: 22950.3
+16.64 seconds.
+epoch_idx: 8, error: 0.891,likelihood: 23014.6
+16.6 seconds.
+epoch_idx: 9, error: 0.8825,likelihood: 22995.2
+16.43 seconds.
+------cnn1-----
+0.64:0.32
+------cnn2-----
+0.064:0.32
+------inner1-----
+0.0081:0.0405
+------softmax1-----
+0.0064:0.0032
+epoch_idx: 10, error: 0.8714,likelihood: 22959.5
+16.71 seconds.
+epoch_idx: 11, error: 0.8499,likelihood: 22948.7
+16.73 seconds.
+epoch_idx: 12, error: 0.8681,likelihood: 22917.4
+17.01 seconds.
+epoch_idx: 13, error: 0.8526,likelihood: 22879.6
+17.52 seconds.
+epoch_idx: 14, error: 0.8507,likelihood: 22892.4
+17.69 seconds.
+------cnn1-----
+0.512:0.256
+------cnn2-----
+0.0512:0.256
+------inner1-----
+0.00729:0.03645
+------softmax1-----
+0.00512:0.00256
+epoch_idx: 15, error: 0.8604,likelihood: 22899.2
+17.9 seconds.
+epoch_idx: 16, error: 0.8678,likelihood: 22932
+18.13 seconds.
+epoch_idx: 17, error: 0.8696,likelihood: 22897.3
+18.08 seconds.
+epoch_idx: 18, error: 0.8608,likelihood: 22846.3
+18.1 seconds.
+epoch_idx: 19, error: 0.8637,likelihood: 22833
+18.14 seconds.
+------cnn1-----
+0.4096:0.2048
+------cnn2-----
+0.04096:0.2048
+------inner1-----
+0.006561:0.032805
+------softmax1-----
+0.004096:0.002048
+epoch_idx: 20, error: 0.8687,likelihood: 22845.6
+18.11 seconds.
+epoch_idx: 21, error: 0.8407,likelihood: 22757.5
+18.04 seconds.
+epoch_idx: 22, error: 0.8498,likelihood: 22760.8
+18.02 seconds.
+epoch_idx: 23, error: 0.8235,likelihood: 22663.8
+17.96 seconds.
+epoch_idx: 24, error: 0.8317,likelihood: 22664.5
+17.9 seconds.
+------cnn1-----
+0.32768:0.16384
+------cnn2-----
+0.032768:0.16384
+------inner1-----
+0.0059049:0.0295245
+------softmax1-----
+0.0032768:0.0016384
+epoch_idx: 25, error: 0.8236,likelihood: 22622.3
+17.94 seconds.
+epoch_idx: 26, error: 0.825,likelihood: 22624.1
+17.86 seconds.
+epoch_idx: 27, error: 0.831,likelihood: 22549.2
+17.85 seconds.
+epoch_idx: 28, error: 0.8549,likelihood: 22694.4
+17.82 seconds.
+epoch_idx: 29, error: 0.8397,likelihood: 22597.6
+17.73 seconds.
+------cnn1-----
+0.262144:0.131072
+------cnn2-----
+0.0262144:0.131072
+------inner1-----
+0.00531441:0.026572
+------softmax1-----
+0.00262144:0.00131072
+epoch_idx: 30, error: 0.8301,likelihood: 22478.2
+17.75 seconds.
+epoch_idx: 31, error: 0.8092,likelihood: 22433.4
+17.64 seconds.
+epoch_idx: 32, error: 0.8029,likelihood: 22317.2
+17.8 seconds.
+epoch_idx: 33, error: 0.7706,likelihood: 22211.5
+17.7 seconds.
+epoch_idx: 34, error: 0.7648,likelihood: 22224.5
+17.65 seconds.
+------cnn1-----
+0.209715:0.104858
+------cnn2-----
+0.0209715:0.104858
+------inner1-----
+0.00478297:0.0239148
+------softmax1-----
+0.00209715:0.00104858
+epoch_idx: 35, error: 0.7467,likelihood: 22078.3
+17.5 seconds.
+epoch_idx: 36, error: 0.7531,likelihood: 22130.1
+17.46 seconds.
+epoch_idx: 37, error: 0.7502,likelihood: 22118.9
+17.52 seconds.
+epoch_idx: 38, error: 0.7523,likelihood: 22132.3
+17.45 seconds.
+epoch_idx: 39, error: 0.76,likelihood: 22167.4
+17.44 seconds.
+------cnn1-----
+0.167772:0.0838861
+------cnn2-----
+0.0167772:0.0838861
+------inner1-----
+0.00430467:0.0215234
+------softmax1-----
+0.00167772:0.000838861
+epoch_idx: 40, error: 0.7571,likelihood: 22097
+17.45 seconds.
+epoch_idx: 41, error: 0.7599,likelihood: 22096
+17.51 seconds.
+epoch_idx: 42, error: 0.7544,likelihood: 22059.1
+17.41 seconds.
+epoch_idx: 43, error: 0.7495,likelihood: 22012.3
+17.54 seconds.
+epoch_idx: 44, error: 0.7465,likelihood: 21983.2
+17.57 seconds.
+------cnn1-----
+0.134218:0.0671089
+------cnn2-----
+0.0134218:0.0671089
+------inner1-----
+0.0038742:0.019371
+------softmax1-----
+0.00134218:0.000671089
+epoch_idx: 45, error: 0.7399,likelihood: 21856
+17.5 seconds.
+epoch_idx: 46, error: 0.7373,likelihood: 21854.8
+17.59 seconds.
+epoch_idx: 47, error: 0.7358,likelihood: 21847.3
+17.38 seconds.
+epoch_idx: 48, error: 0.7325,likelihood: 21826
+17.34 seconds.
+epoch_idx: 49, error: 0.7283,likelihood: 21811.2
+17.32 seconds.
+------cnn1-----
+0.107374:0.0536871
+------cnn2-----
+0.0107374:0.0536871
+------inner1-----
+0.00348678:0.0174339
+------softmax1-----
+0.00107374:0.000536871
+epoch_idx: 50, error: 0.713,likelihood: 21612.5
+17.39 seconds.
+epoch_idx: 51, error: 0.7147,likelihood: 21608.2
+17.3 seconds.
+epoch_idx: 52, error: 0.7212,likelihood: 21645.9
+17.29 seconds.
+epoch_idx: 53, error: 0.7252,likelihood: 21666.2
+17.29 seconds.
+epoch_idx: 54, error: 0.723,likelihood: 21645.2
+17.26 seconds.
+------cnn1-----
+0.0858994:0.0429497
+------cnn2-----
+0.00858994:0.0429497
+------inner1-----
+0.0031381:0.0156905
+------softmax1-----
+0.000858994:0.000429497
+epoch_idx: 55, error: 0.7136,likelihood: 21507.9
+17.26 seconds.
+epoch_idx: 56, error: 0.7156,likelihood: 21487.6
+17.27 seconds.
+epoch_idx: 57, error: 0.7189,likelihood: 21484.5
+17.28 seconds.
+epoch_idx: 58, error: 0.7214,likelihood: 21483.7
+17.28 seconds.
+epoch_idx: 59, error: 0.72,likelihood: 21475.2
+17.27 seconds.
+------cnn1-----
+0.0687195:0.0343597
+------cnn2-----
+0.00687195:0.0343597
+------inner1-----
+0.00282429:0.0141215
+------softmax1-----
+0.000687195:0.000343597
+epoch_idx: 60, error: 0.7047,likelihood: 21309.2
+17.3 seconds.
+epoch_idx: 61, error: 0.7026,likelihood: 21266.6
+17.27 seconds.
+epoch_idx: 62, error: 0.7042,likelihood: 21260.6
+17.23 seconds.
+epoch_idx: 63, error: 0.6998,likelihood: 21242
+17.25 seconds.
+epoch_idx: 64, error: 0.691,likelihood: 21195
+17.23 seconds.
+------cnn1-----
+0.0549756:0.0274878
+------cnn2-----
+0.00549756:0.0274878
+------inner1-----
+0.00254186:0.0127093
+------softmax1-----
+0.000549756:0.000274878
+epoch_idx: 65, error: 0.6653,likelihood: 20860.3
+17.21 seconds.
+epoch_idx: 66, error: 0.6589,likelihood: 20793.8
+17.19 seconds.
+epoch_idx: 67, error: 0.6554,likelihood: 20733
+17.24 seconds.
+epoch_idx: 68, error: 0.6517,likelihood: 20681.4
+17.22 seconds.
+epoch_idx: 69, error: 0.6485,likelihood: 20643.8
+17.23 seconds.
+------cnn1-----
+0.0439805:0.0219902
+------cnn2-----
+0.00439805:0.0219902
+------inner1-----
+0.00228768:0.0114384
+------softmax1-----
+0.000439805:0.000219902
+epoch_idx: 70, error: 0.6192,likelihood: 20219.8
+17.24 seconds.
+epoch_idx: 71, error: 0.6144,likelihood: 20154.9
+17.22 seconds.
+epoch_idx: 72, error: 0.6099,likelihood: 20095
+17.22 seconds.
+epoch_idx: 73, error: 0.6072,likelihood: 20045.3
+17.2 seconds.
+epoch_idx: 74, error: 0.6054,likelihood: 20000.1
+17.24 seconds.
+------cnn1-----
+0.0351844:0.0175922
+------cnn2-----
+0.00351844:0.0175922
+------inner1-----
+0.00205891:0.0102946
+------softmax1-----
+0.000351844:0.000175922
+epoch_idx: 75, error: 0.5831,likelihood: 19599.6
+17.2 seconds.
+epoch_idx: 76, error: 0.582,likelihood: 19526.1
+17.26 seconds.
+epoch_idx: 77, error: 0.5823,likelihood: 19470.2
+17.22 seconds.
+epoch_idx: 78, error: 0.5818,likelihood: 19423.7
+17.19 seconds.
+epoch_idx: 79, error: 0.5806,likelihood: 19390.6
+17.18 seconds.
+------cnn1-----
+0.0281475:0.0140738
+------cnn2-----
+0.00281475:0.0140738
+------inner1-----
+0.00185302:0.0092651
+------softmax1-----
+0.000281475:0.000140738
+epoch_idx: 80, error: 0.5734,likelihood: 19117.5
+17.22 seconds.
+epoch_idx: 81, error: 0.5741,likelihood: 19100.3
+17.19 seconds.
+epoch_idx: 82, error: 0.5737,likelihood: 19099.3
+17.17 seconds.
+epoch_idx: 83, error: 0.5735,likelihood: 19090
+17.23 seconds.
+epoch_idx: 84, error: 0.5717,likelihood: 19074.8
+17.18 seconds.
+------cnn1-----
+0.022518:0.011259
+------cnn2-----
+0.0022518:0.011259
+------inner1-----
+0.00166772:0.00833859
+------softmax1-----
+0.00022518:0.00011259
+epoch_idx: 85, error: 0.5608,likelihood: 18803
+17.22 seconds.
+epoch_idx: 86, error: 0.559,likelihood: 18756.3
+17.16 seconds.
+epoch_idx: 87, error: 0.5593,likelihood: 18731.2
+17.22 seconds.
+epoch_idx: 88, error: 0.5588,likelihood: 18710.7
+17.12 seconds.
+epoch_idx: 89, error: 0.557,likelihood: 18690.4
+17.2 seconds.
+------cnn1-----
+0.0180144:0.0090072
+------cnn2-----
+0.00180144:0.0090072
+------inner1-----
+0.00150095:0.00750473
+------softmax1-----
+0.000180144:9.0072e-05
+epoch_idx: 90, error: 0.5487,likelihood: 18466.7
+17.16 seconds.
+epoch_idx: 91, error: 0.5484,likelihood: 18419
+17.08 seconds.
+epoch_idx: 92, error: 0.5485,likelihood: 18395.1
+17.11 seconds.
+epoch_idx: 93, error: 0.5485,likelihood: 18379.2
+17.1 seconds.
+epoch_idx: 94, error: 0.5485,likelihood: 18366.2
+17.17 seconds.
+------cnn1-----
+0.0144115:0.00720576
+------cnn2-----
+0.00144115:0.00720576
+------inner1-----
+0.00135085:0.00675425
+------softmax1-----
+0.000144115:7.20576e-05
+epoch_idx: 95, error: 0.5433,likelihood: 18211
+17.17 seconds.
+epoch_idx: 96, error: 0.5424,likelihood: 18170.9
+17.09 seconds.
+epoch_idx: 97, error: 0.5423,likelihood: 18152.6
+17.18 seconds.
+epoch_idx: 98, error: 0.5423,likelihood: 18140.1
+17.11 seconds.
+epoch_idx: 99, error: 0.5414,likelihood: 18130.4
+17.24 seconds.
+------cnn1-----
+0.0115292:0.00576461
+------cnn2-----
+0.00115292:0.00576461
+------inner1-----
+0.00121577:0.00607883
+------softmax1-----
+0.000115292:5.76461e-05
+epoch_idx: 100, error: 0.5375,likelihood: 18019.6
+17.08 seconds.
+epoch_idx: 101, error: 0.536,likelihood: 17985.4
+17.1 seconds.
+epoch_idx: 102, error: 0.536,likelihood: 17967.6
+17.08 seconds.
+epoch_idx: 103, error: 0.5349,likelihood: 17955.7
+17.06 seconds.
+epoch_idx: 104, error: 0.5346,likelihood: 17947.2
+17.13 seconds.
+------cnn1-----
+0.00922338:0.00461169
+------cnn2-----
+0.000922338:0.00461169
+------inner1-----
+0.00109419:0.00547095
+------softmax1-----
+9.22338e-05:4.61169e-05
+epoch_idx: 105, error: 0.5322,likelihood: 17860.1
+17.06 seconds.
+epoch_idx: 106, error: 0.5318,likelihood: 17830.4
+17.13 seconds.
+epoch_idx: 107, error: 0.5316,likelihood: 17812.9
+17.1 seconds.
+epoch_idx: 108, error: 0.5316,likelihood: 17800.4
+17.11 seconds.
+epoch_idx: 109, error: 0.5312,likelihood: 17790
+17.14 seconds.
+------cnn1-----
+0.0073787:0.00368935
+------cnn2-----
+0.00073787:0.00368935
+------inner1-----
+0.00098477:0.00492385
+------softmax1-----
+7.3787e-05:3.68935e-05
+epoch_idx: 110, error: 0.5291,likelihood: 17707.4
+17.16 seconds.
+epoch_idx: 111, error: 0.5288,likelihood: 17677.9
+17.1 seconds.
+epoch_idx: 112, error: 0.528,likelihood: 17658.7
+17.14 seconds.
+epoch_idx: 113, error: 0.5276,likelihood: 17643.7
+17.12 seconds.
+epoch_idx: 114, error: 0.5271,likelihood: 17631.1
+17.13 seconds.
+------cnn1-----
+0.00590296:0.00295148
+------cnn2-----
+0.000590296:0.00295148
+------inner1-----
+0.000886293:0.00443147
+------softmax1-----
+5.90296e-05:2.95148e-05
+epoch_idx: 115, error: 0.5228,likelihood: 17541.7
+17.09 seconds.
+epoch_idx: 116, error: 0.5221,likelihood: 17512.6
+17.12 seconds.
+epoch_idx: 117, error: 0.5218,likelihood: 17492.5
+17.07 seconds.
+epoch_idx: 118, error: 0.5219,likelihood: 17475.6
+17.2 seconds.
+epoch_idx: 119, error: 0.5212,likelihood: 17461.2
+17.07 seconds.
+------cnn1-----
+0.00472237:0.00236118
+------cnn2-----
+0.000472237:0.00236118
+------inner1-----
+0.000797664:0.00398832
+------softmax1-----
+4.72237e-05:2.36118e-05
+epoch_idx: 120, error: 0.5177,likelihood: 17366.2
+17.1 seconds.
+epoch_idx: 121, error: 0.5166,likelihood: 17340
+17.18 seconds.
+epoch_idx: 122, error: 0.516,likelihood: 17321.2
+17.08 seconds.
+epoch_idx: 123, error: 0.5149,likelihood: 17305.4
+17.1 seconds.
+epoch_idx: 124, error: 0.515,likelihood: 17291.5
+17.13 seconds.
+------cnn1-----
+0.0037779:0.00188895
+------cnn2-----
+0.00037779:0.00188895
+------inner1-----
+0.000717897:0.00358949
+------softmax1-----
+3.7779e-05:1.88895e-05
+epoch_idx: 125, error: 0.5087,likelihood: 17202.5
+17.09 seconds.
+epoch_idx: 126, error: 0.5076,likelihood: 17179.7
+17.05 seconds.
+epoch_idx: 127, error: 0.5073,likelihood: 17163.3
+17.1 seconds.
+epoch_idx: 128, error: 0.5071,likelihood: 17149.8
+17.13 seconds.
+epoch_idx: 129, error: 0.5064,likelihood: 17137.8
+17.17 seconds.
+------cnn1-----
+0.00302232:0.00151116
+------cnn2-----
+0.000302232:0.00151116
+------inner1-----
+0.000646108:0.00323054
+------softmax1-----
+3.02232e-05:1.51116e-05
+epoch_idx: 130, error: 0.5047,likelihood: 17065.4
+17.11 seconds.
+epoch_idx: 131, error: 0.5046,likelihood: 17046
+17.06 seconds.
+epoch_idx: 132, error: 0.5049,likelihood: 17033
+17.11 seconds.
+epoch_idx: 133, error: 0.5048,likelihood: 17022.4
+17.15 seconds.
+epoch_idx: 134, error: 0.5047,likelihood: 17012.9
+17.12 seconds.
+------cnn1-----
+0.00241785:0.00120893
+------cnn2-----
+0.000241785:0.00120893
+------inner1-----
+0.000581497:0.00290748
+------softmax1-----
+2.41785e-05:1.20893e-05
+epoch_idx: 135, error: 0.5023,likelihood: 16957.2
+17.12 seconds.
+epoch_idx: 136, error: 0.5012,likelihood: 16940.6
+17.1 seconds.
+epoch_idx: 137, error: 0.5009,likelihood: 16930.3
+17.11 seconds.
+epoch_idx: 138, error: 0.5006,likelihood: 16921.8
+17.08 seconds.
+epoch_idx: 139, error: 0.4999,likelihood: 16914.3
+17.12 seconds.
+------cnn1-----
+0.00193428:0.000967141
+------cnn2-----
+0.000193428:0.000967141
+------inner1-----
+0.000523347:0.00261674
+------softmax1-----
+1.93428e-05:9.67141e-06
+epoch_idx: 140, error: 0.4977,likelihood: 16872.5
+17.12 seconds.
+epoch_idx: 141, error: 0.497,likelihood: 16857.9
+17.11 seconds.
+epoch_idx: 142, error: 0.4967,likelihood: 16849.4
+17.09 seconds.
+epoch_idx: 143, error: 0.4966,likelihood: 16842.7
+17.09 seconds.
+epoch_idx: 144, error: 0.4964,likelihood: 16836.8
+17.12 seconds.
+------cnn1-----
+0.00154743:0.000773713
+------cnn2-----
+0.000154743:0.000773713
+------inner1-----
+0.000471012:0.00235506
+------softmax1-----
+1.54743e-05:7.73713e-06
+epoch_idx: 145, error: 0.4961,likelihood: 16805.9
+17.09 seconds.
+epoch_idx: 146, error: 0.4955,likelihood: 16793.5
+17.08 seconds.
+epoch_idx: 147, error: 0.4956,likelihood: 16786.3
+17.09 seconds.
+epoch_idx: 148, error: 0.4953,likelihood: 16780.8
+17.09 seconds.
+epoch_idx: 149, error: 0.4951,likelihood: 16776.1
+17.08 seconds.
+------cnn1-----
+0.00123794:0.00061897
+------cnn2-----
+0.000123794:0.00061897
+------inner1-----
+0.000423911:0.00211956
+------softmax1-----
+1.23794e-05:6.18971e-06
+epoch_idx: 150, error: 0.4943,likelihood: 16752.8
+17.07 seconds.
+epoch_idx: 151, error: 0.4947,likelihood: 16742
+17.11 seconds.
+epoch_idx: 152, error: 0.4947,likelihood: 16735.8
+17.06 seconds.
+epoch_idx: 153, error: 0.4946,likelihood: 16731.2
+17.09 seconds.
+
+

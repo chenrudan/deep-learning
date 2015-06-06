@@ -42,6 +42,7 @@
 v3:单层的conv
 v4:两层conv，一层logistic
 v5:lenet
+v6:添加了padding，stride，conv3+mlp
 
 dE_dy是下一层计算的返回值，即对这一层输出的求导
 dE_dx是对上一层的求导

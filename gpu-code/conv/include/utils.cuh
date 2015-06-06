@@ -7,6 +7,7 @@
 #include <fstream>
 #include "matrix.h"
 #include "nvmatrix.cuh"
+#include <time.h>
 
 using namespace std;
 
@@ -39,6 +40,8 @@ typedef struct Pars{
 	int n_fetch;
     
 }pars;
+
+void printTime(clock_t &t, string s);
 
 void initW(NVMatrix* nvMat);
 

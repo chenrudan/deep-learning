@@ -1,0 +1,481 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BUILD_DIR	Makefile	/^BUILD_DIR = .\/bin$/;"	m
+BUILD_TARGET	Makefile	/^BUILD_TARGET = $(BUILD_DIR)\/$(TARGET)$/;"	m
+CC	Makefile	/^CC = g++ -std=c++0x                                                                    $/;"	m
+CC	preversion/src/Makefile	/^CC = g++                                                                        $/;"	m
+CCFLAGS	Makefile	/^CCFLAGS = -c$/;"	m
+CCFLAGS	preversion/src/Makefile	/^CCFLAGS = -c$/;"	m
+CU_INCLUDES	Makefile	/^CU_INCLUDES = $(shell find $(INCLUDES_DIR) -name "*.cuh")$/;"	m
+CU_SRCS	Makefile	/^CU_SRCS = $(shell find $(SRCS_DIR) -name "*.cu")$/;"	m
+CXX_INCLUDES	Makefile	/^CXX_INCLUDES = $(shell find $(INCLUDES_DIR) -name "*.h")$/;"	m
+CXX_SRCS	Makefile	/^CXX_SRCS = $(filter-out $(HXX_SRCS), $(shell find $(SRCS_DIR) -name "*.cpp"))$/;"	m
+EXP	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+EXP	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+FUNCTION	include/matrix.h	/^	enum FUNCTION {$/;"	g	class:Matrix	access:public
+FUNCTION	preversion/include/matrix.h	/^	enum FUNCTION {$/;"	g	class:Matrix	access:public
+GCC	Makefile	/^GCC = gcc$/;"	m
+GCC	preversion/src/Makefile	/^GCC = gcc$/;"	m
+HXX_INCLUDES	Makefile	/^HXX_INCLUDES = $(shell find $(INCLUDES_DIR) -name "*.hpp")$/;"	m
+HXX_SRCS	Makefile	/^HXX_SRCS = $(subst $(INCLUDES_DIR), $(SRCS_DIR), ${HXX_INCLUDES:.hpp=.cpp})$/;"	m
+HiddenLayer	python_util/mlp.py	/^class HiddenLayer(object):$/;"	c	inherits:object
+INCLUDES	Makefile	/^INCLUDES = -I.\/include$/;"	m
+INCLUDES	preversion/src/Makefile	/^INCLUDES = -I..\/include$/;"	m
+INCLUDES_DIR	Makefile	/^INCLUDES_DIR = .\/include$/;"	m
+ImgInfo	include/load_layer.hpp	/^	ImgInfo();$/;"	p	class:ImgInfo	access:public	signature:()
+ImgInfo	include/load_layer.hpp	/^class ImgInfo{$/;"	c
+ImgInfo	src/load_layer.cpp	/^ImgInfo<Dtype>::ImgInfo(){$/;"	f	class:ImgInfo	signature:()
+ImgInfo::ImgInfo	include/load_layer.hpp	/^	ImgInfo();$/;"	p	class:ImgInfo	access:public	signature:()
+ImgInfo::ImgInfo	src/load_layer.cpp	/^ImgInfo<Dtype>::ImgInfo(){$/;"	f	class:ImgInfo	signature:()
+ImgInfo::img_channel	include/load_layer.hpp	/^	int img_channel;$/;"	m	class:ImgInfo	access:public
+ImgInfo::img_size	include/load_layer.hpp	/^	int img_size;$/;"	m	class:ImgInfo	access:public
+ImgInfo::img_sqrt	include/load_layer.hpp	/^	int img_sqrt;$/;"	m	class:ImgInfo	access:public
+ImgInfo::img_test_num	include/load_layer.hpp	/^	int img_test_num;$/;"	m	class:ImgInfo	access:public
+ImgInfo::img_train_num	include/load_layer.hpp	/^	int img_train_num;$/;"	m	class:ImgInfo	access:public
+ImgInfo::test_label	include/load_layer.hpp	/^	Dtype* test_label, *test_label_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::test_label_ptr	include/load_layer.hpp	/^	Dtype* test_label, *test_label_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::test_pixel	include/load_layer.hpp	/^	Dtype* test_pixel, *test_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::test_pixel_ptr	include/load_layer.hpp	/^	Dtype* test_pixel, *test_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::train_label	include/load_layer.hpp	/^	Dtype* train_label, *train_label_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::train_label_ptr	include/load_layer.hpp	/^	Dtype* train_label, *train_label_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::train_pixel	include/load_layer.hpp	/^	Dtype* train_pixel, *train_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::train_pixel_ptr	include/load_layer.hpp	/^	Dtype* train_pixel, *train_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+ImgInfo::~ImgInfo	include/load_layer.hpp	/^	~ImgInfo();$/;"	p	class:ImgInfo	access:public	signature:()
+ImgInfo::~ImgInfo	src/load_layer.cpp	/^ImgInfo<Dtype>::~ImgInfo(){$/;"	f	class:ImgInfo	signature:()
+LAYER_H_	include/layer.hpp	5;"	d
+LIB	Makefile	/^LIB = -L\/usr\/local\/cuda-6.5\/lib64 -lcuda -lcudart  -lcublas -lm  -lpthread  -lgomp  -lmpich$/;"	m
+LIB	preversion/src/Makefile	/^LIB = -lcuda -lcudart -lcublas -lm  -lpthread -lmpich -lgomp$/;"	m
+LINK	Makefile	/^LINK = mpicxx$/;"	m
+LOAD_LAYER_HPP_	include/load_layer.hpp	5;"	d
+LOG	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+LOG	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+LOGISTIC1	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+LOGISTIC1	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+LOGISTIC2	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+LOGISTIC2	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Layer	include/layer.hpp	/^	Layer() {}$/;"	f	class:Layer	access:public	signature:()
+Layer	include/layer.hpp	/^class Layer {$/;"	c
+Layer::Layer	include/layer.hpp	/^	Layer() {}$/;"	f	class:Layer	access:public	signature:()
+Layer::_b_lr	include/layer.hpp	/^	float _b_lr;$/;"	m	class:Layer	access:protected
+Layer::_bias	include/layer.hpp	/^	NVMatrix* _bias;$/;"	m	class:Layer	access:protected
+Layer::_bias_inc	include/layer.hpp	/^	NVMatrix* _bias_inc;$/;"	m	class:Layer	access:protected
+Layer::_dE_db	include/layer.hpp	/^	NVMatrix* _dE_db;$/;"	m	class:Layer	access:protected
+Layer::_dE_dw	include/layer.hpp	/^	NVMatrix* _dE_dw;$/;"	m	class:Layer	access:protected
+Layer::_dE_dy	include/layer.hpp	/^	NVMatrix* _dE_dy;$/;"	m	class:Layer	access:protected
+Layer::_filter_channel	include/layer.hpp	/^	int _filter_channel;$/;"	m	class:Layer	access:protected
+Layer::_filter_size	include/layer.hpp	/^	int _filter_size;$/;"	m	class:Layer	access:protected
+Layer::_in_channel	include/layer.hpp	/^	int _in_channel;$/;"	m	class:Layer	access:protected
+Layer::_in_size	include/layer.hpp	/^	int _in_size;$/;"	m	class:Layer	access:protected
+Layer::_lr_down_scale	include/layer.hpp	/^	float _lr_down_scale;$/;"	m	class:Layer	access:protected
+Layer::_minibatch_size	include/layer.hpp	/^	int _minibatch_size;$/;"	m	class:Layer	access:protected
+Layer::_momentum	include/layer.hpp	/^	float _momentum; 	$/;"	m	class:Layer	access:protected
+Layer::_num_in	include/layer.hpp	/^	int _num_in;$/;"	m	class:Layer	access:protected
+Layer::_num_out	include/layer.hpp	/^	int _num_out;$/;"	m	class:Layer	access:protected
+Layer::_out_size	include/layer.hpp	/^	int _out_size;$/;"	m	class:Layer	access:protected
+Layer::_pad	include/layer.hpp	/^	int _pad;$/;"	m	class:Layer	access:protected
+Layer::_pool_size	include/layer.hpp	/^	int _pool_size;$/;"	m	class:Layer	access:protected
+Layer::_stride	include/layer.hpp	/^	int _stride;$/;"	m	class:Layer	access:protected
+Layer::_w	include/layer.hpp	/^	NVMatrix* _w;$/;"	m	class:Layer	access:protected
+Layer::_w_inc	include/layer.hpp	/^	NVMatrix* _w_inc;$/;"	m	class:Layer	access:protected
+Layer::_w_lr	include/layer.hpp	/^	float _w_lr;$/;"	m	class:Layer	access:protected
+Layer::_weight_decay	include/layer.hpp	/^	float _weight_decay;$/;"	m	class:Layer	access:protected
+Layer::_y	include/layer.hpp	/^	NVMatrix* _y;$/;"	m	class:Layer	access:protected
+Layer::changeLrDownScale	include/layer.hpp	/^	inline void changeLrDownScale(float scale) {$/;"	f	class:Layer	access:public	signature:(float scale)
+Layer::computeDerivsOfInput	include/layer.hpp	/^	virtual void computeDerivsOfInput(NVMatrix* dE_dx) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* dE_dx)
+Layer::computeDerivsOfPars	include/layer.hpp	/^	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x, NVMatrix* labels)
+Layer::computeOutput	include/layer.hpp	/^	virtual void computeOutput(NVMatrix* x) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x)
+Layer::getBias	include/layer.hpp	/^	inline NVMatrix* getBias() {$/;"	f	class:Layer	access:public	signature:()
+Layer::getDEDY	include/layer.hpp	/^	inline NVMatrix* getDEDY() {$/;"	f	class:Layer	access:public	signature:()
+Layer::getW	include/layer.hpp	/^	inline NVMatrix* getW() {$/;"	f	class:Layer	access:public	signature:()
+Layer::getY	include/layer.hpp	/^	inline NVMatrix* getY() {$/;"	f	class:Layer	access:public	signature:()
+Layer::handle	include/layer.hpp	/^	cublasHandle_t handle;$/;"	m	class:Layer	access:protected
+Layer::initCuda	include/layer.hpp	/^	virtual void initCuda() {}$/;"	f	class:Layer	access:public	signature:()
+Layer::stopWeightDecay	include/layer.hpp	/^	inline void stopWeightDecay() {$/;"	f	class:Layer	access:public	signature:()
+Layer::transfarLowerPars	include/layer.hpp	/^	inline void transfarLowerPars() {$/;"	f	class:Layer	access:public	signature:()
+Layer::updatePars	include/layer.hpp	/^	void updatePars(bool isShow = false) {$/;"	f	class:Layer	access:public	signature:(bool isShow = false)
+Layer::~Layer	include/layer.hpp	/^	virtual ~Layer() {}	$/;"	f	class:Layer	access:public	signature:()
+LeNetConvPoolLayer	python_util/conv.py	/^class LeNetConvPoolLayer(object):$/;"	c	inherits:object
+LoadCifar10	include/load_layer.hpp	/^	LoadCifar10(ImgInfo<Dtype>* cifar10Info);$/;"	p	class:LoadCifar10	access:public	signature:(ImgInfo<Dtype>* cifar10Info)
+LoadCifar10	include/load_layer.hpp	/^class LoadCifar10 : public LoadLayer<Dtype> {$/;"	c	inherits:LoadLayer
+LoadCifar10	src/load_layer.cpp	/^LoadCifar10<Dtype>::LoadCifar10(ImgInfo<Dtype>* cifar10Info){$/;"	f	class:LoadCifar10	signature:(ImgInfo<Dtype>* cifar10Info)
+LoadCifar10::LoadCifar10	include/load_layer.hpp	/^	LoadCifar10(ImgInfo<Dtype>* cifar10Info);$/;"	p	class:LoadCifar10	access:public	signature:(ImgInfo<Dtype>* cifar10Info)
+LoadCifar10::LoadCifar10	src/load_layer.cpp	/^LoadCifar10<Dtype>::LoadCifar10(ImgInfo<Dtype>* cifar10Info){$/;"	f	class:LoadCifar10	signature:(ImgInfo<Dtype>* cifar10Info)
+LoadCifar10::loadBinary	include/load_layer.hpp	/^	void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr);	$/;"	p	class:LoadCifar10	access:public	signature:(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr)
+LoadCifar10::loadBinary	src/load_layer.cpp	/^void LoadCifar10<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr){$/;"	f	class:LoadCifar10	signature:(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr)
+LoadCifar10::processOneImg	include/load_layer.hpp	/^	void processOneImg(Dtype* pixel_ptr);$/;"	p	class:LoadCifar10	access:public	signature:(Dtype* pixel_ptr)
+LoadCifar10::processOneImg	src/load_layer.cpp	/^void LoadCifar10<Dtype>::processOneImg(Dtype* pixel_ptr){$/;"	f	class:LoadCifar10	signature:(Dtype* pixel_ptr)
+LoadCifar10::~LoadCifar10	include/load_layer.hpp	/^	~LoadCifar10();$/;"	p	class:LoadCifar10	access:public	signature:()
+LoadCifar10::~LoadCifar10	src/load_layer.cpp	/^LoadCifar10<Dtype>::~LoadCifar10(){$/;"	f	class:LoadCifar10	signature:()
+LoadLayer	include/load_layer.hpp	/^	LoadLayer() {}$/;"	f	class:LoadLayer	access:public	signature:()
+LoadLayer	include/load_layer.hpp	/^class LoadLayer {$/;"	c
+LoadLayer::LoadLayer	include/load_layer.hpp	/^	LoadLayer() {}$/;"	f	class:LoadLayer	access:public	signature:()
+LoadLayer::_img_channel	include/load_layer.hpp	/^	int _img_channel;$/;"	m	class:LoadLayer	access:protected
+LoadLayer::_img_num	include/load_layer.hpp	/^	int _img_num;$/;"	m	class:LoadLayer	access:protected
+LoadLayer::_img_sqrt	include/load_layer.hpp	/^	int _img_sqrt;$/;"	m	class:LoadLayer	access:protected
+LoadLayer::_ori_pix	include/load_layer.hpp	/^	Dtype* _ori_pix;$/;"	m	class:LoadLayer	access:protected
+LoadLayer::loadBinary	include/load_layer.hpp	/^	virtual void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr) {}$/;"	f	class:LoadLayer	access:public	signature:(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr)
+LoadLayer::loadLabel	include/load_layer.hpp	/^	virtual int* loadLabel(string filename) {$/;"	f	class:LoadLayer	access:public	signature:(string filename)
+LoadLayer::loadPictures	include/load_layer.hpp	/^	virtual void loadPictures() {}$/;"	f	class:LoadLayer	access:public	signature:()
+LoadLayer::loadPixel	include/load_layer.hpp	/^	virtual Dtype* loadPixel(string filename) {$/;"	f	class:LoadLayer	access:public	signature:(string filename)
+LoadLayer::processOneImg	include/load_layer.hpp	/^	virtual void processOneImg(Dtype* pixel_ptr) {}$/;"	f	class:LoadLayer	access:public	signature:(Dtype* pixel_ptr)
+LoadLayer::~LoadLayer	include/load_layer.hpp	/^	virtual ~LoadLayer() {}$/;"	f	class:LoadLayer	access:public	signature:()
+LogisticRegression	python_util/logistic_sgd.py	/^class LogisticRegression(object):$/;"	c	inherits:object
+MATRIX_H_	include/matrix.h	6;"	d
+MATRIX_H_	preversion/include/matrix.h	6;"	d
+MLP	python_util/mlp.py	/^class MLP(object):$/;"	c	inherits:object
+MPICXX	Makefile	/^MPICXX = mpicxx$/;"	m
+MPICXX	preversion/src/Makefile	/^MPICXX = mpicxx$/;"	m
+MULTI_MECHINE	Makefile	/^MULTI_MECHINE ?= 0$/;"	m
+MULTI_PROCESS	Makefile	/^MULTI_PROCESS ?= 0$/;"	m
+Matrix	include/matrix.h	/^	Matrix();$/;"	p	class:Matrix	access:public	signature:()
+Matrix	include/matrix.h	/^	Matrix(float *data, int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(float *data, int numRows, int numCols)
+Matrix	include/matrix.h	/^	Matrix(int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(int numRows, int numCols)
+Matrix	include/matrix.h	/^class Matrix {$/;"	c
+Matrix	preversion/include/matrix.h	/^	Matrix();$/;"	p	class:Matrix	access:public	signature:()
+Matrix	preversion/include/matrix.h	/^	Matrix(float *data, int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(float *data, int numRows, int numCols)
+Matrix	preversion/include/matrix.h	/^	Matrix(int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(int numRows, int numCols)
+Matrix	preversion/include/matrix.h	/^class Matrix {$/;"	c
+Matrix	preversion/src/matrix.cpp	/^Matrix::Matrix(){$/;"	f	class:Matrix	signature:()
+Matrix	preversion/src/matrix.cpp	/^Matrix::Matrix(float* data, int numRows, int numCols) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols)
+Matrix	preversion/src/matrix.cpp	/^Matrix::Matrix(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+Matrix	src/matrix.cpp	/^Matrix::Matrix(){$/;"	f	class:Matrix	signature:()
+Matrix	src/matrix.cpp	/^Matrix::Matrix(float* data, int numRows, int numCols) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols)
+Matrix	src/matrix.cpp	/^Matrix::Matrix(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+Matrix::EXP	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::EXP	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::FUNCTION	include/matrix.h	/^	enum FUNCTION {$/;"	g	class:Matrix	access:public
+Matrix::FUNCTION	preversion/include/matrix.h	/^	enum FUNCTION {$/;"	g	class:Matrix	access:public
+Matrix::LOG	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::LOG	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::LOGISTIC1	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::LOGISTIC1	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::LOGISTIC2	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::LOGISTIC2	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::Matrix	include/matrix.h	/^	Matrix();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::Matrix	include/matrix.h	/^	Matrix(float *data, int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(float *data, int numRows, int numCols)
+Matrix::Matrix	include/matrix.h	/^	Matrix(int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(int numRows, int numCols)
+Matrix::Matrix	preversion/include/matrix.h	/^	Matrix();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::Matrix	preversion/include/matrix.h	/^	Matrix(float *data, int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(float *data, int numRows, int numCols)
+Matrix::Matrix	preversion/include/matrix.h	/^	Matrix(int numRows, int numCols);$/;"	p	class:Matrix	access:public	signature:(int numRows, int numCols)
+Matrix::Matrix	preversion/src/matrix.cpp	/^Matrix::Matrix(){$/;"	f	class:Matrix	signature:()
+Matrix::Matrix	preversion/src/matrix.cpp	/^Matrix::Matrix(float* data, int numRows, int numCols) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols)
+Matrix::Matrix	preversion/src/matrix.cpp	/^Matrix::Matrix(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+Matrix::Matrix	src/matrix.cpp	/^Matrix::Matrix(){$/;"	f	class:Matrix	signature:()
+Matrix::Matrix	src/matrix.cpp	/^Matrix::Matrix(float* data, int numRows, int numCols) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols)
+Matrix::Matrix	src/matrix.cpp	/^Matrix::Matrix(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+Matrix::ONE	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::ONE	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::RECIPROCAL	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::RECIPROCAL	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::SQUARE	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::SQUARE	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::TANH	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::TANH	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::ZERO	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::ZERO	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+Matrix::_data	include/matrix.h	/^	float *_data;$/;"	m	class:Matrix	access:private
+Matrix::_data	preversion/include/matrix.h	/^	float *_data;$/;"	m	class:Matrix	access:private
+Matrix::_init	include/matrix.h	/^	void _init(float* data, int numRows, int numCols, bool ownsData);$/;"	p	class:Matrix	access:private	signature:(float* data, int numRows, int numCols, bool ownsData)
+Matrix::_init	preversion/include/matrix.h	/^	void _init(float* data, int numRows, int numCols, bool ownsData);$/;"	p	class:Matrix	access:private	signature:(float* data, int numRows, int numCols, bool ownsData)
+Matrix::_init	preversion/src/matrix.cpp	/^void Matrix::_init(float* data, int numRows, int numCols, bool ownsData) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols, bool ownsData)
+Matrix::_init	src/matrix.cpp	/^void Matrix::_init(float* data, int numRows, int numCols, bool ownsData) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols, bool ownsData)
+Matrix::_numCols	include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+Matrix::_numCols	preversion/include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+Matrix::_numDataBytes	include/matrix.h	/^	int _numDataBytes;$/;"	m	class:Matrix	access:private
+Matrix::_numDataBytes	preversion/include/matrix.h	/^	int _numDataBytes;$/;"	m	class:Matrix	access:private
+Matrix::_numElements	include/matrix.h	/^	int _numElements;$/;"	m	class:Matrix	access:private
+Matrix::_numElements	preversion/include/matrix.h	/^	int _numElements;$/;"	m	class:Matrix	access:private
+Matrix::_numRows	include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+Matrix::_numRows	preversion/include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+Matrix::_ownsData	include/matrix.h	/^	bool _ownsData;$/;"	m	class:Matrix	access:private
+Matrix::_ownsData	preversion/include/matrix.h	/^	bool _ownsData;$/;"	m	class:Matrix	access:private
+Matrix::_updateDims	include/matrix.h	/^	void _updateDims(int numRows, int numCols);$/;"	p	class:Matrix	access:private	signature:(int numRows, int numCols)
+Matrix::_updateDims	preversion/include/matrix.h	/^	void _updateDims(int numRows, int numCols);$/;"	p	class:Matrix	access:private	signature:(int numRows, int numCols)
+Matrix::_updateDims	preversion/src/matrix.cpp	/^void Matrix::_updateDims(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+Matrix::_updateDims	src/matrix.cpp	/^void Matrix::_updateDims(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+Matrix::apply	include/matrix.h	/^	void apply(Matrix::FUNCTION f); $/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f)
+Matrix::apply	include/matrix.h	/^	void apply(Matrix::FUNCTION f, Matrix *target);$/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f, Matrix *target)
+Matrix::apply	preversion/include/matrix.h	/^	void apply(Matrix::FUNCTION f); $/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f)
+Matrix::apply	preversion/include/matrix.h	/^	void apply(Matrix::FUNCTION f, Matrix *target);$/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f, Matrix *target)
+Matrix::apply	preversion/src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f) {$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f)
+Matrix::apply	preversion/src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f, Matrix *target){$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f, Matrix *target)
+Matrix::apply	src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f) {$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f)
+Matrix::apply	src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f, Matrix *target){$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f, Matrix *target)
+Matrix::getCell	include/matrix.h	/^	inline float& getCell(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+Matrix::getCell	preversion/include/matrix.h	/^	inline float& getCell(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+Matrix::getData	include/matrix.h	/^	inline float* getData() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getData	preversion/include/matrix.h	/^	inline float* getData() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumCols	include/matrix.h	/^	inline int getNumCols() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumCols	preversion/include/matrix.h	/^	inline int getNumCols() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumDataBytes	include/matrix.h	/^	inline int getNumDataBytes() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumDataBytes	preversion/include/matrix.h	/^	inline int getNumDataBytes() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumElements	include/matrix.h	/^	inline int getNumElements() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumElements	preversion/include/matrix.h	/^	inline int getNumElements() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumRows	include/matrix.h	/^	inline int getNumRows() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getNumRows	preversion/include/matrix.h	/^	inline int getNumRows() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::getTranspose	include/matrix.h	/^	Matrix* getTranspose();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::getTranspose	preversion/include/matrix.h	/^	Matrix* getTranspose();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::getTranspose	preversion/src/matrix.cpp	/^Matrix* Matrix::getTranspose() {$/;"	f	class:Matrix	signature:()
+Matrix::getTranspose	src/matrix.cpp	/^Matrix* Matrix::getTranspose() {$/;"	f	class:Matrix	signature:()
+Matrix::isView	include/matrix.h	/^	inline bool isView() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::isView	preversion/include/matrix.h	/^	inline bool isView() const {$/;"	f	class:Matrix	access:public	signature:() const
+Matrix::myLog	include/matrix.h	/^	void myLog(float *data, int length);$/;"	p	class:Matrix	access:public	signature:(float *data, int length)
+Matrix::myLog	preversion/include/matrix.h	/^	void myLog(float *data, int length);$/;"	p	class:Matrix	access:public	signature:(float *data, int length)
+Matrix::myLog	preversion/src/matrix.cpp	/^void Matrix::myLog(float *data, int length){$/;"	f	class:Matrix	signature:(float *data, int length)
+Matrix::myLog	src/matrix.cpp	/^void Matrix::myLog(float *data, int length){$/;"	f	class:Matrix	signature:(float *data, int length)
+Matrix::operator ()	include/matrix.h	/^	float& operator()(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+Matrix::operator ()	preversion/include/matrix.h	/^	float& operator()(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+Matrix::reValue	include/matrix.h	/^	void reValue(float value);$/;"	p	class:Matrix	access:public	signature:(float value)
+Matrix::reValue	preversion/include/matrix.h	/^	void reValue(float value);$/;"	p	class:Matrix	access:public	signature:(float value)
+Matrix::reValue	preversion/src/matrix.cpp	/^void Matrix::reValue(float value){$/;"	f	class:Matrix	signature:(float value)
+Matrix::reValue	src/matrix.cpp	/^void Matrix::reValue(float value){$/;"	f	class:Matrix	signature:(float value)
+Matrix::setCell	include/matrix.h	/^    inline void setCell(int i, int j, float val) {$/;"	f	class:Matrix	access:public	signature:(int i, int j, float val)
+Matrix::setCell	preversion/include/matrix.h	/^    inline void setCell(int i, int j, float val) {$/;"	f	class:Matrix	access:public	signature:(int i, int j, float val)
+Matrix::showValue	include/matrix.h	/^	void showValue(string name);$/;"	p	class:Matrix	access:public	signature:(string name)
+Matrix::showValue	preversion/include/matrix.h	/^	void showValue(string name);$/;"	p	class:Matrix	access:public	signature:(string name)
+Matrix::showValue	preversion/src/matrix.cpp	/^void Matrix::showValue(string name){$/;"	f	class:Matrix	signature:(string name)
+Matrix::showValue	src/matrix.cpp	/^void Matrix::showValue(string name){$/;"	f	class:Matrix	signature:(string name)
+Matrix::sum	include/matrix.h	/^	double sum();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::sum	preversion/include/matrix.h	/^	double sum();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::sum	preversion/src/matrix.cpp	/^double Matrix::sum(){$/;"	f	class:Matrix	signature:()
+Matrix::sum	src/matrix.cpp	/^double Matrix::sum(){$/;"	f	class:Matrix	signature:()
+Matrix::~Matrix	include/matrix.h	/^	~Matrix();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::~Matrix	preversion/include/matrix.h	/^	~Matrix();$/;"	p	class:Matrix	access:public	signature:()
+Matrix::~Matrix	preversion/src/matrix.cpp	/^Matrix::~Matrix() {$/;"	f	class:Matrix	signature:()
+Matrix::~Matrix	src/matrix.cpp	/^Matrix::~Matrix() {$/;"	f	class:Matrix	signature:()
+NUM_PROCESS	Makefile	/^NUM_PROCESS ?= 2$/;"	m
+NVCC	Makefile	/^NVCC = nvcc$/;"	m
+NVCC	preversion/src/Makefile	/^NVCC = nvcc$/;"	m
+NVCCFLAGS	Makefile	/^NVCCFLAGS = -g -O3 -c -Xcompiler -fopenmp$/;"	m
+NVCCFLAGS	preversion/src/Makefile	/^NVCCFLAGS = -g -O3 -c -Xcompiler -fopenmp$/;"	m
+OBJS	preversion/src/Makefile	/^OBJS = matrix.o nvmatrix.o nvmatrix_kernel.o convnet.o convnet_kernel.o logistic.o logistic_kernel.o $/;"	m
+OBJ_DIR	Makefile	/^OBJ_DIR = .\/obj$/;"	m
+OBJ_TARGET	Makefile	/^OBJ_TARGET = $(OBJ_DIR)\/$(TARGET).o$/;"	m
+ONE	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+ONE	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+OPEN_MPI	Makefile	/^OPEN_MPI ?= 0$/;"	m
+PTXFLAGES	Makefile	/^PTXFLAGES = --machine 64$/;"	m
+Pars	preversion/include/utils.h	/^typedef struct Pars{$/;"	s
+Pars::convResultSize	preversion/include/utils.h	/^	int convResultSize;$/;"	m	struct:Pars	access:public
+Pars::epsAvgOut	preversion/include/utils.h	/^    float epsAvgOut;$/;"	m	struct:Pars	access:public
+Pars::epsHidBias	preversion/include/utils.h	/^    float epsHidBias;$/;"	m	struct:Pars	access:public
+Pars::epsHidVis	preversion/include/utils.h	/^    float epsHidVis;$/;"	m	struct:Pars	access:public
+Pars::epsOutBias	preversion/include/utils.h	/^    float epsOutBias;$/;"	m	struct:Pars	access:public
+Pars::filterSize	preversion/include/utils.h	/^    int filterSize;$/;"	m	struct:Pars	access:public
+Pars::inChannel	preversion/include/utils.h	/^    int inChannel;$/;"	m	struct:Pars	access:public
+Pars::inSize	preversion/include/utils.h	/^    int inSize;$/;"	m	struct:Pars	access:public
+Pars::minibatchSize	preversion/include/utils.h	/^    int minibatchSize;$/;"	m	struct:Pars	access:public
+Pars::mom	preversion/include/utils.h	/^    float mom;$/;"	m	struct:Pars	access:public
+Pars::nFetch	preversion/include/utils.h	/^	int nFetch;$/;"	m	struct:Pars	access:public
+Pars::nPush	preversion/include/utils.h	/^	int nPush;$/;"	m	struct:Pars	access:public
+Pars::numEpoches	preversion/include/utils.h	/^    int numEpoches; $/;"	m	struct:Pars	access:public
+Pars::numFilters	preversion/include/utils.h	/^    int numFilters;$/;"	m	struct:Pars	access:public
+Pars::numMinibatches	preversion/include/utils.h	/^    int numMinibatches;$/;"	m	struct:Pars	access:public
+Pars::numOut	preversion/include/utils.h	/^    int numOut;$/;"	m	struct:Pars	access:public
+Pars::numValidBatches	preversion/include/utils.h	/^    int numValidBatches;$/;"	m	struct:Pars	access:public
+Pars::poolResultSize	preversion/include/utils.h	/^	int poolResultSize;$/;"	m	struct:Pars	access:public
+Pars::poolSize	preversion/include/utils.h	/^	int poolSize;$/;"	m	struct:Pars	access:public
+Pars::stepSize	preversion/include/utils.h	/^	int stepSize;$/;"	m	struct:Pars	access:public
+Pars::trainNum	preversion/include/utils.h	/^    int trainNum;$/;"	m	struct:Pars	access:public
+Pars::validNum	preversion/include/utils.h	/^    int validNum;$/;"	m	struct:Pars	access:public
+Pars::wcAvgOut	preversion/include/utils.h	/^    float wcAvgOut;$/;"	m	struct:Pars	access:public
+Pars::wcHidVis	preversion/include/utils.h	/^    float wcHidVis;$/;"	m	struct:Pars	access:public
+RECIPROCAL	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+RECIPROCAL	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+SQUARE	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+SQUARE	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+SRCS_DIR	Makefile	/^SRCS_DIR = .\/src$/;"	m
+SRCS_TARGET	Makefile	/^SRCS_TARGET = $(SRCS_TARGET_DIR)\/$(TARGET).cu$/;"	m
+SRCS_TARGET_DIR	Makefile	/^SRCS_TARGET_DIR = .\/main_src$/;"	m
+TANH	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+TANH	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+TARGET	Makefile	/^TARGET ?= main$/;"	m
+UTILS_H_	preversion/include/utils.h	3;"	d
+ZERO	include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+ZERO	preversion/include/matrix.h	/^        TANH, RECIPROCAL, SQUARE, EXP, LOG, ZERO, ONE, LOGISTIC1, LOGISTIC2$/;"	e	enum:Matrix::FUNCTION
+__docformat__	python_util/logistic_sgd.py	/^__docformat__ = 'restructedtext en'$/;"	v
+__docformat__	python_util/mlp.py	/^__docformat__ = 'restructedtext en'$/;"	v
+__init__	python_util/conv.py	/^    def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2, 2)):$/;"	m	class:LeNetConvPoolLayer	access:public
+__init__	python_util/logistic_sgd.py	/^    def __init__(self, input, n_in, n_out):$/;"	m	class:LogisticRegression	access:public
+__init__	python_util/mlp.py	/^    def __init__(self, rng, input, n_in, n_hidden, n_out):$/;"	m	class:MLP	access:public
+__init__	python_util/mlp.py	/^    def __init__(self, rng, input, n_in, n_out, W=None, b=None,$/;"	m	class:HiddenLayer	access:public
+_b_lr	include/layer.hpp	/^	float _b_lr;$/;"	m	class:Layer	access:protected
+_bias	include/layer.hpp	/^	NVMatrix* _bias;$/;"	m	class:Layer	access:protected
+_bias_inc	include/layer.hpp	/^	NVMatrix* _bias_inc;$/;"	m	class:Layer	access:protected
+_dE_db	include/layer.hpp	/^	NVMatrix* _dE_db;$/;"	m	class:Layer	access:protected
+_dE_dw	include/layer.hpp	/^	NVMatrix* _dE_dw;$/;"	m	class:Layer	access:protected
+_dE_dy	include/layer.hpp	/^	NVMatrix* _dE_dy;$/;"	m	class:Layer	access:protected
+_data	include/matrix.h	/^	float *_data;$/;"	m	class:Matrix	access:private
+_data	preversion/include/matrix.h	/^	float *_data;$/;"	m	class:Matrix	access:private
+_filter_channel	include/layer.hpp	/^	int _filter_channel;$/;"	m	class:Layer	access:protected
+_filter_size	include/layer.hpp	/^	int _filter_size;$/;"	m	class:Layer	access:protected
+_img_channel	include/load_layer.hpp	/^	int _img_channel;$/;"	m	class:LoadLayer	access:protected
+_img_num	include/load_layer.hpp	/^	int _img_num;$/;"	m	class:LoadLayer	access:protected
+_img_sqrt	include/load_layer.hpp	/^	int _img_sqrt;$/;"	m	class:LoadLayer	access:protected
+_in_channel	include/layer.hpp	/^	int _in_channel;$/;"	m	class:Layer	access:protected
+_in_size	include/layer.hpp	/^	int _in_size;$/;"	m	class:Layer	access:protected
+_init	include/matrix.h	/^	void _init(float* data, int numRows, int numCols, bool ownsData);$/;"	p	class:Matrix	access:private	signature:(float* data, int numRows, int numCols, bool ownsData)
+_init	preversion/include/matrix.h	/^	void _init(float* data, int numRows, int numCols, bool ownsData);$/;"	p	class:Matrix	access:private	signature:(float* data, int numRows, int numCols, bool ownsData)
+_init	preversion/src/matrix.cpp	/^void Matrix::_init(float* data, int numRows, int numCols, bool ownsData) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols, bool ownsData)
+_init	src/matrix.cpp	/^void Matrix::_init(float* data, int numRows, int numCols, bool ownsData) {$/;"	f	class:Matrix	signature:(float* data, int numRows, int numCols, bool ownsData)
+_lr_down_scale	include/layer.hpp	/^	float _lr_down_scale;$/;"	m	class:Layer	access:protected
+_minibatch_size	include/layer.hpp	/^	int _minibatch_size;$/;"	m	class:Layer	access:protected
+_momentum	include/layer.hpp	/^	float _momentum; 	$/;"	m	class:Layer	access:protected
+_numCols	include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+_numCols	preversion/include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+_numDataBytes	include/matrix.h	/^	int _numDataBytes;$/;"	m	class:Matrix	access:private
+_numDataBytes	preversion/include/matrix.h	/^	int _numDataBytes;$/;"	m	class:Matrix	access:private
+_numElements	include/matrix.h	/^	int _numElements;$/;"	m	class:Matrix	access:private
+_numElements	preversion/include/matrix.h	/^	int _numElements;$/;"	m	class:Matrix	access:private
+_numRows	include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+_numRows	preversion/include/matrix.h	/^	int _numRows, _numCols;$/;"	m	class:Matrix	access:private
+_num_in	include/layer.hpp	/^	int _num_in;$/;"	m	class:Layer	access:protected
+_num_out	include/layer.hpp	/^	int _num_out;$/;"	m	class:Layer	access:protected
+_ori_pix	include/load_layer.hpp	/^	Dtype* _ori_pix;$/;"	m	class:LoadLayer	access:protected
+_out_size	include/layer.hpp	/^	int _out_size;$/;"	m	class:Layer	access:protected
+_ownsData	include/matrix.h	/^	bool _ownsData;$/;"	m	class:Matrix	access:private
+_ownsData	preversion/include/matrix.h	/^	bool _ownsData;$/;"	m	class:Matrix	access:private
+_pad	include/layer.hpp	/^	int _pad;$/;"	m	class:Layer	access:protected
+_pool_size	include/layer.hpp	/^	int _pool_size;$/;"	m	class:Layer	access:protected
+_stride	include/layer.hpp	/^	int _stride;$/;"	m	class:Layer	access:protected
+_updateDims	include/matrix.h	/^	void _updateDims(int numRows, int numCols);$/;"	p	class:Matrix	access:private	signature:(int numRows, int numCols)
+_updateDims	preversion/include/matrix.h	/^	void _updateDims(int numRows, int numCols);$/;"	p	class:Matrix	access:private	signature:(int numRows, int numCols)
+_updateDims	preversion/src/matrix.cpp	/^void Matrix::_updateDims(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+_updateDims	src/matrix.cpp	/^void Matrix::_updateDims(int numRows, int numCols) {$/;"	f	class:Matrix	signature:(int numRows, int numCols)
+_w	include/layer.hpp	/^	NVMatrix* _w;$/;"	m	class:Layer	access:protected
+_w_inc	include/layer.hpp	/^	NVMatrix* _w_inc;$/;"	m	class:Layer	access:protected
+_w_lr	include/layer.hpp	/^	float _w_lr;$/;"	m	class:Layer	access:protected
+_weight_decay	include/layer.hpp	/^	float _weight_decay;$/;"	m	class:Layer	access:protected
+_y	include/layer.hpp	/^	NVMatrix* _y;$/;"	m	class:Layer	access:protected
+apply	include/matrix.h	/^	void apply(Matrix::FUNCTION f); $/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f)
+apply	include/matrix.h	/^	void apply(Matrix::FUNCTION f, Matrix *target);$/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f, Matrix *target)
+apply	preversion/include/matrix.h	/^	void apply(Matrix::FUNCTION f); $/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f)
+apply	preversion/include/matrix.h	/^	void apply(Matrix::FUNCTION f, Matrix *target);$/;"	p	class:Matrix	access:public	signature:(Matrix::FUNCTION f, Matrix *target)
+apply	preversion/src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f) {$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f)
+apply	preversion/src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f, Matrix *target){$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f, Matrix *target)
+apply	src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f) {$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f)
+apply	src/matrix.cpp	/^void Matrix::apply(Matrix::FUNCTION f, Matrix *target){$/;"	f	class:Matrix	signature:(Matrix::FUNCTION f, Matrix *target)
+changeLrDownScale	include/layer.hpp	/^	inline void changeLrDownScale(float scale) {$/;"	f	class:Layer	access:public	signature:(float scale)
+computeDerivsOfInput	include/layer.hpp	/^	virtual void computeDerivsOfInput(NVMatrix* dE_dx) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* dE_dx)
+computeDerivsOfPars	include/layer.hpp	/^	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x, NVMatrix* labels)
+computeOutput	include/layer.hpp	/^	virtual void computeOutput(NVMatrix* x) {}$/;"	f	class:Layer	access:public	signature:(NVMatrix* x)
+convResultSize	preversion/include/utils.h	/^	int convResultSize;$/;"	m	struct:Pars	access:public
+epsAvgOut	preversion/include/utils.h	/^    float epsAvgOut;$/;"	m	struct:Pars	access:public
+epsHidBias	preversion/include/utils.h	/^    float epsHidBias;$/;"	m	struct:Pars	access:public
+epsHidVis	preversion/include/utils.h	/^    float epsHidVis;$/;"	m	struct:Pars	access:public
+epsOutBias	preversion/include/utils.h	/^    float epsOutBias;$/;"	m	struct:Pars	access:public
+errors	python_util/logistic_sgd.py	/^    def errors(self, y):$/;"	m	class:LogisticRegression	access:public
+evaluate_lenet5	python_util/conv.py	/^def evaluate_lenet5(learning_rate=0.1, n_epochs=200,$/;"	f	access:public
+experiment	python_util/conv.py	/^def experiment(state, channel):$/;"	f	access:public
+filterSize	preversion/include/utils.h	/^    int filterSize;$/;"	m	struct:Pars	access:public
+getBias	include/layer.hpp	/^	inline NVMatrix* getBias() {$/;"	f	class:Layer	access:public	signature:()
+getCell	include/matrix.h	/^	inline float& getCell(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+getCell	preversion/include/matrix.h	/^	inline float& getCell(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+getDEDY	include/layer.hpp	/^	inline NVMatrix* getDEDY() {$/;"	f	class:Layer	access:public	signature:()
+getData	include/matrix.h	/^	inline float* getData() const {$/;"	f	class:Matrix	access:public	signature:() const
+getData	preversion/include/matrix.h	/^	inline float* getData() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumCols	include/matrix.h	/^	inline int getNumCols() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumCols	preversion/include/matrix.h	/^	inline int getNumCols() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumDataBytes	include/matrix.h	/^	inline int getNumDataBytes() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumDataBytes	preversion/include/matrix.h	/^	inline int getNumDataBytes() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumElements	include/matrix.h	/^	inline int getNumElements() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumElements	preversion/include/matrix.h	/^	inline int getNumElements() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumRows	include/matrix.h	/^	inline int getNumRows() const {$/;"	f	class:Matrix	access:public	signature:() const
+getNumRows	preversion/include/matrix.h	/^	inline int getNumRows() const {$/;"	f	class:Matrix	access:public	signature:() const
+getTranspose	include/matrix.h	/^	Matrix* getTranspose();$/;"	p	class:Matrix	access:public	signature:()
+getTranspose	preversion/include/matrix.h	/^	Matrix* getTranspose();$/;"	p	class:Matrix	access:public	signature:()
+getTranspose	preversion/src/matrix.cpp	/^Matrix* Matrix::getTranspose() {$/;"	f	class:Matrix	signature:()
+getTranspose	src/matrix.cpp	/^Matrix* Matrix::getTranspose() {$/;"	f	class:Matrix	signature:()
+getW	include/layer.hpp	/^	inline NVMatrix* getW() {$/;"	f	class:Layer	access:public	signature:()
+getY	include/layer.hpp	/^	inline NVMatrix* getY() {$/;"	f	class:Layer	access:public	signature:()
+handle	include/layer.hpp	/^	cublasHandle_t handle;$/;"	m	class:Layer	access:protected
+img_channel	include/load_layer.hpp	/^	int img_channel;$/;"	m	class:ImgInfo	access:public
+img_size	include/load_layer.hpp	/^	int img_size;$/;"	m	class:ImgInfo	access:public
+img_sqrt	include/load_layer.hpp	/^	int img_sqrt;$/;"	m	class:ImgInfo	access:public
+img_test_num	include/load_layer.hpp	/^	int img_test_num;$/;"	m	class:ImgInfo	access:public
+img_train_num	include/load_layer.hpp	/^	int img_train_num;$/;"	m	class:ImgInfo	access:public
+inChannel	preversion/include/utils.h	/^    int inChannel;$/;"	m	struct:Pars	access:public
+inSize	preversion/include/utils.h	/^    int inSize;$/;"	m	struct:Pars	access:public
+initCuda	include/layer.hpp	/^	virtual void initCuda() {}$/;"	f	class:Layer	access:public	signature:()
+initW	preversion/include/utils.h	/^inline void initW(float* a, int length){$/;"	f	signature:(float* a, int length)
+isView	include/matrix.h	/^	inline bool isView() const {$/;"	f	class:Matrix	access:public	signature:() const
+isView	preversion/include/matrix.h	/^	inline bool isView() const {$/;"	f	class:Matrix	access:public	signature:() const
+loadBinary	include/load_layer.hpp	/^	virtual void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr) {}$/;"	f	class:LoadLayer	access:public	signature:(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr)
+loadBinary	include/load_layer.hpp	/^	void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr);	$/;"	p	class:LoadCifar10	access:public	signature:(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr)
+loadBinary	src/load_layer.cpp	/^void LoadCifar10<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr){$/;"	f	class:LoadCifar10	signature:(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr)
+loadLabel	include/load_layer.hpp	/^	virtual int* loadLabel(string filename) {$/;"	f	class:LoadLayer	access:public	signature:(string filename)
+loadPictures	include/load_layer.hpp	/^	virtual void loadPictures() {}$/;"	f	class:LoadLayer	access:public	signature:()
+loadPixel	include/load_layer.hpp	/^	virtual Dtype* loadPixel(string filename) {$/;"	f	class:LoadLayer	access:public	signature:(string filename)
+load_data	python_util/logistic_sgd.py	/^def load_data(dataset):$/;"	f	access:public
+minibatchSize	preversion/include/utils.h	/^    int minibatchSize;$/;"	m	struct:Pars	access:public
+mom	preversion/include/utils.h	/^    float mom;$/;"	m	struct:Pars	access:public
+myLog	include/matrix.h	/^	void myLog(float *data, int length);$/;"	p	class:Matrix	access:public	signature:(float *data, int length)
+myLog	preversion/include/matrix.h	/^	void myLog(float *data, int length);$/;"	p	class:Matrix	access:public	signature:(float *data, int length)
+myLog	preversion/src/matrix.cpp	/^void Matrix::myLog(float *data, int length){$/;"	f	class:Matrix	signature:(float *data, int length)
+myLog	src/matrix.cpp	/^void Matrix::myLog(float *data, int length){$/;"	f	class:Matrix	signature:(float *data, int length)
+nFetch	preversion/include/utils.h	/^	int nFetch;$/;"	m	struct:Pars	access:public
+nPush	preversion/include/utils.h	/^	int nPush;$/;"	m	struct:Pars	access:public
+negative_log_likelihood	python_util/logistic_sgd.py	/^    def negative_log_likelihood(self, y):$/;"	m	class:LogisticRegression	access:public
+numEpoches	preversion/include/utils.h	/^    int numEpoches; $/;"	m	struct:Pars	access:public
+numFilters	preversion/include/utils.h	/^    int numFilters;$/;"	m	struct:Pars	access:public
+numMinibatches	preversion/include/utils.h	/^    int numMinibatches;$/;"	m	struct:Pars	access:public
+numOut	preversion/include/utils.h	/^    int numOut;$/;"	m	struct:Pars	access:public
+numValidBatches	preversion/include/utils.h	/^    int numValidBatches;$/;"	m	struct:Pars	access:public
+operator ()	include/matrix.h	/^	float& operator()(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+operator ()	preversion/include/matrix.h	/^	float& operator()(int i, int j) const {$/;"	f	class:Matrix	access:public	signature:(int i, int j) const
+pars	preversion/include/utils.h	/^}pars;$/;"	t	typeref:struct:Pars
+poolResultSize	preversion/include/utils.h	/^	int poolResultSize;$/;"	m	struct:Pars	access:public
+poolSize	preversion/include/utils.h	/^	int poolSize;$/;"	m	struct:Pars	access:public
+processOneImg	include/load_layer.hpp	/^	virtual void processOneImg(Dtype* pixel_ptr) {}$/;"	f	class:LoadLayer	access:public	signature:(Dtype* pixel_ptr)
+processOneImg	include/load_layer.hpp	/^	void processOneImg(Dtype* pixel_ptr);$/;"	p	class:LoadCifar10	access:public	signature:(Dtype* pixel_ptr)
+processOneImg	src/load_layer.cpp	/^void LoadCifar10<Dtype>::processOneImg(Dtype* pixel_ptr){$/;"	f	class:LoadCifar10	signature:(Dtype* pixel_ptr)
+reValue	include/matrix.h	/^	void reValue(float value);$/;"	p	class:Matrix	access:public	signature:(float value)
+reValue	preversion/include/matrix.h	/^	void reValue(float value);$/;"	p	class:Matrix	access:public	signature:(float value)
+reValue	preversion/src/matrix.cpp	/^void Matrix::reValue(float value){$/;"	f	class:Matrix	signature:(float value)
+reValue	src/matrix.cpp	/^void Matrix::reValue(float value){$/;"	f	class:Matrix	signature:(float value)
+readData	preversion/include/utils.h	/^inline void readData(NVMatrix* nvData, string filename, bool isData, int addZerosInFront = 0){ $/;"	f	signature:(NVMatrix* nvData, string filename, bool isData, int addZerosInFront = 0)
+readPars	preversion/include/utils.h	/^inline void readPars(Matrix* par, string filename){$/;"	f	signature:(Matrix* par, string filename)
+savePars	preversion/include/utils.h	/^inline void savePars(Matrix* par, string filename){$/;"	f	signature:(Matrix* par, string filename)
+setCell	include/matrix.h	/^    inline void setCell(int i, int j, float val) {$/;"	f	class:Matrix	access:public	signature:(int i, int j, float val)
+setCell	preversion/include/matrix.h	/^    inline void setCell(int i, int j, float val) {$/;"	f	class:Matrix	access:public	signature:(int i, int j, float val)
+sgd_optimization_mnist	python_util/logistic_sgd.py	/^def sgd_optimization_mnist(learning_rate=0.13, n_epochs=2000,$/;"	f	access:public
+shared_dataset	python_util/logistic_sgd.py	/^    def shared_dataset(data_xy, borrow=True):$/;"	f	function:load_data	access:public
+showValue	include/matrix.h	/^	void showValue(string name);$/;"	p	class:Matrix	access:public	signature:(string name)
+showValue	preversion/include/matrix.h	/^	void showValue(string name);$/;"	p	class:Matrix	access:public	signature:(string name)
+showValue	preversion/src/matrix.cpp	/^void Matrix::showValue(string name){$/;"	f	class:Matrix	signature:(string name)
+showValue	src/matrix.cpp	/^void Matrix::showValue(string name){$/;"	f	class:Matrix	signature:(string name)
+stepSize	preversion/include/utils.h	/^	int stepSize;$/;"	m	struct:Pars	access:public
+stopWeightDecay	include/layer.hpp	/^	inline void stopWeightDecay() {$/;"	f	class:Layer	access:public	signature:()
+sum	include/matrix.h	/^	double sum();$/;"	p	class:Matrix	access:public	signature:()
+sum	preversion/include/matrix.h	/^	double sum();$/;"	p	class:Matrix	access:public	signature:()
+sum	preversion/src/matrix.cpp	/^double Matrix::sum(){$/;"	f	class:Matrix	signature:()
+sum	src/matrix.cpp	/^double Matrix::sum(){$/;"	f	class:Matrix	signature:()
+test_label	include/load_layer.hpp	/^	Dtype* test_label, *test_label_ptr;$/;"	m	class:ImgInfo	access:public
+test_label_ptr	include/load_layer.hpp	/^	Dtype* test_label, *test_label_ptr;$/;"	m	class:ImgInfo	access:public
+test_mlp	python_util/mlp.py	/^def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,$/;"	f	access:public
+test_pixel	include/load_layer.hpp	/^	Dtype* test_pixel, *test_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+test_pixel_ptr	include/load_layer.hpp	/^	Dtype* test_pixel, *test_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+trainNum	preversion/include/utils.h	/^    int trainNum;$/;"	m	struct:Pars	access:public
+train_label	include/load_layer.hpp	/^	Dtype* train_label, *train_label_ptr;$/;"	m	class:ImgInfo	access:public
+train_label_ptr	include/load_layer.hpp	/^	Dtype* train_label, *train_label_ptr;$/;"	m	class:ImgInfo	access:public
+train_pixel	include/load_layer.hpp	/^	Dtype* train_pixel, *train_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+train_pixel_ptr	include/load_layer.hpp	/^	Dtype* train_pixel, *train_pixel_ptr;$/;"	m	class:ImgInfo	access:public
+transfarLowerPars	include/layer.hpp	/^	inline void transfarLowerPars() {$/;"	f	class:Layer	access:public	signature:()
+updatePars	include/layer.hpp	/^	void updatePars(bool isShow = false) {$/;"	f	class:Layer	access:public	signature:(bool isShow = false)
+validNum	preversion/include/utils.h	/^    int validNum;$/;"	m	struct:Pars	access:public
+wcAvgOut	preversion/include/utils.h	/^    float wcAvgOut;$/;"	m	struct:Pars	access:public
+wcHidVis	preversion/include/utils.h	/^    float wcHidVis;$/;"	m	struct:Pars	access:public
+~ImgInfo	include/load_layer.hpp	/^	~ImgInfo();$/;"	p	class:ImgInfo	access:public	signature:()
+~ImgInfo	src/load_layer.cpp	/^ImgInfo<Dtype>::~ImgInfo(){$/;"	f	class:ImgInfo	signature:()
+~Layer	include/layer.hpp	/^	virtual ~Layer() {}	$/;"	f	class:Layer	access:public	signature:()
+~LoadCifar10	include/load_layer.hpp	/^	~LoadCifar10();$/;"	p	class:LoadCifar10	access:public	signature:()
+~LoadCifar10	src/load_layer.cpp	/^LoadCifar10<Dtype>::~LoadCifar10(){$/;"	f	class:LoadCifar10	signature:()
+~LoadLayer	include/load_layer.hpp	/^	virtual ~LoadLayer() {}$/;"	f	class:LoadLayer	access:public	signature:()
+~Matrix	include/matrix.h	/^	~Matrix();$/;"	p	class:Matrix	access:public	signature:()
+~Matrix	preversion/include/matrix.h	/^	~Matrix();$/;"	p	class:Matrix	access:public	signature:()
+~Matrix	preversion/src/matrix.cpp	/^Matrix::~Matrix() {$/;"	f	class:Matrix	signature:()
+~Matrix	src/matrix.cpp	/^Matrix::~Matrix() {$/;"	f	class:Matrix	signature:()

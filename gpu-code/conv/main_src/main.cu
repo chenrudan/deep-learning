@@ -4,12 +4,10 @@
 
 #include <iostream>
 #include <fstream>
-#include <time.h>
 #include <sstream>
 #include <cmath>
 #include <omp.h>
 #include "mpi.h"
-#include "matrix.h"
 #include "nvmatrix.cuh"
 #include "convnet.cuh"
 #include "pooling_layer.cuh"
@@ -35,7 +33,6 @@ enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 
 int num_process;
 int rank;
-
 
 void managerNode(pars* layer_pars){
 
@@ -165,7 +162,7 @@ cout << "done7\n";
     for(int i = 1; i < 6; i++){
         string s;
         stringstream ss;
-        ss << 5;
+        ss << i;
         ss >> s;    
 		string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
         cifar10.loadBinary(filename, cifar10_info->train_pixel_ptr, \
@@ -206,7 +203,7 @@ cout << "done6\n";
 cout << "done5\n";
 	gaussRand(cnn1_w, 0.0001);
 //	initW(cnn1_w);
-	gaussRand(cnn2_w, 0.01);
+	gaussRand(cnn2_w, 0.001);
 //	initW(cnn2_w);
 	gaussRand(cnn3_w, 0.01);
 //	initW(cnn3_w);
@@ -457,43 +454,64 @@ if(epoch_idx > 1){
 					mini_data_len * batch_idx);
 			mini_label->changePtrFromStart(train_label->getDevData(), \
 					mini_label_len * batch_idx);
-
+//cout << "\n===================";
+//		printTime(t, "start");
 			cnn1.computeOutputs(mini_data);
 			cnn1_y = cnn1.getY();
+//		printTime(t, "cnn1 out");
 			pool1.computeOutputs(cnn1_y);
 			pool1_y = pool1.getY();
+//		printTime(t, "pool out");
 			cnn2.computeOutputs(pool1_y);			
 			cnn2_y = cnn2.getY();
+//		printTime(t, "cnn2 out");
 			pool2.computeOutputs(cnn2_y);
 			pool2_y = pool2.getY();
+//		printTime(t, "pool2 out");
 			cnn3.computeOutputs(pool2_y);
 			cnn3_y = cnn3.getY();
+//		printTime(t, "cnn3 out");
 			pool3.computeOutputs(cnn3_y);
 			pool3_y = pool3.getY();
+//		printTime(t, "pool3 out");
 			inner1.computeOutputs(pool3_y);
 			inner1_y = inner1.getY();
+//		printTime(t, "inner1 out");
 			softmax1.computeOutputs(inner1_y);
 			softmax1.computeError(mini_label, error);
+//		printTime(t, "softmax out");
 
 			softmax1.computeDerivsOfPars(inner1_y, mini_label);
+//		printTime(t, "softmax pars");
 			inner1_dE_dy = inner1.getDEDY();
 			softmax1.computeDerivsOfInput(inner1_dE_dy);
+//		printTime(t, "softmax input");
 			inner1.computeDerivsOfPars(pool3_y);
+//		printTime(t, "inner pars");
 			pool3_dE_dy = pool3.getDEDY();
 			inner1.computeDerivsOfInput(pool3_dE_dy);
+//		printTime(t, "inner input");
 			cnn3_dE_dy = cnn3.getDEDY();
 			pool3.computeDerivsOfInput(cnn3_dE_dy);
+//		printTime(t, "pool3 input");
 			cnn3.computeDerivsOfPars(pool2_y);
+//		printTime(t, "cnn3 pars");
 			pool2_dE_dy = pool2.getDEDY();
 			cnn3.computeDerivsOfInput(pool2_dE_dy);
+//		printTime(t, "cnn3 input");
 			cnn2_dE_dy = cnn2.getDEDY();
 			pool2.computeDerivsOfInput(cnn2_dE_dy);
+//		printTime(t, "pool2 input");
 			cnn2.computeDerivsOfPars(pool1_y);
+//		printTime(t, "cnn2 pars");
 			pool1_dE_dy = pool1.getDEDY();
 			cnn2.computeDerivsOfInput(pool1_dE_dy);
+//		printTime(t, "cnn2 input");
 			cnn1_dE_dy = cnn1.getDEDY();
 			pool1.computeDerivsOfInput(cnn1_dE_dy);
+//		printTime(t, "pool1 input");
 			cnn1.computeDerivsOfPars(mini_data);
+//		printTime(t, "cnn1 pars");
 
 			cnn1.updatePars();
 			cnn2.updatePars();
@@ -599,15 +617,37 @@ if(epoch_idx > 1){
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-	/*	
-		if((epoch_idx + 1) % 4){
+		
+		if((epoch_idx + 1) % 5 == 0){
+			cout << "-----cnn1-----\n";
 			cnn1.transfarLowerPars();
+			cout << "-----cnn2-----\n";
 			cnn2.transfarLowerPars();
+			cout << "-----cnn3-----\n";
 			cnn3.transfarLowerPars();
+			cout << "-----inner1-----\n";
 			inner1.transfarLowerPars();
+			cout << "-----softmax1-----\n";
 			softmax1.transfarLowerPars();
-		} 
-*/
+		}
+		if((epoch_idx + 1)% 100 == 0){
+        	string s;
+        	stringstream ss;
+        	ss << epoch_idx;
+        	ss >> s;    
+			savePars(cnn1_w, "../snapshot/w_snap/cnn1_w_" + s + "_t1.bin");
+			cout << s << endl;
+			savePars(cnn1_bias, "../snapshot/w_snap/cnn1_bias_" + s + "_t1.bin");
+			savePars(cnn2_w, "../snapshot/w_snap/cnn2_w_" + s + "_t1.bin");
+			savePars(cnn2_bias, "../snapshot/w_snap/cnn2_bias_" + s + "_t1.bin");
+			savePars(cnn3_w, "../snapshot/w_snap/cnn3_w_" + s + "_t1.bin");
+			savePars(cnn3_bias, "../snapshot/w_snap/cnn3_bias_" + s + "_t1.bin");
+			savePars(inner1_w, "../snapshot/w_snap/inner1_w_" + s + "_t1.bin");
+			savePars(inner1_bias, "../snapshot/w_snap/inner1_bias_" + s + "_t1.bin");
+			savePars(softmax_w, "../snapshot/w_snap/softmax1_w_" + s + "_t1.bin");
+			savePars(softmax_bias, "../snapshot/w_snap/softmax1_bias_" + s + "_t1.bin");
+		}
+
 
 	}
 	if(rank == 1){
@@ -658,24 +698,33 @@ int main(int argc, char** argv){
 
 	pars* layer_pars = new pars[num_layer];
 
-	layer_pars[0].w_lr = 0.001;
-	layer_pars[0].b_lr = 0.001;
-	layer_pars[2].w_lr = 0.001;
-	layer_pars[2].b_lr = 0.002;
-	layer_pars[4].w_lr = 0.001;
-	layer_pars[4].b_lr = 0.002;
+	layer_pars[0].w_lr = 0.1;
+	layer_pars[0].b_lr = 0.1;
+	layer_pars[2].w_lr = 0.1;
+	layer_pars[2].b_lr = 0.2;
+	layer_pars[4].w_lr = 0.01;
+	layer_pars[4].b_lr = 0.01;
 
-	layer_pars[6].w_lr = 0.00001;
-	layer_pars[6].b_lr = 0.00002;
-	layer_pars[7].w_lr = 0.000001;
-	layer_pars[7].b_lr = 0.00001;
+	layer_pars[6].w_lr = 0.001;
+	layer_pars[6].b_lr = 0.005;
+	layer_pars[7].w_lr = 0.0005;
+	layer_pars[7].b_lr = 0.0005;
 
+	layer_pars[0].lr_down_scale = 0.95;
+	layer_pars[2].lr_down_scale = 0.95;
+	layer_pars[4].lr_down_scale = 0.95;
+	layer_pars[6].lr_down_scale = 0.95;
+	layer_pars[7].lr_down_scale = 0.95;
 
+	layer_pars[0].weight_decay = 0;
+	layer_pars[2].weight_decay = 0;
+	layer_pars[4].weight_decay = 0;
+	layer_pars[6].weight_decay = 0;
+	layer_pars[7].weight_decay = 0;
 
 //	layer_pars[0].w_lr = 5;
 //	layer_pars[0].b_lr = 10;
 	layer_pars[0].momentum = 0.9;
-	layer_pars[0].weight_decay = 0;
 	layer_pars[0].in_size = 32; 
 	layer_pars[0].in_channel = 3;
 	layer_pars[0].filter_size = 5;
@@ -689,10 +738,10 @@ int main(int argc, char** argv){
 	layer_pars[0].minibatch_size = 100;
 	layer_pars[0].num_minibatch = layer_pars[0].num_train / (layer_pars[0].minibatch_size * (num_process - 1));
 	layer_pars[0].num_validbatch = layer_pars[0].num_valid / (layer_pars[0].minibatch_size * (num_process - 1));
-	layer_pars[0].num_epoch = 50; 
+	layer_pars[0].num_epoch = 1; 
 	layer_pars[0].n_push = 49;
 	layer_pars[0].n_fetch = 50;
-	layer_pars[0].lr_down_scale = 0.95;
+//	layer_pars[0].lr_down_scale = 0.95;
 
 	layer_pars[1].in_size = layer_pars[0].out_size; 
 	layer_pars[1].in_channel = layer_pars[0].filter_channel;
@@ -706,7 +755,6 @@ int main(int argc, char** argv){
 //	layer_pars[2].w_lr = 1;
 //	layer_pars[2].b_lr = 2;
 	layer_pars[2].momentum = 0.9;
-	layer_pars[2].weight_decay = 0;
 	layer_pars[2].in_size = layer_pars[1].out_size; 
 	layer_pars[2].in_channel = layer_pars[1].filter_channel;
 	layer_pars[2].filter_size = 5;
@@ -716,7 +764,8 @@ int main(int argc, char** argv){
 	layer_pars[2].padded_in_size = layer_pars[2].in_size + 2 * layer_pars[2].pad;
 	layer_pars[2].out_size = (layer_pars[2].padded_in_size - layer_pars[2].filter_size) / layer_pars[2].stride + 1;
 	layer_pars[2].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[2].lr_down_scale = 0.95;
+//	layer_pars[2].lr_down_scale = 0.95;
+
 
 	layer_pars[3].in_size = layer_pars[2].out_size; 
 	layer_pars[3].in_channel = layer_pars[2].filter_channel;
@@ -730,7 +779,6 @@ int main(int argc, char** argv){
 //	layer_pars[4].w_lr = 1;
 //	layer_pars[4].b_lr = 2;
 	layer_pars[4].momentum = 0.9;
-	layer_pars[4].weight_decay = 0;
 	layer_pars[4].in_size = layer_pars[3].out_size; 
 	layer_pars[4].in_channel = layer_pars[3].filter_channel;
 	layer_pars[4].filter_size = 5;
@@ -754,20 +802,18 @@ int main(int argc, char** argv){
 //	layer_pars[6].w_lr = 1;
 //	layer_pars[6].b_lr = 2;
 	layer_pars[6].momentum = 0.9;
-	layer_pars[6].weight_decay = 0;
 	layer_pars[6].num_in = layer_pars[5].out_size * layer_pars[5].out_size * layer_pars[5].filter_channel;
 	layer_pars[6].num_out = 64;
 	layer_pars[6].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[6].lr_down_scale = 0.95;
+//	layer_pars[6].lr_down_scale = 0.95;
 
 //	layer_pars[7].w_lr = 1;
 //	layer_pars[7].b_lr = 2;
 	layer_pars[7].momentum = 0.9;
-	layer_pars[7].weight_decay = 0;
 	layer_pars[7].num_in = layer_pars[6].num_out;
 	layer_pars[7].num_out = 10;
 	layer_pars[7].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[7].lr_down_scale = 0.95;
+//	layer_pars[7].lr_down_scale = 0.95;
 
 
 

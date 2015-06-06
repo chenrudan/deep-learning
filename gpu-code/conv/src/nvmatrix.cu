@@ -192,17 +192,6 @@ void NVMatrix::checkBounds(int startRow, int endRow, int startCol, \
 	assert(endCol >= 0 && endCol <= _numCols);
 }
 
-NVMatrix* NVMatrix::getTranspose() {
-	Matrix* ori = new Matrix(_numRows, _numCols);
-	this->copyToHost(ori);
-	Matrix* trans = ori->getTranspose();
-	NVMatrix* nvTrans = new NVMatrix(trans, true);
-	delete ori;
-	delete trans;
-	return nvTrans;
-}
-
-//不能直接在自身进行转置，需要传入参数或者返回新建的转置值
 void NVMatrix::getTranspose(NVMatrix* target){
 	
 	const unsigned int width = _numCols;

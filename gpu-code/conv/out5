@@ -1,0 +1,5590 @@
+nvcc -c src/convnet.cu -I./include -o obj/convnet.o
+nvcc -g -O3 -c -Xcompiler -fopenmp ./main_src/main.cu -I./include -o ./obj/main.o
+mpicxx -o ./bin/main ./obj/main.o    ./obj/matrix.o   ./obj/nvmatrix_kernel.o  ./obj/utils.o  ./obj/layer_kernel.o  ./obj/convnet.o  ./obj/inner_product_layer.o  ./obj/nvmatrix.o  ./obj/pooling_layer.o  ./obj/logistic.o -L/usr/local/cuda-6.5/lib64 -lcuda -lcudart  -lcublas -lm  -lpthread  -lgomp  -lmpich  
+if [ 0 -eq 1 ] ; then \
+		scp ./bin/main crd@gpu-server1:/home/crd/conv/bin; \
+	fi
+if [ 1 -eq 1 ]; then \
+		mpirun_rsh -np 2 -hostfile hostfile MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 ./bin/main; \
+	fi
+done4
+======overall==============
+train: 50000
+valid: 10000
+batchSize: 100
+n_fetch: 50
+n_push: 49
+===========cnn1==============
+in_size: 32
+in_channel: 3
+filter_size: 5
+filter_channel: 32
+stride: 1
+w_lr: 0.1
+b_lr: 0.1
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========pool1==============
+in_size: 32
+in_channel: 32
+stride: 2
+pool_size: 3
+===========cnn2==============
+in_size: 16
+in_channel: 32
+filter_size: 5
+filter_channel: 32
+stride: 1
+w_lr: 0.1
+b_lr: 0.2
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========pool2==============
+in_size: 16
+in_channel: 32
+stride: 2
+pool_size: 3
+===========cnn3==============
+in_size: 8
+in_channel: 32
+filter_size: 5
+filter_channel: 64
+stride: 1
+w_lr: 0.01
+b_lr: 0.01
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========pool3==============
+in_size: 8
+in_channel: 64
+stride: 2
+pool_size: 3
+===========inner_product1==============
+num_in: 1024
+num_out: 64
+w_lr: 0.001
+b_lr: 0.005
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+===========softmax==============
+num_in: 64
+num_out: 10
+w_lr: 0.0005
+b_lr: 0.0005
+momentum: 0.9
+weight_decay: 0
+lr_scale: 0.95
+done8
+done7
+done6
+done5
+done9
+
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0.01 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0.01 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0.01 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0.01 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0.01 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0.01 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.02 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0.01 s.
+===================
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.
+----------
+im2col_img: 0.01 s.
+reshape_w: 0 s.
+rightMult: 0 s.
+reshape_In: 0 s.epoch_idx: 0, error: 0.9,likelihood: 23031.2
+ 32.55 seconds.
+ 32.55 seconds.
+#mpirun -np 2 --hostfile hostfile ./bin/main; \
+#	mpirun_rsh -np 3 -hostfile hostfile MV2_CPU_BINDING_POLICY=scatter valgrind --leak-check=full ./testMultiGpu
