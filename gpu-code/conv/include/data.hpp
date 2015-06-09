@@ -21,12 +21,14 @@ public:
 	void zeros();
 
 
-
 protected:
 	//数据形状不固定，由子类来定
 	std::vector<int> _shape;
-	Dtype* _data;
-	Dtype* _diff;
+	Dtype* _data_value;
+	Dtype* _diff_value;
+	bool _is_own_data;
+	bool _is_own_diff;
+	int _amount;
 };
 
 
