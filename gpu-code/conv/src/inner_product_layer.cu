@@ -1,97 +1,80 @@
-/*
- * filename: inner_product_layer.cu
- */
+///
+/// \file inner_product_layer.cu
+/// @brief
 
-#include <time.h>
-#include "inner_product_layer.cuh"
-#include "layer_kernel.cuh"
+#include "inner_product_layer.hpp"
 
 using namespace std;
 
-InnerProductLayer::InnerProductLayer(pars* network){
-	this->_num_in                   = network->num_in;
-	this->_num_out                  = network->num_out;
-
-	//w_hk的learning rate
-	this->_w_lr                     = network->w_lr;
-	//out bias learning rate
-	this->_b_lr                     = network->b_lr;
-	//上一次更新的参数控制增长趋势
-	this->_momentum                 = network->momentum;
-	this->_weight_decay             = network->weight_decay;
-
-	this->_minibatch_size           = network->minibatch_size;
-	this->_lr_down_scale            = network->lr_down_scale;
-
-	cublasCreate(&handle);
+template <typename Dtype>
+InnerProductLayer<Dtype>::InnerProductLayer<Dtype>(FullConnectParam* fcp) : \
+ 	TrainLayer<Dtype>((TrainParam*)fcp){
+	this->_fcp = fcp;
+	cublasCreate(&this->handle);
 }
 
-InnerProductLayer::~InnerProductLayer() {
+template <typename Dtype>
+InnerProductLayer<Dtype>::~InnerProductLayer<Dtype>() {
 
-	delete _w; 
-	delete _w_inc;
-	delete _bias;
-	delete _bias_inc;
+	delete this->_w; 
+	delete this->_w_inc;
+	delete this->_bias;
+	delete this->_bias_inc;
 
-	delete  _y; 
-	delete  _dE_dy;
-	delete _dE_db;
-	delete _dE_dw;
-	delete _dE_dx_sigmoid;
-	cublasDestroy(handle);
+	delete this->_y; 
+	delete this->_dE_dy;
+	delete this->_dE_db;
+	delete this->_dE_dw;
+	
+	cublasDestroy(this->handle);
 }
 
-void InnerProductLayer::initCuda() {
+template <typename Dtype>
+void InnerProductLayer<Dtype>::initCuda() {
 
-	this->_w            = new NVMatrix(_num_in, _num_out);
-	//                  NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_bias         = new NVMatrix(1, _num_out);
-	//                  NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
+	this->_w            = new Matrix<Dtype>(this->_fcp->getNumIn(), this->_fcp->getNumOut());
+	this->_bias         = new Matrix<Dtype>(1, this->_fcp->getNumOut());
 
-	this->_y               = new NVMatrix(_minibatch_size, _num_out);
+	this->_y               = new Matrix<Dtype>(this->_fcp->getMinibatchSize(), this->_fcp->getNumOut());
+	
+	this->_dE_dy           = new Matrix<Dtype>(this->_y);
+	this->_dE_db           = new Matrix<Dtype>(this->_bias);
+	this->_dE_dw          = new Matrix<Dtype>(this->_w);
 
-	this->_dE_dx_sigmoid	= new NVMatrix(_minibatch_size, _num_out);	
-	this->_dE_dy           = new NVMatrix(_y);
-	this->_dE_db           = new NVMatrix(_bias);
-	this->_dE_dw          = new NVMatrix(_w);
+	this->_w_inc         = new Matrix<Dtype>(this->_w);
+	this->_bias_inc        = new Matrix<Dtype>(1, this->_fcp->getNumOut());
 
-	this->_w_inc         = new NVMatrix(_w);
-	this->_bias_inc        = new NVMatrix(1, _num_out);
 	this->_w_inc->zeros();
 	this->_bias_inc->zeros();
 }
 
-void InnerProductLayer::computeOutputs(NVMatrix* x){ 
+template <typename Dtype>
+void InnerProductLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
 //	x->showValue("data");
-//	_w->showValue("w");
-	x->rightMult(_w, 1, _y, handle);
-	_y->addRowVector(_bias);
-	_y->apply(NVMatrix::SIGMOID);
-//	_y->showValue("yj1");
+//	this->_w->showValue("w");
+	x->rightMult(this->_w, 1, this->_y, this->handle);
+	this->_y->addRowVector(this->_bias);
+//	this->_y->showValue("yj1");
 }
 
-void InnerProductLayer::computeDerivsOfPars(NVMatrix* x){
+template <typename Dtype>
+void InnerProductLayer<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 
-	_y->subtractFromScalar(1, _dE_dx_sigmoid);
-
-	_dE_dx_sigmoid->eltWiseMult(_y);
-
-	_dE_dx_sigmoid->eltWiseMult(_dE_dy);
-
-	NVMatrix* data_T = new NVMatrix(x->getNumCols(), x->getNumRows());
+	Matrix<Dtype>* data_T = new Matrix<Dtype>(x->getNumCols(), x->getNumRows());
 	x->getTranspose(data_T);
 
-	data_T->rightMult(_dE_dx_sigmoid, 1, _dE_dw, handle);
-	_dE_dx_sigmoid->sumRow(_dE_db);
+	data_T->rightMult(this->_dE_dy, 1, this->_dE_dw, this->handle);
+	this->_dE_dy->sumRow(this->_dE_db);
 
-//_dE_dw->showValue("dedwinner");
+//this->_dE_dw->showValue("dedwinner");
 	delete data_T;
 }
 
-void InnerProductLayer::computeDerivsOfInput(NVMatrix* dE_dx){
-	NVMatrix* w_T = new NVMatrix(_w->getNumCols(), _w->getNumRows());
-	_w->getTranspose(w_T);
-	_dE_dx_sigmoid->rightMult(w_T, 1, dE_dx, handle);
+template <typename Dtype>
+void InnerProductLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
+	Matrix<Dtype>* w_T = new Matrix<Dtype>(this->_w->getNumCols(), this->_w->getNumRows());
+	this->_w->getTranspose(w_T);
+	this->_dE_dy->rightMult(w_T, 1, dE_dx, this->handle);
 	delete w_T;
 }
 

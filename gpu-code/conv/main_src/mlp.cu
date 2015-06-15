@@ -4,18 +4,15 @@
 
 #include <iostream>
 #include <fstream>
-#include <time.h>
 #include <sstream>
 #include <cmath>
 #include <omp.h>
 #include "mpi.h"
-#include "matrix.h"
-#include "nvmatrix.cuh"
-#include "inner_product_layer.cuh"
-#include "utils.cuh"
-#include "logistic.cuh"
+#include "inner_product_layer.hpp"
+#include "logistic.hpp"
 #include "load_layer.hpp"
-#include "layer_kernel.cuh"
+#include "param.h"
+#include "matrix.hpp"
 
 using namespace std;
 
@@ -28,53 +25,56 @@ enum swapInfo{SWAP_INNER1_W_PUSH, SWAP_INNER1_BIAS_PUSH, \
 int num_process;
 int rank;
 
+int num_train = 50000;
+int num_train_per_process = 0;
+int num_valid = 10000;
+int num_valid_per_process = 0;
+int num_minibatch = 0;
+int num_validbatch = 0;
+int num_epoch = 500;
 
-void managerNode(pars* layer_pars){
+void managerNode(InnerParam* inner1_fcp, InnerParam* softmax1_fcp){
 
 	cout << "\n===========overall==============" \
-		<< "\ntrain: " << layer_pars[0].num_train \
-		<< "\nvalid: " << layer_pars[0].num_valid \
-		<< "\nbatchSize: " << layer_pars[0].minibatch_size \
-		<< "\nn_fetch: " << layer_pars[0].n_fetch \
-		<< "\nn_push: " << layer_pars[0].n_push;
+		<< "\ntrain: " << num_train \
+		<< "\nvalid: " << num_valid \
+		<< "\nbatchSize: " << inner1_fcp->getMinibatchSize() \
+		<< "\nn_fetch: " << inner1_fcp->getNFetch() \
+		<< "\nn_push: " << inner1_fcp->getNPush();
 
 	cout << "\n===========inner_product1==============" \
-		<< "\nnum_in: " << layer_pars[0].num_in \
-		<< "\nnum_out: " << layer_pars[0].num_out \
-		<< "\nw_lr: " << layer_pars[0].w_lr \
-		<< "\nb_lr: " << layer_pars[0].b_lr \
-		<< "\nmomentum: " << layer_pars[0].momentum \
-		<< "\nweight_decay: " << layer_pars[0].weight_decay \
-		<< "\nlr_scale: " << layer_pars[0].lr_down_scale;
+		<< "\nnum_in: " << inner1_fcp->getNumIn() \
+		<< "\nnum_out: " << inner1_fcp->getNumOut() \
+		<< "\nw_lr: " << inner1_fcp->getWLR() \
+		<< "\nb_lr: " << inner1_fcp->getBiasLR() \
+		<< "\nmomentum: " << inner1_fcp->getMomentum();
 
 	cout << "\n===========softmax==============" \
-		<< "\nnum_in: " << layer_pars[1].num_in \
-		<< "\nnum_out: " << layer_pars[1].num_out \
-		<< "\nw_lr: " << layer_pars[1].w_lr \
-		<< "\nb_lr: " << layer_pars[1].b_lr \
-		<< "\nmomentum: " << layer_pars[1].momentum \
-		<< "\nweight_decay: " << layer_pars[1].weight_decay \
-		<< "\nlr_scale: " << layer_pars[1].lr_down_scale << endl;
+		<< "\nnum_in: " << softmax1_fcp->getNumIn() \
+		<< "\nnum_out: " << softmax1_fcp->getNumOut() \
+		<< "\nw_lr: " << softmax1_fcp->getWLR() \
+		<< "\nb_lr: " << softmax1_fcp->getBiasLR() \
+		<< "\nmomentum: " << softmax1_fcp->getMomentum() << endl;
 
 
-	int inner1_in_len = layer_pars[0].in_size * layer_pars[0].in_size * layer_pars[0].in_channel;
+	int inner1_in_len = inner1_fcp->getNumIn();
 
-	int inner1_w_len = layer_pars[0].num_in * layer_pars[0].num_out;
-	int inner1_b_len = layer_pars[0].num_out;
+	int inner1_w_len = inner1_fcp->getNumIn() * inner1_fcp->getNumOut();
+	int inner1_b_len = inner1_fcp->getNumOut();
 
-	int softmax_w_len = layer_pars[1].num_in * layer_pars[1].num_out;
-	int softmax_b_len = layer_pars[1].num_out;
+	int softmax_w_len = softmax1_fcp->getNumIn() * softmax1_fcp->getNumOut();
+	int softmax_b_len = softmax1_fcp->getNumOut();
 
-	int train_data_len_part = layer_pars[0].num_train * inner1_in_len / (num_process - 1);
-	int train_label_len_part = layer_pars[0].num_train / (num_process - 1);
-	int valid_data_len_part = layer_pars[0].num_valid * inner1_in_len / (num_process - 1);
-	int valid_label_len_part = layer_pars[0].num_valid / (num_process - 1);
+	int train_data_len_part = num_train * inner1_in_len / (num_process - 1);
+	int train_label_len_part = num_train / (num_process - 1);
+	int valid_data_len_part = num_valid * inner1_in_len / (num_process - 1);
+	int valid_label_len_part = num_valid / (num_process - 1);
 
 cout << "done8\n";
-	NVMatrix* train_data = new NVMatrix(layer_pars[0].num_train, inner1_in_len);
-	NVMatrix* valid_data = new NVMatrix(layer_pars[0].num_valid, inner1_in_len);
-	NVMatrix* train_label = new NVMatrix(layer_pars[0].num_train, 1);
-	NVMatrix* valid_label = new NVMatrix(layer_pars[0].num_valid, 1);
+	Matrix<float>* train_data = new Matrix<float>(num_train, inner1_in_len);
+	Matrix<float>* valid_data = new Matrix<float>(num_valid, inner1_in_len);
+	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
+	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
 
 /*
     readData(train_data, "../data/input/mnist_train.bin", true);
@@ -99,20 +99,20 @@ cout << "done7\n";
     cifar10.loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
             cifar10_info->test_pixel_ptr, cifar10_info->test_label_ptr);
 
-	train_data->copyFromHost(cifar10_info->train_pixel, layer_pars[0].num_train * inner1_in_len);
-	train_label->copyFromHost(cifar10_info->train_label, layer_pars[0].num_train);
-	valid_data->copyFromHost(cifar10_info->test_pixel, layer_pars[0].num_valid * inner1_in_len);
-	valid_label->copyFromHost(cifar10_info->test_label, layer_pars[0].num_valid);
+	train_data->copyFromHost(cifar10_info->train_pixel, num_train * inner1_in_len);
+	train_label->copyFromHost(cifar10_info->train_label, num_train);
+	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * inner1_in_len);
+	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
 
 
 cout << "done6\n";
 
-	NVMatrix* inner1_w = new NVMatrix(inner1_w_len / layer_pars[0].num_out, layer_pars[0].num_out);
-	NVMatrix* inner1_bias = new NVMatrix(1, layer_pars[0].num_out);
+	Matrix<float>* inner1_w = new Matrix<float>(inner1_w_len / inner1_fcp->getNumOut(), inner1_fcp->getNumOut());
+	Matrix<float>* inner1_bias = new Matrix<float>(1, inner1_fcp->getNumOut());
 
 
-	NVMatrix* softmax_w = new NVMatrix(softmax_w_len / layer_pars[1].num_out, layer_pars[1].num_out);
-	NVMatrix* softmax_bias = new NVMatrix(1, layer_pars[1].num_out);
+	Matrix<float>* softmax_w = new Matrix<float>(softmax_w_len / softmax1_fcp->getNumOut(), softmax1_fcp->getNumOut());
+	Matrix<float>* softmax_bias = new Matrix<float>(1, softmax1_fcp->getNumOut());
 
 cout << "done5\n";
 //	gaussRand(inner1_w, 0.01);
@@ -190,51 +190,51 @@ cout << "done5\n";
 }
 
 
-void workerNode(pars* layer_pars){
-	
-	layer_pars[0].num_train /= (num_process - 1);
-	int inner1_in_len = layer_pars[0].in_size * layer_pars[0].in_size * layer_pars[0].in_channel;
+void workerNode(InnerParam* inner1_fcp, InnerParam* softmax1_fcp){
 
-	int inner1_w_len = layer_pars[0].num_in * layer_pars[0].num_out;
-	int inner1_b_len = layer_pars[0].num_out;
+	num_train_per_process = num_train / (num_process - 1);
+	num_valid_per_process = num_valid / (num_process - 1);
+	int inner1_in_len = inner1_fcp->getNumIn();
 
-	int softmax_w_len = layer_pars[1].num_in * layer_pars[1].num_out;
-	int softmax_b_len = layer_pars[1].num_out;
+	int inner1_w_len = inner1_fcp->getNumIn() * inner1_fcp->getNumOut();
+	int inner1_b_len = inner1_fcp->getNumOut();
 
-	int mini_data_len = layer_pars->minibatch_size * inner1_in_len;
-	int mini_label_len = layer_pars->minibatch_size;
+	int softmax_w_len = softmax1_fcp->getNumIn() * softmax1_fcp->getNumOut();
+	int softmax_b_len = softmax1_fcp->getNumOut();
 
-	int train_data_len_part = layer_pars->num_train * inner1_in_len;
-	int train_label_len_part = layer_pars->num_train;
-	int valid_data_len_part = layer_pars->num_valid * inner1_in_len;
-	int valid_label_len_part = layer_pars->num_valid;
+	int mini_data_len = inner1_fcp->getMinibatchSize()  * inner1_in_len;
+	int mini_label_len = inner1_fcp->getMinibatchSize() ;
+
+	int train_data_len_part = num_train_per_process * inner1_in_len;
+	int train_label_len_part = num_train_per_process;
+	int valid_data_len_part = num_valid_per_process * inner1_in_len;
+	int valid_label_len_part = num_valid_per_process;
 
 cout << "done4\n";
 
-	InnerProductLayer inner1(layer_pars);
+	InnerProductLayer<float> inner1(inner1_fcp);
 	inner1.initCuda();
 
-	Logistic softmax1(layer_pars + 1);
+	Logistic<float> softmax1(softmax1_fcp);
 	softmax1.initCuda();
 
-
-	NVMatrix* inner1_w = inner1.getW();
-	NVMatrix* inner1_bias = inner1.getBias();
-	NVMatrix* softmax_w = softmax1.getW();
-	NVMatrix* softmax_bias = softmax1.getBias();
+	Matrix<float>* inner1_w = inner1.getW();
+	Matrix<float>* inner1_bias = inner1.getBias();
+	Matrix<float>* softmax_w = softmax1.getW();
+	Matrix<float>* softmax_bias = softmax1.getBias();
 
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_bias->getDevData(), softmax_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-	NVMatrix* train_data = new NVMatrix(layer_pars->num_train, inner1_in_len);
-	NVMatrix* train_label = new NVMatrix(layer_pars->num_train, 1);
-	NVMatrix* valid_data = new NVMatrix(layer_pars->num_valid, inner1_in_len);
-	NVMatrix* valid_label = new NVMatrix(layer_pars->num_valid, 1);
+	Matrix<float>* train_data = new Matrix<float>(num_train_per_process, inner1_in_len);
+	Matrix<float>* train_label = new Matrix<float>(num_train_per_process, 1);
+	Matrix<float>* valid_data = new Matrix<float>(num_valid_per_process, inner1_in_len);
+	Matrix<float>* valid_label = new Matrix<float>(num_valid_per_process, 1);
 
-	NVMatrix* mini_data = new NVMatrix(layer_pars->minibatch_size, inner1_in_len);
-	NVMatrix* mini_label = new NVMatrix(layer_pars->minibatch_size, 1);
+	Matrix<float>* mini_data = new Matrix<float>(inner1_fcp->getMinibatchSize() , inner1_in_len);
+	Matrix<float>* mini_label = new Matrix<float>(inner1_fcp->getMinibatchSize() , 1);
 
 cout << "done1\n";
 	MPI_Status status;
@@ -250,8 +250,8 @@ cout << "done1\n";
 cout << "done2\n";
 	int passMsg = 0;
 
-	NVMatrix* inner1_y;
-	NVMatrix* inner1_dE_dy;
+	Matrix<float>* inner1_y;
+	Matrix<float>* inner1_dE_dy;
 
 	const int num_pars_type = 4;
 	float* my_pars[num_pars_type] = {inner1_w->getDevData(), inner1_bias->getDevData(), \
@@ -263,7 +263,7 @@ cout << "done2\n";
 	t = clock();
 	clock_t t1;
 	t1 = clock();
-	for(int epoch_idx = 0; epoch_idx < layer_pars->num_epoch; epoch_idx++){
+	for(int epoch_idx = 0; epoch_idx < num_epoch; epoch_idx++){
 		int error = 0;
 /*
 if(epoch_idx > 1){
@@ -273,7 +273,7 @@ if(epoch_idx > 1){
 	softmax_bias->showValue("softmaxb");
 }
 */
-		for(int batch_idx = 0; batch_idx < layer_pars->num_minibatch; batch_idx++){
+		for(int batch_idx = 0; batch_idx < num_minibatch; batch_idx++){
 
 			mini_data->changePtrFromStart(train_data->getDevData(), \
 					mini_data_len * batch_idx);
@@ -293,10 +293,10 @@ if(epoch_idx > 1){
 			inner1.updatePars();
 			softmax1.updatePars();
 
-			if((batch_idx + 1) % layer_pars->n_push == 0){
-				if(epoch_idx == layer_pars->num_epoch - 1){
-					if((batch_idx + layer_pars->n_push) >= layer_pars->num_minibatch \
-							|| batch_idx == layer_pars->num_minibatch - 1)
+			if((batch_idx + 1) % inner1_fcp->getNPush()  == 0){
+				if(epoch_idx == num_epoch - 1){
+					if((batch_idx + inner1_fcp->getNPush() ) >= num_minibatch \
+							|| batch_idx == num_minibatch - 1)
 						passMsg = THREAD_END;
 					else
 						passMsg = batch_idx;
@@ -316,10 +316,10 @@ if(epoch_idx > 1){
 					
 				}
 			}
-			if((batch_idx + 1) % layer_pars->n_fetch == 0){
-				if(epoch_idx == layer_pars->num_epoch - 1){
-					if((batch_idx + layer_pars->n_fetch) >= layer_pars->num_minibatch \
-							|| batch_idx == layer_pars->num_minibatch - 1)
+			if((batch_idx + 1) % inner1_fcp->getNFetch()  == 0){
+				if(epoch_idx == num_epoch - 1){
+					if((batch_idx + inner1_fcp->getNFetch() ) >= num_minibatch \
+							|| batch_idx == num_minibatch - 1)
 						passMsg = THREAD_END;
 					else
 						passMsg = batch_idx;
@@ -340,10 +340,10 @@ if(epoch_idx > 1){
 				}
 			}
 
-			if(batch_idx == layer_pars->num_minibatch - 1){ 
+			if(batch_idx == num_minibatch - 1){ 
 				int errorValid = 0;
 				float loglihoodValid = 0;
-				for(int validIdx = 0; validIdx < layer_pars->num_validbatch; validIdx++){
+				for(int validIdx = 0; validIdx < num_validbatch; validIdx++){
 
 					mini_data->changePtrFromStart(valid_data->getDevData(), \
 							mini_data_len * validIdx);
@@ -369,7 +369,7 @@ if(epoch_idx > 1){
 				}       
 				if(rank == 1)
 					cout << "epoch_idx: " << epoch_idx << ", error: " \
-						<<  (float)totalValid/layer_pars->num_valid \
+						<<  (float)totalValid/num_valid \
 						<< ",likelihood: "<< loglihoodValid<< endl;
 			}
 		}
@@ -381,15 +381,15 @@ if(epoch_idx > 1){
 		}
 		
 		if((epoch_idx + 1) % 4){
-			inner1.transfarLowerPars();
-			softmax1.transfarLowerPars();
+			inner1_fcp->lrMultiScale(0.95);
+			softmax1_fcp->lrMultiScale(0.95);
 		} 
 
 
 	}
 	if(rank == 1){
 		t = clock() - t;
-		cout << " " << ((float)t/CLOCKS_PER_SEC) / layer_pars->num_epoch << " seconds.\n";
+		cout << " " << ((float)t/CLOCKS_PER_SEC) / num_epoch << " seconds.\n";
 		t = clock();
 	}
 
@@ -427,48 +427,45 @@ int main(int argc, char** argv){
     }
 */
 
-	const int num_layer = 2;
+	int minibatch_size = 100;
+	int inner1_num_in = 32 * 32 * 3;
+	int inner1_num_out = 1000;
+	int softmax_num_out = 10;
+	float inner1_w_lr = 0.002;
+	float inner1_b_lr = 0.002;
+	float inner1_momentum = 0.9;
+	float inner1_weight_decay = 0;
+	int n_push = 50;
+	int n_fetch = 49;
+	float softmax_w_lr = 0.0001;
+	float softmax_b_lr = 0.0001;
+	float softmax_momentum = 0.9;
+	float softmax_weight_decay = 0;
 
-	pars* layer_pars = new pars[num_layer];
+	string inner1_name("inner_product_layer1");
+	string softmax_name("softmax_layer1");
 
-	layer_pars[0].num_train = 50000;
-	layer_pars[0].num_valid = 10000;
-	layer_pars[0].minibatch_size = 100;
-	layer_pars[0].num_minibatch = layer_pars[0].num_train / (layer_pars[0].minibatch_size * (num_process - 1));
-	layer_pars[0].num_validbatch = layer_pars[0].num_valid / (layer_pars[0].minibatch_size * (num_process - 1));
-	layer_pars[0].num_epoch = 500; 
-	layer_pars[0].n_push = 49;
-	layer_pars[0].n_fetch = 50;
-	layer_pars[0].in_size = 32;
-	layer_pars[0].in_channel = 3;
-
-	layer_pars[0].w_lr = 0.002;
-	layer_pars[0].b_lr = 0.002;
-	layer_pars[0].momentum = 0.9;
-	layer_pars[0].weight_decay = 0;
-	layer_pars[0].num_in = 32*32*3;
-	layer_pars[0].num_out = 1000;
-	layer_pars[0].lr_down_scale = 0.95;
-
-	layer_pars[1].w_lr = 0.0001;
-	layer_pars[1].b_lr = 0.0001;
-	layer_pars[1].momentum = 0.9;
-	layer_pars[1].weight_decay = 0;
-	layer_pars[1].num_in = layer_pars[0].num_out;
-	layer_pars[1].num_out = 10;
-	layer_pars[1].minibatch_size = layer_pars[0].minibatch_size;
-	layer_pars[1].lr_down_scale = 0.95;
+	cout << inner1_name << endl;
+	InnerParam* inner1_fcp = new InnerParam(inner1_name, \
+			minibatch_size, inner1_w_lr, inner1_b_lr, \
+			inner1_momentum, inner1_weight_decay, n_push, n_fetch, \
+			inner1_num_in, inner1_num_out);
 
 
+	InnerParam* softmax_fcp = new InnerParam(softmax_name, \
+			softmax_w_lr, softmax_b_lr, softmax_momentum, \
+			softmax_weight_decay, n_push, n_fetch, softmax_num_out, inner1_fcp);
+
+	num_minibatch = num_train / (minibatch_size * (num_process - 1));
+	num_validbatch = num_valid / (minibatch_size * (num_process - 1));
 
 	if(rank == 0){ 
-		managerNode(layer_pars);
+		managerNode(inner1_fcp, softmax_fcp);
 	}   
 	else{
-		workerNode(layer_pars);
+		workerNode(inner1_fcp, softmax_fcp);
 	} 	
 
-	delete[] layer_pars;
 	MPI_Finalize();
 	return 0;
 }

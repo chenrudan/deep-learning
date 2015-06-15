@@ -1,6 +1,6 @@
-/*
- * filename: relu_layer.cu
- */
+///
+/// \file relu_layer.cu
+/// @brief
 
 #include <time.h>
 #include "relu_layer.cuh"
@@ -8,37 +8,41 @@
 
 using namespace std;
 
-reluLayer::ReluLayer(pars* network){
+template <typename Dtype>
+ReluLayer<Dtype>::ReluLayer(FullConnectParam* fcp){
 
-	this->_minibatch_size           = network->minibatch_size;
-
-	cublasCreate(&handle);
+	this->_fcp           = fcp;
 }
 
-ReluLayer::~ReluLayer() {
+template <typename Dtype>
+ReluLayer<Dtype>::~ReluLayer() {
 
-	delete  _y; 
-	delete  _dE_dy;
+	delete  this->_y; 
+	delete  this->_dE_dy;
 }
 
-void ReluLayer::initCuda() {
+template <typename Dtype>
+void ReluLayer<Dtype>::initCuda() {
 
-	this->_y               = new NVMatrix(_minibatch_size, _num_out);
+	this->_y               = new Matrix<Dtype>(_fcp->getMinibatchSize(), \
+								_fcp->getNumOut());
 
-	this->_dE_dy           = new NVMatrix(_y);
+	this->_dE_dy           = new Matrix<Dtype>(this->_y);
 }
 
-void ReluLayer::computeOutputs(NVMatrix* x){ 
-	x->apply(NVMatrix::relu, _y);
+template <typename Dtype>
+void ReluLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
+//	x->apply(Matrix<Dtype>::relu, this->_y);
 }
 
-void ReluLayer::computeDerivsOfInput(NVMatrix* dE_dx){
+template <typename Dtype>
+void ReluLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
-	_y->subtractFromScalar(1, dE_dx);
+//	_y->subtractFromScalar(1, dE_dx);
 
-	dE_dx->eltWiseMult(_y);
+//	dE_dx->eltWiseMult(_y);
 
-	dE_dx->eltWiseMult(_dE_dy);
+//	dE_dx->eltWiseMult(_dE_dy);
 }
 
 

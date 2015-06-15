@@ -1,11 +1,13 @@
-/*
- * filename: data.cu
- */ 
+///
+/// \file data.cu
+/// 
 
 #include "data.hpp"
 
+using namespace std;
+
 template <typename Dtype>
-Data<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
+void Data<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
 	cudaError_t status = cudaMemcpy(_data_value, data_value_in, \
 			sizeof(Dtype) * data_len, cudaMemcpyHostToDevice);
 	if (status != cudaSuccess) {
@@ -15,7 +17,7 @@ Data<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
 }
 
 template <typename Dtype>
-Data<Dtype>::copyFromDevice(Data* data_in){
+void Data<Dtype>::copyFromDevice(Data* data_in){
 	cudaError_t status = cudaMemcpy(_data_value, data_in->getDevData(), \
 			sizeof(Dtype) * _amount, cudaMemcpyDeviceToDevice);
 	if (status != cudaSuccess) {
@@ -26,7 +28,7 @@ Data<Dtype>::copyFromDevice(Data* data_in){
 }
 
 template <typename Dtype>
-Data<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
+void Data<Dtype>::copyToHost(Dtype* data_value_in, const int data_len){
 	cudaError_t status = cudaMemcpy(data_value_in, _data_value, \
 			sizeof(Dtype) * data_len, cudaMemcpyDeviceToHost);
 	if (status != cudaSuccess) {
@@ -36,7 +38,7 @@ Data<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
 }
 
 template <typename Dtype>
-Data<Dtype>::copyFromDevice(Data* data_in){
+void Data<Dtype>::copyToDevice(Data* data_in){
 	cudaError_t status = cudaMemcpy(_data_value, data_in->getDevData(), \
 			sizeof(Dtype) * _amount, cudaMemcpyDeviceToDevice);
 	if (status != cudaSuccess) {
@@ -46,11 +48,8 @@ Data<Dtype>::copyFromDevice(Data* data_in){
 	}   
 }
 
-void Data<Dtype>::dataZeros(){
+template <typename Dtype>
+void Data<Dtype>::zeros(){
 	cudaMemset(_data_value, 0, _amount * sizeof(Dtype));
-}
-
-void Data<Dtype>::dataZeros(){
-	cudaMemset(_diff_value, 0, _amount * sizeof(Dtype));
 }
 

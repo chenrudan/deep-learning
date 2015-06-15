@@ -21,10 +21,13 @@ CU_INCLUDES = $(shell find $(INCLUDES_DIR) -name "*.cuh")
 CXX_INCLUDES = $(shell find $(INCLUDES_DIR) -name "*.h")
 HXX_INCLUDES = $(shell find $(INCLUDES_DIR) -name "*.hpp")
 
+#HXX对应的cpp,cu，然后将它们排除掉，不进行编译
 HXX_SRCS = $(subst $(INCLUDES_DIR), $(SRCS_DIR), ${HXX_INCLUDES:.hpp=.cpp})
-CU_SRCS = $(shell find $(SRCS_DIR) -name "*.cu")
+HXX_SRCS += $(subst $(INCLUDES_DIR), $(SRCS_DIR), ${HXX_INCLUDES:.hpp=.cu})
+CU_SRCS = $(filter-out $(HXX_SRCS), $(shell find $(SRCS_DIR) -name "*.cu"))
 CXX_SRCS = $(filter-out $(HXX_SRCS), $(shell find $(SRCS_DIR) -name "*.cpp"))
 
+#生成的链接文件
 CXX_OBJS += $(subst $(SRCS_DIR), $(OBJ_DIR), ${CXX_SRCS:.cpp=.o})
 CU_OBJS += $(subst $(SRCS_DIR), $(OBJ_DIR), ${CU_SRCS:.cu=.o})
 
@@ -37,8 +40,14 @@ BUILD_TARGET = $(BUILD_DIR)/$(TARGET)
 SRCS_TARGET = $(SRCS_TARGET_DIR)/$(TARGET).cu
 OBJ_TARGET = $(OBJ_DIR)/$(TARGET).o
 
+#print: $(CXX_SRCS) $(CU_SRCS) 
+#	echo $(HXX_SRCS)
+#	echo $(CXX_SRCS)
+#	echo $(CU_SRCS)
+
+
 $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cpp
-	$(MPICXX) $(CCFLAGS) $^ $(INCLUDES) -o $@
+	$(MPICXX) $(CCFLAGS) $^ $(INCLUDES) -o $@ 
 	
 $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cu
 	$(NVCC) $(CCFLAGS) $^ $(INCLUDES) -o $@

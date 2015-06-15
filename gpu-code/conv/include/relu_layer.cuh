@@ -1,26 +1,28 @@
-/*
- * filename: sigmoid_layer.cuh
- */
+///
+/// \file relu_layer.cuh
+/// @brief 实现了对输入每一个点求relu
 
-#ifndef SIGMOID_LAYER_H_
-#define SIGMOID_LAYER_H_
+#ifndef RELU_LAYER_H_
+#define RELU_LAYER_H_
 
 #include <iostream>
 #include "layer.hpp"
-#include "utils.cuh"
-#include "matrix.h"
-#include "nvmatrix.cuh"
 
-class SigmoidLayer : public Layer {
+
+template <typename Dtype>
+class ReluLayer : public Layer<Dtype> {
 
 public:
 	
-	SigmoidLayer(pars* netWork);
-	~SigmoidLayer();
+	ReluLayer(FullConnectParam* fcp);
+	~ReluLayer();
 
 	void initCuda();
-	void computeOutputs(NVMatrix* x);
-	void computeDerivsOfInput(NVMatrix* dE_dx);
+	void computeOutputs(Matrix<Dtype>* x);
+	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
+
+private:
+	FullConnectParam* _fcp;
 
 };
 

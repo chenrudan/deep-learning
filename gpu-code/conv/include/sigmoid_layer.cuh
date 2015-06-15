@@ -1,65 +1,27 @@
-/*
- * filename: sigmoid_layer.cuh
- */
+///
+/// \file sigmoid_layer.cuh
+/// @brief 实现了对输入每一个点求sigmoid
 
 #ifndef SIGMOID_LAYER_H_
 #define SIGMOID_LAYER_H_
 
 #include <iostream>
 #include "layer.hpp"
-#include "utils.cuh"
-#include "matrix.h"
-#include "nvmatrix.cuh"
 
-class SigmoidLayer : public Layer {
+template <typename Dtype>
+class SigmoidLayer : public Layer<Dtype> {
 
 public:
 	
-	SigmoidLayer(pars* netWork);
+	SigmoidLayer(FullConnectParam* fcp);
 	~SigmoidLayer();
 
 	void initCuda();
-	void computeOutputs(NVMatrix* x);
-	void computeDerivsOfInput(NVMatrix* dE_dx);
+	void computeOutputs(Matrix<Dtype>* x);
+	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
+private:
+	FullConnectParam* _fcp;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

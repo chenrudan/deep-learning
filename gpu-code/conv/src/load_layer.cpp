@@ -42,6 +42,7 @@ LoadCifar10<Dtype>::LoadCifar10(ImgInfo<Dtype>* cifar10Info){
 	this->_img_channel = cifar10Info->img_channel; 
 }
 
+
 template <typename Dtype>
 LoadCifar10<Dtype>::~LoadCifar10(){
 	delete[] this->_ori_pix;
@@ -84,6 +85,8 @@ void LoadCifar10<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &
 		if(i != num - 1){
 			label_ptr++;
 		}
+
+
 
 	}
 	fin.close();

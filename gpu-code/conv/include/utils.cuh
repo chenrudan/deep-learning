@@ -3,56 +3,27 @@
 #define UTILS_H_
 
 #include <iostream>
-//#include <random>
 #include <fstream>
-#include "matrix.h"
-#include "nvmatrix.cuh"
+#include "matrix.hpp"
 #include <time.h>
 
 using namespace std;
 
-typedef struct Pars{
-    float w_lr;
-    float b_lr;
-    float momentum;
-    float weight_decay;
-	float lr_down_scale;
-
-    int in_size;
-	int pad;
-    int in_channel;
-	int out_size;
-    int filter_size;
-    int filter_channel;
-	int num_in;
-    int num_out;
-	int stride;
-	int padded_in_size;
-	int pool_size;
-    int num_train;
-    int num_valid;
-    int minibatch_size;
-    int num_minibatch;
-    int num_validbatch;
-    int num_epoch; 
-
-	int n_push;
-	int n_fetch;
-    
-}pars;
-
 void printTime(clock_t &t, string s);
 
-void initW(NVMatrix* nvMat);
 
-void gaussRand(NVMatrix* nvMat, float var = 1, float mean = 0);
+void initW(Matrix<float>* nvMat);
+
+void gaussRand(Matrix<float>* nvMat, float var = 1, \
+            float mean = 0);
 
 float gaussGen(float var, float mean);
 
-void readPars(NVMatrix* par, string filename);
+void readPars(Matrix<float>* par, string filename);
 
-void savePars(NVMatrix* par, string filename);
+void savePars(Matrix<float>* par, string filename);
 
-void readData(NVMatrix* nvData, string filename, bool isData, int addZerosInFront = 0);
+void readData(Matrix<float>* nvData, string filename, \
+            bool isData, int addZerosInFront = 0);
 
 #endif

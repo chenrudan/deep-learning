@@ -1,60 +1,50 @@
-/*
- * filename: layer.hpp
- */
-#ifndef LAYER_H_
-#define LAYER_H_
+///
+/// \file layer.hpp
+///
+#ifndef LAYER_HPP_
+#define LAYER_HPP_
 
+#include <cuda_runtime.h>
 #include "utils.cuh"
-#include "nvmatrix.cuh"
+#include "param.h"
+#include "matrix.hpp"
 
+template <typename Dtype>
 class Layer {
-
-protected:
-	
-	//output
-	NVMatrix* _y;
-	NVMatrix* _dE_dy;
-	//parameters
-	NVMatrix* _w;
-	NVMatrix* _bias;
-	NVMatrix* _w_inc;
-	NVMatrix* _bias_inc;
-	NVMatrix* _dE_dw;
-	NVMatrix* _dE_db;
-	
-	//learning rate
-	float _w_lr;
-	float _b_lr;
-	float _lr_down_scale;
-
-	//mom
-	float _momentum; 	
-	float _weight_decay;
-
-	int _minibatch_size;
-	//if the layer is inner product, than choose this group
-	int _num_in;
-	int _num_out;
-	//if the layer is convolution or pooling, choose this group
-	int _in_size;
-	int _pad;
-	int _in_channel;
-	int _filter_size;
-	int _filter_channel;
-	int _out_size;
-	int _stride;
-	int _pool_size;
-
-	cublasHandle_t handle;
 
 public:
 	Layer() {}
-	virtual ~Layer() {}	
+	virtual ~Layer() {}
 
 	virtual void initCuda() {}
-	virtual void computeOutput(NVMatrix* x) {}
-	virtual void computeDerivsOfPars(NVMatrix* x, NVMatrix* labels) {}
-	virtual void computeDerivsOfInput(NVMatrix* dE_dx) {}
+	virtual void computeOutput(Matrix<Dtype>* x) {}
+
+	virtual void computeDerivsOfInput(Matrix<Dtype>* dE_dx) {}
+
+	inline Matrix<Dtype>* getY() {
+		return _y;
+	}   
+	inline Matrix<Dtype>* getDEDY() {
+		return _dE_dy;
+	}
+
+protected:
+	cublasHandle_t handle;
+	Matrix<Dtype>* _y;    ///>每一层的输出
+	Matrix<Dtype>* _dE_dy;   ///>每层输出的导数
+};
+
+template <typename Dtype>
+class TrainLayer : public Layer<Dtype> {
+
+public:
+	TrainLayer(TrainParam* tp){
+		_tp = tp;
+	}
+	TrainLayer();
+	virtual ~TrainLayer() {}
+
+	virtual void computeDerivsOfPars(Matrix<Dtype>* x) {}
 
 	void updatePars(bool isShow = false) {
 		if(isShow == true){
@@ -63,48 +53,30 @@ public:
 			_w_inc->showValue("winc");
 			_dE_db->showValue("dEdb");
 		}
-		_w_inc->addSum(_w, _dE_dw, _momentum, -_weight_decay, \
-			            -_w_lr / _minibatch_size);
-		_w->add(_w_inc, 1, 1); 
+		_w_inc->addSum(_w, _dE_dw, _tp->getMomentum(), -_tp->getWeightDecay(), \
+			            -_tp->getWLR() / _tp->getMinibatchSize());
+		_w->add(_w_inc, 1, 1);
 
-		_bias_inc->add(_dE_db, _momentum, -_b_lr / _minibatch_size);
+		_bias_inc->add(_dE_db, _tp->getMomentum(), \
+				-_tp->getBiasLR() / _tp->getMinibatchSize());
 		_bias->add(_bias_inc, 1, 1);
 	}
-
-	inline void stopWeightDecay() {
-		_weight_decay = 0;
+	inline Matrix<Dtype>* getW() {
+		return _w;
 	}
-
-	inline void changeLrDownScale(float scale) {
-		_lr_down_scale = scale;
-	}
-
-	inline void transfarLowerPars(float scale) {
-		_w_lr *= scale;
-		_b_lr *= scale;
-		cout << _w_lr << ":" << _b_lr << "\n";
-	}
-
-	inline void transfarLowerPars() {
-		_w_lr *= _lr_down_scale;
-		_b_lr *= _lr_down_scale;
-		cout << _w_lr << ":" << _b_lr << "\n";
-	}
-
-	inline NVMatrix* getW() {
-		return _w;	
-	}
-	inline NVMatrix* getBias() {
+	inline Matrix<Dtype>* getBias() {
 		return _bias;
 	}
 
-	inline NVMatrix* getY() {
-		return _y; 
-	}   
-	inline NVMatrix* getDEDY() {
-		return _dE_dy;
-	}
+protected:
+	Matrix<Dtype>* _w;
+	Matrix<Dtype>* _bias;
+	Matrix<Dtype>* _w_inc;
+	Matrix<Dtype>* _bias_inc;
+	Matrix<Dtype>* _dE_dw;
+	Matrix<Dtype>* _dE_db;
 
+	TrainParam* _tp;
 };
 
 

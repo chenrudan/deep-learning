@@ -1,7 +1,8 @@
-/*
- * filename: convnet.cu
- */
-//#include <cutil_inline.h>
+///
+/// \file convnet.cu
+/// @brief
+
+
 #include <time.h>
 
 #include "convnet.cuh"
@@ -9,45 +10,27 @@
 
 using namespace std;
 
+template <typename Dtype>
+ConvNet<Dtype>::ConvNet(ConvParam* cp) : TrainLayer<Dtype>(cp){
 
-ConvNet::ConvNet(pars* netWork){
-
-	this->_filter_channel           = netWork->filter_channel;
-
-	this->_w_lr             		= netWork->w_lr;
-	//hidden bias的learning rate
-	this->_b_lr            			= netWork->b_lr;
-	//上一次更新的参数控制增长趋势
-	this->_momentum                 = netWork->momentum;
-	//hidden原值的参数
-	this->_weight_decay             = netWork->weight_decay;
-	//out原值的参数
-	this->_minibatch_size         	= netWork->minibatch_size;
-	this->_in_size				 	= netWork->in_size;
-	this->_pad						= netWork->pad;
-	this->_padded_in_size			= netWork->padded_in_size;
-	this->_filter_size			 	= netWork->filter_size;
-	this->_stride              		= netWork->stride;
-	this->_out_size		 			= (_padded_in_size - _filter_size) / _stride + 1;
-	this->_in_channel			 	= netWork->in_channel;
-	this->_lr_down_scale			= netWork->lr_down_scale;
-	this->_filt_pixs				= _filter_size * _filter_size;
-	this->_conv_pixs				= _out_size * _out_size;
-	cublasCreate(&handle);
+	this->_cp = cp;
+	this->_filt_pixs			= pow(this->_cp->getFilterSize(), 2);
+	this->_conv_pixs			= pow(this->_cp->getOutSize(), 2);
+	cublasCreate(&this->handle);
 }
-ConvNet::~ConvNet() {
 
-	delete _w;
-	delete _w_inc;
-	delete _bias;
-	delete _bias_inc;
+template <typename Dtype>
+ConvNet<Dtype>::~ConvNet() {
 
-	delete _y; 
-	delete _dE_dy;
-	delete _dE_dw;
-	delete _dE_db;
+	delete this->_w;
+	delete this->_w_inc;
+	delete this->_bias;
+	delete this->_bias_inc;
 
-	delete _dE_dx_sigmoid;
+	delete this->_y;
+	delete this->_dE_dy;
+	delete this->_dE_dw;
+	delete this->_dE_db;
 	
 	delete unrolled_x1;
 	delete unranged_y;
@@ -57,209 +40,176 @@ ConvNet::~ConvNet() {
 	delete unrolled_conv;
 	delete ranged_w;
 	delete unranged_in;
-	if(_pad > 0)
+	if(this->_cp->getPad() > 0)
 		delete padded_x;
 
-	cublasDestroy(handle);
+	cublasDestroy(this->handle);
 }
 
-void ConvNet::initCuda() {
-	//cudaSetDevice(cutGetAvgGflopsDeviceId());
-	//NVMatrix::initDeviceProps();
+template <typename Dtype>
+void ConvNet<Dtype>::initCuda() {
 
-	this->_w            = new NVMatrix(_filt_pixs * _in_channel, _filter_channel);
-	//					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_bias         = new NVMatrix(1, _filter_channel);
-	//					NVMatrix::ALLOC_ON_UNIFIED_MEMORY);
-	this->_y               = new NVMatrix(_minibatch_size, \
-					_filter_channel * _conv_pixs);
-	this->_dE_dy           = new NVMatrix(_y);
-	//dE_dx_sigmoid是对sigmoid函数的输入求导
-	this->_dE_dx_sigmoid           = new NVMatrix(_y);
-	this->_dE_dw          = new NVMatrix(_w);
-	this->_dE_db           = new NVMatrix(_bias);
+	this->_w            	= new Matrix<Dtype>(_filt_pixs * this->_cp->getInChannel(), \
+									this->_cp->getOutChannel());
+	this->_bias         	= new Matrix<Dtype>(1, this->_cp->getOutChannel());
+	this->_y            	= new Matrix<Dtype>(this->_cp->getMinibatchSize(), \
+									this->_cp->getOutChannel() * _conv_pixs);
+	this->_dE_dy        	= new Matrix<Dtype>(this->_y);
 
-	this->_w_inc		 = new NVMatrix(_w);
-	this->_bias_inc		 = new NVMatrix(_bias);
+	this->_dE_dw          	= new Matrix<Dtype>(this->_w);
+	this->_dE_db           	= new Matrix<Dtype>(this->_bias);
 
-	if(_pad > 0)
-		this->padded_x = new NVMatrix(_minibatch_size, _in_channel * _padded_in_size * _padded_in_size);
+	this->_w_inc		 	= new Matrix<Dtype>(this->_w);
+	this->_bias_inc		 	= new Matrix<Dtype>(this->_bias);
 
-	//中间变量
-	unrolled_x1 = new NVMatrix(_minibatch_size * _conv_pixs, \
-			_filt_pixs * _in_channel);
-	unranged_y = new NVMatrix(_minibatch_size * _conv_pixs, _filter_channel);
+	if(this->_cp->getPad() > 0)
+		this->padded_x 		= new Matrix<Dtype>(this->_cp->getMinibatchSize(), \
+									this->_cp->getInChannel() * pow(this->_cp->getPaddedInSize(), 2));
+	
+	unrolled_x1 			= new Matrix<Dtype>(this->_cp->getMinibatchSize() * _conv_pixs, \
+									_filt_pixs * this->_cp->getInChannel());   ///>变换排列方式用来做矩阵乘法计算卷积
+	unranged_y 				= new Matrix<Dtype>(this->_cp->getMinibatchSize() * _conv_pixs, \
+									this->_cp->getOutChannel());
 
-	unrolled_x2 = new NVMatrix(_filt_pixs * _in_channel, \
-			_minibatch_size * _conv_pixs);
-	ranged_dE_dx = new NVMatrix(_minibatch_size * _conv_pixs, _filter_channel);
-	dE_db_tmp = new NVMatrix(_minibatch_size, _filter_channel);
+	unrolled_x2 			= new Matrix<Dtype>(_filt_pixs * this->_cp->getInChannel(), \
+									this->_cp->getMinibatchSize() * _conv_pixs);
+	ranged_dE_dx 			= new Matrix<Dtype>(this->_cp->getMinibatchSize() * _conv_pixs, \
+									this->_cp->getOutChannel());
+	dE_db_tmp 				= new Matrix<Dtype>(this->_cp->getMinibatchSize(), \
+									this->_cp->getOutChannel());
 
-	unrolled_conv = new NVMatrix(_minibatch_size * _padded_in_size * _padded_in_size, \
-			_filter_size * _filter_size * _filter_channel);
-	ranged_w = new NVMatrix(_filter_channel * _filt_pixs, _in_channel);
-	unranged_in = new NVMatrix(_minibatch_size * _padded_in_size * _padded_in_size, _in_channel);
-
+	unrolled_conv 			= new Matrix<Dtype>(this->_cp->getMinibatchSize() \
+ 								* this->_cp->getPaddedInSize() * this->_cp->getPaddedInSize(), \
+								pow(this->_cp->getFilterSize(), 2) * this->_cp->getOutChannel());
+	ranged_w 				= new Matrix<Dtype>(this->_cp->getOutChannel() * _filt_pixs, \
+								this->_cp->getInChannel());
+	unranged_in 			= new Matrix<Dtype>(this->_cp->getMinibatchSize() * \
+								pow(this->_cp->getPaddedInSize(), 2), this->_cp->getInChannel());
 
 	this->_w_inc->zeros();
 	this->_bias_inc->zeros();
-
-
 }
 
-void ConvNet::computeOutputs(NVMatrix* _x){
-
-	//100*3*28*28 * 5*5, then add to 100*28*28 * 5*5
+template <typename Dtype>
+void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
 
 	int num_kernel;
 	int num_block;
 //	_x->reValue(32);
-//	_w->reValue(1.0f);
-//	_bias->reValue(2.0f);
+//	this->_w->reValue(1.0f);
+//	this->_bias->reValue(2.0f);
 
-	if(_pad > 0){
-		num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
+	if(this->_cp->getPad() > 0){
+		num_kernel = this->_cp->getMinibatchSize() * this->_cp->getPaddedInSize() * this->_cp->getPaddedInSize() * this->_cp->getInChannel();
 		num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 					: (num_kernel / MAX_NUM_THREAD + 1);
-		cudaMemset(padded_x->getDevData(), 0, sizeof(float) * num_kernel);
+		cudaMemset(padded_x->getDevData(), 0, sizeof(Dtype) * num_kernel);
 		ori_to_padding<<<num_block, MAX_NUM_THREAD>>>(_x->getDevData(), padded_x->getDevData(), num_kernel, \
-				_in_size, _padded_in_size, _in_channel);
+				this->_cp->getInSize(), this->_cp->getPaddedInSize(), this->_cp->getInChannel());
 	}else
 		padded_x = _x;
 
 //	padded_x->showValue("padding");
-	num_kernel = _minibatch_size * _conv_pixs * _filt_pixs *_in_channel;
+	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * _filt_pixs *this->_cp->getInChannel();
 	num_block = num_kernel / MAX_NUM_THREAD + 1;
-	cudaMemset(unrolled_x1->getDevData(), 0, sizeof(float) * num_kernel);
+	cudaMemset(unrolled_x1->getDevData(), 0, sizeof(Dtype) * num_kernel);
 	im2col_filt<<<num_block, MAX_NUM_THREAD>>>(padded_x->getDevData(), \
 			unrolled_x1->getDevData(), num_kernel, \
-			_padded_in_size, \
-			_in_channel, _filter_size, _out_size, _stride);
+			this->_cp->getPaddedInSize(), \
+			this->_cp->getInChannel(), this->_cp->getFilterSize(), this->_cp->getOutSize(), this->_cp->getStride());
 
-	unrolled_x1->rightMult(_w, 1, unranged_y, handle);
+	unrolled_x1->rightMult(this->_w, 1, unranged_y, this->handle);
 
-	unranged_y->addRowVector(_bias);
+	unranged_y->addRowVector(this->_bias);
 
-	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
+	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * this->_cp->getOutChannel();
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
-	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), _y->getDevData(), \
-			num_kernel, _out_size, _filter_channel);
+	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), this->_y->getDevData(), \
+			num_kernel, this->_cp->getOutSize(), this->_cp->getOutChannel());
 	//unrolled_x1->showValue("data");
-//	_w->showValue("whk");
-//	_y->showValue("yh");
+//	this->_w->showValue("whk");
+//	this->_y->showValue("yh");
 }
 
-
-void ConvNet::computeDerivsOfPars(NVMatrix* x){
-	//assert(_minibatch_size % 16 == 0);
-
-	//dE_dx_sigmoid, 16*16*24*24
-	_y->subtractFromScalar(1, _dE_dx_sigmoid);
-
-	_dE_dx_sigmoid->eltWiseMult(_y);
-
-	_dE_dx_sigmoid->eltWiseMult(_dE_dy);
-
-//_dE_dy->showValue("dedy");
-//_dE_dx_sigmoid->showValue("dedxsigmoid");
-	int num_kernel;
-	int num_block;
+template <typename Dtype>
+void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
+	
+//this->_dE_dy->showValue("dedy");
 //	x->reValue(32);
 //	x->showValue("x");
-	//另外一种排列方式，因为需要排列的是24*24的块
-/*
-	if(_pad > 0){
-		num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
-		num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
-					: (num_kernel / MAX_NUM_THREAD + 1);
-		ori_to_padding<<<num_block, MAX_NUM_THREAD>>>(x->getDevData(), padded_x->getDevData(), num_kernel, \
-				_in_size, _padded_in_size, _in_channel);
-	}else
-		padded_x = x;
-*/
-
 //	padded_x->showValue("pad");
 
-	num_kernel = _minibatch_size * _conv_pixs * _filt_pixs * _in_channel;
-	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+	int num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * _filt_pixs * this->_cp->getInChannel();
+	int num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 					: (num_kernel / MAX_NUM_THREAD + 1);
-	cudaMemset(unrolled_x2->getDevData(), 0, sizeof(float) * num_kernel);
+	cudaMemset(unrolled_x2->getDevData(), 0, sizeof(Dtype) * num_kernel);
 	im2col_conv<<<num_block, MAX_NUM_THREAD>>>(padded_x->getDevData(), \
 			unrolled_x2->getDevData(), num_kernel, \
-			_minibatch_size, _padded_in_size, _in_channel, _filter_size, \
-			_out_size, _stride);	
+			this->_cp->getMinibatchSize(), this->_cp->getPaddedInSize(), this->_cp->getInChannel(), this->_cp->getFilterSize(), \
+			this->_cp->getOutSize(), this->_cp->getStride());	
 
 //	unrolled_x2->showValue("x2");
-//	_dE_dx_sigmoid->reValue(32);
+//	this->_dE_dy->reValue(32);
 //unrolled_x2->reValue(1);
 
-	num_kernel = _minibatch_size * _conv_pixs * _filter_channel;
+	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * this->_cp->getOutChannel();
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
 	reshape_dE_dx_sigmoid<<<num_block, MAX_NUM_THREAD>>>(ranged_dE_dx->getDevData(), \
-			_dE_dx_sigmoid->getDevData(), num_kernel, _out_size, _filter_channel);
+			this->_dE_dy->getDevData(), num_kernel, this->_cp->getOutSize(), this->_cp->getOutChannel());
 
-	unrolled_x2->rightMult(ranged_dE_dx, 1, _dE_dw, handle);
+	unrolled_x2->rightMult(ranged_dE_dx, 1, this->_dE_dw, this->handle);
 
 //ranged_dE_dx->showValue("dedxdh");	
-//_dE_dx_sigmoid->showValue("dedxsigmoid");
-//_dE_dw->showValue("dedwhk");
+//this->_dE_dy->showValue("dedy");
+//this->_dE_dw->showValue("dedwhk");
 
-	dim3 blocks = dim3(_minibatch_size, _filter_channel);
-	dim3 threads = dim3(_out_size, _out_size);
-	compute_dE_db<<<blocks, threads, sizeof(float)>>>(_dE_dx_sigmoid->getDevData(), \
-			dE_db_tmp->getDevData(), _out_size);
+	dim3 blocks = dim3(this->_cp->getMinibatchSize(), this->_cp->getOutChannel());
+	dim3 threads = dim3(this->_cp->getOutSize(), this->_cp->getOutSize());
+	compute_dE_db<<<blocks, threads, sizeof(Dtype)>>>(this->_dE_dy->getDevData(), \
+			dE_db_tmp->getDevData(), this->_cp->getOutSize());
 	cudaThreadSynchronize();
-	dE_db_tmp->sumRow(_dE_db);
+	dE_db_tmp->sumRow(this->_dE_db);
 }
 
-void ConvNet::computeDerivsOfInput(NVMatrix* dE_dx){
-
-//	clock_t t = clock();
-//cout << "\n----------";
-	int num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _filt_pixs * _filter_channel;
+template <typename Dtype>
+void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
+	
+	int num_kernel = this->_cp->getMinibatchSize() * this->_cp->getPaddedInSize() * this->_cp->getPaddedInSize() * _filt_pixs * this->_cp->getOutChannel();
 	int	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
 
-//_dE_dx_sigmoid->reValue(16);
+//this->_dE_dy->reValue(16);
 
-	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(float) * num_kernel);
-	im2col_img<<<num_block, MAX_NUM_THREAD>>>(_dE_dx_sigmoid->getDevData(), unrolled_conv->getDevData(), \
-			num_kernel, _padded_in_size, _filter_channel, \
-			_in_channel, _filter_size, _out_size, _stride);
+	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(Dtype) * num_kernel);
+	im2col_img<<<num_block, MAX_NUM_THREAD>>>(this->_dE_dy->getDevData(), unrolled_conv->getDevData(), \
+			num_kernel, this->_cp->getPaddedInSize(), this->_cp->getOutChannel(), \
+			this->_cp->getInChannel(), this->_cp->getFilterSize(), this->_cp->getOutSize(), this->_cp->getStride());
 	cudaThreadSynchronize();
-
-//printTime(t, "im2col_img");
-
-//_w->reValue(1.0f);
-	num_kernel = _filter_channel * _filt_pixs * _in_channel;
+//this->_w->reValue(1.0f);
+	num_kernel = this->_cp->getOutChannel() * _filt_pixs * this->_cp->getInChannel();
 	num_block = num_kernel / MAX_NUM_THREAD + 1;
 	reshape_w<<<num_block, MAX_NUM_THREAD>>>(ranged_w->getDevData(), \
-			_w->getDevData(), num_kernel, _filter_size, \
-			_filter_channel, _in_channel);
+			this->_w->getDevData(), num_kernel, this->_cp->getFilterSize(), \
+			this->_cp->getOutChannel(), this->_cp->getInChannel());
 	cudaThreadSynchronize();
-
-//printTime(t, "reshape_w");
-
-	unrolled_conv->rightMult(ranged_w, 1, unranged_in, handle);
-
-//printTime(t, "rightMult");
-
-	num_kernel = _minibatch_size * _padded_in_size * _padded_in_size * _in_channel;
+	
+	unrolled_conv->rightMult(ranged_w, 1, unranged_in, this->handle);
+	
+	num_kernel = this->_cp->getMinibatchSize() * this->_cp->getPaddedInSize() * this->_cp->getPaddedInSize() * this->_cp->getInChannel();
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
 
 //unranged_in->reValue(20*16);
 
 	reshape_In<<<num_block, MAX_NUM_THREAD>>>(dE_dx->getDevData(), unranged_in->getDevData(), \
-			num_kernel, _in_size, _padded_in_size, _in_channel);
+			num_kernel, this->_cp->getInSize(), this->_cp->getPaddedInSize(), this->_cp->getInChannel());
 	cudaThreadSynchronize();
-
-//printTime(t, "reshape_In");
-//	_w->showValue("whk");
+	
+//	this->_w->showValue("whk");
 //	unrolled_conv->showValue("unrolledconv");
-//	ranged_w->showValue("rangWhk");
+//	rangedthis->_w->showValue("rangWhk");
 //		unranged_in->showValue("unrangIN");
 //	dE_dx->showValue("dx");
 

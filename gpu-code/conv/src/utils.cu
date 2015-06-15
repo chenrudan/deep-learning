@@ -1,10 +1,5 @@
 
-#include <iostream>
-//#include <random>
-#include <fstream>
 #include "utils.cuh"
-#include "matrix.h"
-//#include "nvmatrix.cuh"
 
 using namespace std;
 
@@ -14,9 +9,7 @@ void printTime(clock_t &t, string s){
 	t = clock();
 }
 
-
-
-void initW(NVMatrix* nvMat){
+void initW(Matrix<float>* nvMat){
 	int length = nvMat->getNumRows() * nvMat->getNumCols();
 	float* a = new float[length];
 	srand((unsigned)time(NULL));
@@ -32,7 +25,7 @@ void initW(NVMatrix* nvMat){
 	delete a;
 }
 
-void gaussRand(NVMatrix* nvMat, float var, float mean){
+void gaussRand(Matrix<float>* nvMat, float var, float mean){
 	int length = nvMat->getNumRows() * nvMat->getNumCols();
 	float* a = new float[length];
 	// std::default_random_engine generator;
@@ -73,27 +66,30 @@ float gaussGen(float var, float mean)
 
 
 
-void readPars(NVMatrix* par, string filename){
+void readPars(Matrix<float>* par, string filename){
 	ifstream fin1(filename.c_str(), ios::binary);
 	int dataLen = par->getNumRows() * par->getNumCols();
 	float* tmp = new float[dataLen];
 	fin1.read((char*)(tmp), sizeof(float) * dataLen);
-	cudaMemcpy(par->getDevData(), tmp, sizeof(float)*dataLen, cudaMemcpyHostToDevice);
+	cudaMemcpy(par->getDevData(), tmp, sizeof(float)*dataLen, \
+				cudaMemcpyHostToDevice);
 	fin1.close();
 	delete tmp;
 }
 
-void savePars(NVMatrix* par, string filename){
+void savePars(Matrix<float>* par, string filename){
 	ofstream fout(filename.c_str(), ios::binary);
 	int dataLen = par->getNumRows() * par->getNumCols();
 	float* tmp = new float[dataLen];
-	cudaMemcpy(tmp, par->getDevData(), sizeof(float)*dataLen, cudaMemcpyDeviceToHost);
+	cudaMemcpy(tmp, par->getDevData(), sizeof(float)*dataLen, \
+				cudaMemcpyDeviceToHost);
 	fout.write((char*)(tmp), sizeof(float) * dataLen);
 	fout.close();
 	delete tmp;
 }
 
-void readData(NVMatrix* nvData, string filename, bool isData, int addZerosInFront){ 
+void readData(Matrix<float>* nvData, string filename, \
+			bool isData, int addZerosInFront){
 	int length = nvData->getNumRows() * nvData->getNumCols();
 	ifstream fin(filename.c_str(), ios::binary);
 	float* data = new float[length];

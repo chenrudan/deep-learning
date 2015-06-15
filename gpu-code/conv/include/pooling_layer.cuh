@@ -1,29 +1,34 @@
-/*
- * filename: pooling_layer.cuh
- */
+///
+/// \file pooling_layer.cuh
+/// @brief 实现了pooling
+
 #ifndef POOLING_LAYER_H_
 #define POOLING_LAYER_H_
 
 #include <iostream>
-
-#include "utils.cuh"
+#include <cmath>
 #include "layer.hpp"
-#include "nvmatrix.cuh"
+#include "layer_kernel.cuh"
 
-class PoolingLayer : public Layer {
+template <typename Dtype>
+class PoolingLayer : public Layer<Dtype> {
 
-	public:
-		PoolingLayer(pars* network);
-		~PoolingLayer();
+public:
+    PoolingLayer(LocalConnectParam *lcp);
 
-		void initCuda();
-		void computeOutputs(NVMatrix* x); 
-		void computeDerivsOfInput(NVMatrix* dE_dx);
-//		void updatePars();
+    ~PoolingLayer();
 
-	private:
-		int* _max_pos;
+    void initCuda();
 
+    void computeOutputs(Matrix<Dtype>* x);
+
+    void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
+
+private:
+    int* _max_pos;
+    LocalConnectParam* _lcp;
+    Matrix<Dtype>* _y;
+    Matrix<Dtype>* _dE_dy;
 };
 
 #endif
