@@ -14,7 +14,7 @@ class InnerProductLayer : public TrainLayer<Dtype> {
 
 public:
 	
-	InnerProductLayer(FullConnectParam* fcp);
+	InnerProductLayer(InnerParam* fcp);
 	~InnerProductLayer();
 
 	void initCuda();
@@ -23,7 +23,7 @@ public:
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
 private:
-	FullConnectParam* _fcp;
+	InnerParam* _fcp;
 };
 
 #include "../src/inner_product_layer.cu"

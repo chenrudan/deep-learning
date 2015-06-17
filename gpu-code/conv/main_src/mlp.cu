@@ -7,12 +7,14 @@
 #include <sstream>
 #include <cmath>
 #include <omp.h>
+#include <unistd.h>
 #include "mpi.h"
 #include "inner_product_layer.hpp"
 #include "logistic.hpp"
 #include "load_layer.hpp"
 #include "param.h"
 #include "matrix.hpp"
+#include "sigmoid_layer.hpp"
 
 using namespace std;
 
@@ -76,17 +78,17 @@ cout << "done8\n";
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
 
-/*
+
     readData(train_data, "../data/input/mnist_train.bin", true);
     readData(valid_data, "../data/input/mnist_valid.bin", true);
     readData(train_label, "../data/input/mnist_label_train.bin", false);
     readData(valid_label, "../data/input/mnist_label_valid.bin", false);
-*/
+
 
 cout << "done7\n";
 
 	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
-	LoadCifar10<float> cifar10(cifar10_info);
+/*	LoadCifar10<float> cifar10(cifar10_info);
     for(int i = 1; i < 6; i++){
         string s;
         stringstream ss;
@@ -104,7 +106,7 @@ cout << "done7\n";
 	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * inner1_in_len);
 	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
 
-
+*/
 cout << "done6\n";
 
 	Matrix<float>* inner1_w = new Matrix<float>(inner1_w_len / inner1_fcp->getNumOut(), inner1_fcp->getNumOut());
@@ -143,7 +145,6 @@ cout << "done5\n";
 				valid_label_len_part, MPI_FLOAT, i, i, MPI_COMM_WORLD);
 
 	}
-
 	//pro进程，每个进程进行的数据交换次数，0123是push，4567是fetch
 	//4个数据地址，8个线程来分别实现两种操作
 	const int trans_ops = 8;
@@ -152,7 +153,6 @@ cout << "done5\n";
 			softmax_w->getDevData(), softmax_bias->getDevData()};
 	int pars_len[num_pars_type] = {inner1_w_len, inner1_b_len, \
 				softmax_w_len, softmax_b_len};
-
 	#pragma omp parallel num_threads(trans_ops * (num_process - 1)) 
 	{
 
@@ -190,7 +190,7 @@ cout << "done5\n";
 }
 
 
-void workerNode(InnerParam* inner1_fcp, InnerParam* softmax1_fcp){
+void workerNode(InnerParam* inner1_fcp, FullConnectParam* sigmoid1_fcp, InnerParam* softmax1_fcp){
 
 	num_train_per_process = num_train / (num_process - 1);
 	num_valid_per_process = num_valid / (num_process - 1);
@@ -214,6 +214,9 @@ cout << "done4\n";
 
 	InnerProductLayer<float> inner1(inner1_fcp);
 	inner1.initCuda();
+
+	SigmoidLayer<float> sigmoid1(sigmoid1_fcp);
+	sigmoid1.initCuda();
 
 	Logistic<float> softmax1(softmax1_fcp);
 	softmax1.initCuda();
@@ -252,6 +255,8 @@ cout << "done2\n";
 
 	Matrix<float>* inner1_y;
 	Matrix<float>* inner1_dE_dy;
+	Matrix<float>* sigmoid1_y;
+	Matrix<float>* sigmoid1_dE_dy;
 
 	const int num_pars_type = 4;
 	float* my_pars[num_pars_type] = {inner1_w->getDevData(), inner1_bias->getDevData(), \
@@ -282,12 +287,16 @@ if(epoch_idx > 1){
 
 			inner1.computeOutputs(mini_data);
 			inner1_y = inner1.getY();
-			softmax1.computeOutputs(inner1_y);
+			sigmoid1.computeOutputs(inner1_y);
+			sigmoid1_y = sigmoid1.getY();
+			softmax1.computeOutputs(sigmoid1_y);
 			softmax1.computeError(mini_label, error);
 
-			softmax1.computeDerivsOfPars(inner1_y, mini_label);
+			softmax1.computeDerivsOfPars(sigmoid1_y, mini_label);
+			sigmoid1_dE_dy = sigmoid1.getDEDY();
+			softmax1.computeDerivsOfInput(sigmoid1_dE_dy);
 			inner1_dE_dy = inner1.getDEDY();
-			softmax1.computeDerivsOfInput(inner1_dE_dy);
+			sigmoid1.computeDerivsOfInput(inner1_dE_dy);
 			inner1.computeDerivsOfPars(mini_data);
 
 			inner1.updatePars();
@@ -351,7 +360,9 @@ if(epoch_idx > 1){
 							mini_label_len * validIdx);
 					inner1.computeOutputs(mini_data);
 					inner1_y = inner1.getY();
-					softmax1.computeOutputs(inner1_y);
+					sigmoid1.computeOutputs(inner1_y);
+					sigmoid1_y = sigmoid1.getY();
+					softmax1.computeOutputs(sigmoid1_y);
 					loglihoodValid += softmax1.computeError(mini_label, errorValid);
 
 				}
@@ -379,11 +390,11 @@ if(epoch_idx > 1){
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-		
-		if((epoch_idx + 1) % 4){
+		/*
+		if((epoch_idx + 1) % 4 == 0 ){
 			inner1_fcp->lrMultiScale(0.95);
 			softmax1_fcp->lrMultiScale(0.95);
-		} 
+		}*/ 
 
 
 	}
@@ -428,34 +439,46 @@ int main(int argc, char** argv){
 */
 
 	int minibatch_size = 100;
-	int inner1_num_in = 32 * 32 * 3;
-	int inner1_num_out = 1000;
+	int inner1_num_in = 28*28;
+	int inner1_num_out = 500;
 	int softmax_num_out = 10;
-	float inner1_w_lr = 0.002;
-	float inner1_b_lr = 0.002;
+	float inner1_w_lr = 0.1;
+	float inner1_b_lr = 0.1;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 	int n_push = 50;
 	int n_fetch = 49;
-	float softmax_w_lr = 0.0001;
-	float softmax_b_lr = 0.0001;
+	float softmax_w_lr = 0.1;
+	float softmax_b_lr = 0.1;
 	float softmax_momentum = 0.9;
 	float softmax_weight_decay = 0;
 
-	string inner1_name("inner_product_layer1");
-	string softmax_name("softmax_layer1");
-
-	cout << inner1_name << endl;
-	InnerParam* inner1_fcp = new InnerParam(inner1_name, \
+	InnerParam* inner1_fcp = new InnerParam("inner_product_layer1", \
 			minibatch_size, inner1_w_lr, inner1_b_lr, \
 			inner1_momentum, inner1_weight_decay, n_push, n_fetch, \
 			inner1_num_in, inner1_num_out);
 
+	FullConnectParam* sigmoid1_fcp = new FullConnectParam("sigmoid_layer", \
+			minibatch_size, inner1_num_out, inner1_num_out);
 
-	InnerParam* softmax_fcp = new InnerParam(softmax_name, \
+	InnerParam* softmax_fcp = new InnerParam("softmax_layer1", \
 			softmax_w_lr, softmax_b_lr, softmax_momentum, \
 			softmax_weight_decay, n_push, n_fetch, softmax_num_out, inner1_fcp);
+/*
+cout << inner1_fcp->getWLR() << ":" \
+	<< inner1_fcp->getNPush() << ":" \
+	<< inner1_fcp->getNFetch() << ":" \
+	<< inner1_fcp->getNumIn() << ":" \
+	<< inner1_fcp->getNumOut() << ":" \
+	<< inner1_fcp->getMinibatchSize() << "\n"; 
 
+cout << softmax_fcp->getWLR() << ":" \
+	<< softmax_fcp->getNPush() << ":" \
+	<< softmax_fcp->getNFetch() << ":" \
+	<< softmax_fcp->getNumIn() << ":" \
+	<< softmax_fcp->getNumOut() << ":" \
+	<< softmax_fcp->getMinibatchSize() << "\n"; 
+*/
 	num_minibatch = num_train / (minibatch_size * (num_process - 1));
 	num_validbatch = num_valid / (minibatch_size * (num_process - 1));
 
@@ -463,7 +486,7 @@ int main(int argc, char** argv){
 		managerNode(inner1_fcp, softmax_fcp);
 	}   
 	else{
-		workerNode(inner1_fcp, softmax_fcp);
+		workerNode(inner1_fcp, sigmoid1_fcp, softmax_fcp);
 	} 	
 
 	MPI_Finalize();

@@ -2,7 +2,7 @@
 /// \file pooling_layer.cu
 ///
 
-#include "pooling_layer.cuh"
+#include "pooling_layer.hpp"
 
 using namespace std;
 

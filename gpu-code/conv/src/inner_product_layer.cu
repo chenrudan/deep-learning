@@ -7,7 +7,7 @@
 using namespace std;
 
 template <typename Dtype>
-InnerProductLayer<Dtype>::InnerProductLayer<Dtype>(FullConnectParam* fcp) : \
+InnerProductLayer<Dtype>::InnerProductLayer<Dtype>(InnerParam* fcp) : \
  	TrainLayer<Dtype>((TrainParam*)fcp){
 	this->_fcp = fcp;
 	cublasCreate(&this->handle);
@@ -35,14 +35,14 @@ void InnerProductLayer<Dtype>::initCuda() {
 	this->_w            = new Matrix<Dtype>(this->_fcp->getNumIn(), this->_fcp->getNumOut());
 	this->_bias         = new Matrix<Dtype>(1, this->_fcp->getNumOut());
 
-	this->_y               = new Matrix<Dtype>(this->_fcp->getMinibatchSize(), this->_fcp->getNumOut());
+	this->_y            = new Matrix<Dtype>(this->_fcp->getMinibatchSize(), this->_fcp->getNumOut());
 	
-	this->_dE_dy           = new Matrix<Dtype>(this->_y);
-	this->_dE_db           = new Matrix<Dtype>(this->_bias);
-	this->_dE_dw          = new Matrix<Dtype>(this->_w);
+	this->_dE_dy        = new Matrix<Dtype>(this->_y);
+	this->_dE_db        = new Matrix<Dtype>(this->_bias);
+	this->_dE_dw        = new Matrix<Dtype>(this->_w);
 
-	this->_w_inc         = new Matrix<Dtype>(this->_w);
-	this->_bias_inc        = new Matrix<Dtype>(1, this->_fcp->getNumOut());
+	this->_w_inc        = new Matrix<Dtype>(this->_w);
+	this->_bias_inc     = new Matrix<Dtype>(this->_bias);
 
 	this->_w_inc->zeros();
 	this->_bias_inc->zeros();
@@ -52,10 +52,21 @@ template <typename Dtype>
 void InnerProductLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
 //	x->showValue("data");
 //	this->_w->showValue("w");
+//	x->reValue(1.0f);
+//	this->_w->reValue(1.0f);
 	x->rightMult(this->_w, 1, this->_y, this->handle);
 	this->_y->addRowVector(this->_bias);
 //	this->_y->showValue("yj1");
+
+	//cout << this->_y->getNumRows() << ":" << this->_y->getNumCols() << ":"<< this->_y->getNumEles() << " \n" \
+		 << this->_w->getNumRows() << ":" << this->_w->getNumCols() << ":"<<this->_w->getNumEles() <<" \n" \
+		 << this->_bias->getNumRows() << ":" << this->_bias->getNumCols() << ":"<<this->_bias->getNumEles() <<" \n" \
+		 << this->_dE_dw->getNumRows() << ":" << this->_dE_dw->getNumCols() << ":"<<this->_dE_dw->getNumEles() <<" \n" \
+		 << this->_dE_db->getNumRows() << ":" << this->_dE_db->getNumCols() << ":"<<this->_dE_db->getNumEles() <<" \n" \
+		 << this->_dE_dy->getNumRows() << ":" << this->_dE_dy->getNumCols() << ":"<<this->_dE_dy->getNumEles() <<" \n" \
+		 << x->getNumRows() << ":" << x->getNumCols() << ":"<<x->getNumEles() <<endl;
 }
+
 
 template <typename Dtype>
 void InnerProductLayer<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
@@ -76,6 +87,6 @@ void InnerProductLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	this->_w->getTranspose(w_T);
 	this->_dE_dy->rightMult(w_T, 1, dE_dx, this->handle);
 	delete w_T;
-}
 
+}
 

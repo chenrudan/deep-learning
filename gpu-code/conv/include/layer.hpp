@@ -52,6 +52,8 @@ public:
 			_dE_dw->showValue("dEdw");
 			_w_inc->showValue("winc");
 			_dE_db->showValue("dEdb");
+			cout << _tp->getMomentum() << ":" << _tp->getWeightDecay() << ":" \
+				<< _tp->getWLR() << ":" << _tp->getBiasLR() << endl; 
 		}
 		_w_inc->addSum(_w, _dE_dw, _tp->getMomentum(), -_tp->getWeightDecay(), \
 			            -_tp->getWLR() / _tp->getMinibatchSize());

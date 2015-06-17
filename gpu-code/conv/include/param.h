@@ -5,6 +5,7 @@
 #define PARAM_H_
 
 #include <string>
+#include <iostream>
 #include <cmath>
 
 using namespace std;
@@ -59,32 +60,25 @@ public:
         _w_lr *= lr_scale;
         _b_lr *= lr_scale;
     }
-
     inline void lrChangeTo(float new_w, float new_b) {
         _w_lr = new_w;
         _b_lr = new_b;
     }
-
     inline float getWLR() {
         return _w_lr;
     }
-
     inline float getBiasLR() {
         return _b_lr;
     }
-
     inline float getMomentum() {
         return _momentum;
     }
-
 	inline float getWeightDecay() {
 		return _weight_decay;
 	}
-
     inline int getNPush() {
         return _n_push;
     }
-
     inline int getNFetch() {
         return _n_fetch;
     }
@@ -127,11 +121,9 @@ public:
     inline int getOutSize() {
         return _out_size;
     }
-
     inline int getFilterSize() {
         return _filter_size;
     }
-
     inline int getOutChannel() {
         return _out_channel;
     }

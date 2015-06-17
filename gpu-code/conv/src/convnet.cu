@@ -5,7 +5,7 @@
 
 #include <time.h>
 
-#include "convnet.cuh"
+#include "convnet.hpp"
 #include "layer_kernel.cuh"
 
 using namespace std;

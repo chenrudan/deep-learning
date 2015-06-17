@@ -3,7 +3,7 @@
 /// @brief
 
 #include <time.h>
-#include "relu_layer.cuh"
+#include "relu_layer.hpp"
 #include "layer_kernel.cuh"
 
 using namespace std;

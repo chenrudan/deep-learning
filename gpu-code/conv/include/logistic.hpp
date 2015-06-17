@@ -13,7 +13,7 @@ template <typename Dtype>
 class Logistic : public TrainLayer<Dtype> {
 
 public:
-	Logistic(FullConnectParam* fcp);
+	Logistic(InnerParam* fcp);
 	~Logistic();
 	
 	void initCuda();
@@ -24,7 +24,7 @@ public:
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
 private:
-	FullConnectParam* _fcp;
+	InnerParam* _fcp;
 	
 
 };

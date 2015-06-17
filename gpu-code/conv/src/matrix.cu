@@ -38,14 +38,14 @@ Matrix<Dtype>::~Matrix(){
 
 template <typename Dtype>
 void Matrix<Dtype>::_init(int num_row, int num_col) {
-	this->_shape[0] = num_row;
-	this->_shape[1] = num_col;
+	this->_shape.push_back(num_row);
+	this->_shape.push_back(num_col);
 	this->_amount = num_row * num_col;
 	this->_is_own_data = true;
 	if (this->_amount > 0) {
 		cudaError_t status;
 		status = cudaMalloc((void**) &this->_data_value, \
-				this->_shape[0] * this->_shape[1] * sizeof(Dtype));
+				this->_amount * sizeof(Dtype));
 		/*
 		else if(a == ALLOC_ON_UNIFIED_MEMORY){
 			status = cudaMallocManaged(&this->_data_value, \
@@ -57,6 +57,55 @@ void Matrix<Dtype>::_init(int num_row, int num_col) {
 		}
 	} 
 }
+
+
+template <typename Dtype>
+void Matrix<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
+	cudaError_t status = cudaMemcpy(this->_data_value, data_value_in, \
+			sizeof(Dtype) * data_len, cudaMemcpyHostToDevice);
+	if (status != cudaSuccess) {
+		cout << stderr, "!!!! device access error (write)\n";
+		exit( EXIT_FAILURE );
+	}  	
+}
+
+template <typename Dtype>
+void Matrix<Dtype>::copyFromDevice(const Matrix<Dtype>* Matrix_in){
+	cudaError_t status = cudaMemcpy(this->_data_value, Matrix_in->getDevMatrix(), \
+			sizeof(Dtype) * this->_amount, cudaMemcpyDeviceToDevice);
+	if (status != cudaSuccess) {
+		cout << stderr, "!!!! device access error (write)\n";
+		exit( EXIT_FAILURE );
+
+	}   
+}
+
+template <typename Dtype>
+void Matrix<Dtype>::copyToHost(Dtype* data_value_in, const int data_len){
+	cudaError_t status = cudaMemcpy(data_value_in, this->_data_value, \
+			sizeof(Dtype) * data_len, cudaMemcpyDeviceToHost);
+	if (status != cudaSuccess) {
+		cout << stderr, "!!!! device access error (write)\n";
+		exit( EXIT_FAILURE );
+	} 
+}
+
+template <typename Dtype>
+void Matrix<Dtype>::copyToDevice(Matrix<Dtype>* Matrix_in){
+	cudaError_t status = cudaMemcpy(Matrix_in->getDevMatrix(), this->_data_value, \
+			sizeof(Dtype) * this->_amount, cudaMemcpyDeviceToDevice);
+	if (status != cudaSuccess) {
+		cout << stderr, "!!!! device access error (write)\n";
+		exit( EXIT_FAILURE );
+
+	}   
+}
+
+template <typename Dtype>
+void Matrix<Dtype>::zeros(){
+	cudaMemset(this->_data_value, 0, this->_amount * sizeof(Dtype));
+}
+
 
 template <typename Dtype>
 void Matrix<Dtype>::getTranspose(Matrix<Dtype>* target){
@@ -70,7 +119,7 @@ void Matrix<Dtype>::getTranspose(Matrix<Dtype>* target){
 	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
 	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
 	
-	kTranspose<<<grid_size, block_size>>>(this->_data_value, \
+	kTranspose<Dtype><<<grid_size, block_size>>>(this->_data_value, \
 				target->getDevData(), width, height);
 	cudaThreadSynchronize();
 }
@@ -88,7 +137,7 @@ void Matrix<Dtype>::rightMult(Matrix<Dtype>* b, float scale_AB, \
 	assert(k == b->getNumRows());
 	//列主
 	cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &scale_AB, \
-				b->getDevData(), n, this->getDevData(), k, \
+				b->getDevData(), n, this->_data_value, k, \
 				&scale_tar, target->getDevData(), n);
 }
 
@@ -127,7 +176,7 @@ void Matrix<Dtype>::addRowVector(Matrix<Dtype>* vec, float scaleVec, Matrix<Dtyp
 	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
 	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
 
-	kAddRowVector<<<grid_size, block_size>>>(this->_data_value, vec->getDevData(), \
+	kAddRowVector<Dtype><<<grid_size, block_size>>>(this->_data_value, vec->getDevData(), \
 			target->getDevData(), width, height, scaleVec);
 	cudaThreadSynchronize();
 	
@@ -145,7 +194,7 @@ void Matrix<Dtype>::subtractFromScalar(float scalar, Matrix<Dtype>* target) {
 	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
 	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
 	
-	kSubtractFromScalar<<<grid_size, block_size>>>(this->_data_value, scalar, \
+	kSubtractFromScalar<Dtype><<<grid_size, block_size>>>(this->_data_value, scalar, \
 			target->getDevData(), width, height);
 	cudaThreadSynchronize();
 }
@@ -171,16 +220,16 @@ void Matrix<Dtype>::apply(Matrix<Dtype>::FUNCTIONS f, Matrix<Dtype> *target){
 		//一个block只计算一行数据
 		grid_size = dim3(1, height, 1);
 		block_size = dim3(num_blocks_x * ADD_BLOCK_SIZE, 1, 1);
-		kSoftmax<<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
+		kSoftmax<Dtype><<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
 				this->_shape[1], this->_shape[0]);
 	}else if(f == Matrix<Dtype>::RECIPROCAL) {
-		kReciprocal<<<grid_size, block_size>>>(this->_data_value, target->getDevData(), \
+		kReciprocal<Dtype><<<grid_size, block_size>>>(this->_data_value, target->getDevData(), \
 				width, height);
 	}else if(f == Matrix<Dtype>::LOG) {
-		kLog<<<grid_size, block_size>>>(this->_data_value, target->getDevData(), \
+		kLog<Dtype><<<grid_size, block_size>>>(this->_data_value, target->getDevData(), \
 				width, height);
 	}else if(f == Matrix<Dtype>::SIGMOID) {
-		kSigmoid<<<grid_size, block_size>>>(this->_data_value, target->getDevData(), \
+		kSigmoid<Dtype><<<grid_size, block_size>>>(this->_data_value, target->getDevData(), \
 				width, height);
 	}
 	cudaThreadSynchronize();
@@ -200,7 +249,7 @@ void Matrix<Dtype>::sumCol(Matrix<Dtype>* target){
 	dim3 grid_size(1, height, 1); 
 	dim3 block_size(num_blocks_x * ADD_BLOCK_SIZE, 1, 1); 
 	
-	kDumbSumCols<<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
+	kDumbSumCols<Dtype><<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
 			target->getDevData(), width, height);
 	cudaThreadSynchronize();
 }
@@ -222,9 +271,12 @@ void Matrix<Dtype>::maxPosInRow(Matrix<Dtype>* maxVec){
 	assert(num_blocks_x < NUM_BLOCKS_MAX);
 	dim3 grid_size(1, height, 1); 
 	dim3 block_size(num_blocks_x * ADD_BLOCK_SIZE, 1, 1); 
-	
-	kDumbMaxPosInRow<<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
+
+//	this->showValue("data");
+	kDumbMaxPosInRow<Dtype><<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
 			maxVec->getDevData(), width, height);
+//	maxVec->showValue("max pos");
+//	this->showValue("data");
 	cudaThreadSynchronize();
 }
 
@@ -242,7 +294,7 @@ void Matrix<Dtype>::eltWiseMult(Matrix<Dtype>* b, Matrix<Dtype>* target) {
 	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
 	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
 
-	kMult<<<grid_size, block_size>>>(this->_data_value, \
+	kMult<Dtype><<<grid_size, block_size>>>(this->_data_value, \
 			b->getDevData(), target->getDevData(), width, height);
 	cudaThreadSynchronize();
 }
@@ -271,7 +323,7 @@ void Matrix<Dtype>::add(Matrix<Dtype>* b, float scale_this, float scale_B){
 	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
 	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
 	
-	kAdd<<<grid_size, block_size>>>(this->getDevData(), b->getDevData(), \
+	kAdd<Dtype><<<grid_size, block_size>>>(this->getDevData(), b->getDevData(), \
 			this->getDevData(), scale_this, scale_B, width, height);
 	cudaThreadSynchronize();
 }
