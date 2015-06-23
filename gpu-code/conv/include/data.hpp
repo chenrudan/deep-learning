@@ -14,14 +14,14 @@ class Data {
 public:
 	Data() {}
 	virtual ~Data() {}
-/*
+
 	void copyFromHost(Dtype* data_value, const int data_len);
 	void copyFromDevice(Data<Dtype>* dev_data);
 	void copyToHost(Dtype* data_value, const int data_len);
 	void copyToDevice(Data<Dtype>* dev_data);
 
 	void zeros();
-*/
+
 
 protected:
 	//数据形状不固定，由子类来定

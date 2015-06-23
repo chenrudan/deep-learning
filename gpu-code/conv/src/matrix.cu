@@ -60,54 +60,6 @@ void Matrix<Dtype>::_init(int num_row, int num_col) {
 
 
 template <typename Dtype>
-void Matrix<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
-	cudaError_t status = cudaMemcpy(this->_data_value, data_value_in, \
-			sizeof(Dtype) * data_len, cudaMemcpyHostToDevice);
-	if (status != cudaSuccess) {
-		cout << stderr, "!!!! device access error (write)\n";
-		exit( EXIT_FAILURE );
-	}  	
-}
-
-template <typename Dtype>
-void Matrix<Dtype>::copyFromDevice(const Matrix<Dtype>* Matrix_in){
-	cudaError_t status = cudaMemcpy(this->_data_value, Matrix_in->getDevMatrix(), \
-			sizeof(Dtype) * this->_amount, cudaMemcpyDeviceToDevice);
-	if (status != cudaSuccess) {
-		cout << stderr, "!!!! device access error (write)\n";
-		exit( EXIT_FAILURE );
-
-	}   
-}
-
-template <typename Dtype>
-void Matrix<Dtype>::copyToHost(Dtype* data_value_in, const int data_len){
-	cudaError_t status = cudaMemcpy(data_value_in, this->_data_value, \
-			sizeof(Dtype) * data_len, cudaMemcpyDeviceToHost);
-	if (status != cudaSuccess) {
-		cout << stderr, "!!!! device access error (write)\n";
-		exit( EXIT_FAILURE );
-	} 
-}
-
-template <typename Dtype>
-void Matrix<Dtype>::copyToDevice(Matrix<Dtype>* Matrix_in){
-	cudaError_t status = cudaMemcpy(Matrix_in->getDevMatrix(), this->_data_value, \
-			sizeof(Dtype) * this->_amount, cudaMemcpyDeviceToDevice);
-	if (status != cudaSuccess) {
-		cout << stderr, "!!!! device access error (write)\n";
-		exit( EXIT_FAILURE );
-
-	}   
-}
-
-template <typename Dtype>
-void Matrix<Dtype>::zeros(){
-	cudaMemset(this->_data_value, 0, this->_amount * sizeof(Dtype));
-}
-
-
-template <typename Dtype>
 void Matrix<Dtype>::getTranspose(Matrix<Dtype>* target){
 	
 	const int width = this->_shape[1];
@@ -221,7 +173,7 @@ void Matrix<Dtype>::apply(Matrix<Dtype>::FUNCTIONS f, Matrix<Dtype> *target){
 		grid_size = dim3(1, height, 1);
 		block_size = dim3(num_blocks_x * ADD_BLOCK_SIZE, 1, 1);
 		kSoftmax<Dtype><<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
-				this->_shape[1], this->_shape[0]);
+				target->getDevData(), this->_shape[1], this->_shape[0]);
 	}else if(f == Matrix<Dtype>::RECIPROCAL) {
 		kReciprocal<Dtype><<<grid_size, block_size>>>(this->_data_value, target->getDevData(), \
 				width, height);

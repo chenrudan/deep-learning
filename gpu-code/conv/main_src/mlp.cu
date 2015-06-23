@@ -78,21 +78,21 @@ cout << "done8\n";
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
 
-
+/*
     readData(train_data, "../data/input/mnist_train.bin", true);
     readData(valid_data, "../data/input/mnist_valid.bin", true);
     readData(train_label, "../data/input/mnist_label_train.bin", false);
     readData(valid_label, "../data/input/mnist_label_valid.bin", false);
-
+*/
 
 cout << "done7\n";
 
 	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
-/*	LoadCifar10<float> cifar10(cifar10_info);
+	LoadCifar10<float> cifar10(cifar10_info);
     for(int i = 1; i < 6; i++){
         string s;
         stringstream ss;
-        ss << 5;
+        ss << i;
         ss >> s;    
 		string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
         cifar10.loadBinary(filename, cifar10_info->train_pixel_ptr, \
@@ -106,7 +106,7 @@ cout << "done7\n";
 	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * inner1_in_len);
 	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
 
-*/
+
 cout << "done6\n";
 
 	Matrix<float>* inner1_w = new Matrix<float>(inner1_w_len / inner1_fcp->getNumOut(), inner1_fcp->getNumOut());
@@ -190,7 +190,8 @@ cout << "done5\n";
 }
 
 
-void workerNode(InnerParam* inner1_fcp, FullConnectParam* sigmoid1_fcp, InnerParam* softmax1_fcp){
+void workerNode(InnerParam* inner1_fcp, FullConnectParam* sigmoid1_fcp, InnerParam* inner2_fcp, \
+		FullConnectParam* softmax1_fcp){
 
 	num_train_per_process = num_train / (num_process - 1);
 	num_valid_per_process = num_valid / (num_process - 1);
@@ -199,8 +200,8 @@ void workerNode(InnerParam* inner1_fcp, FullConnectParam* sigmoid1_fcp, InnerPar
 	int inner1_w_len = inner1_fcp->getNumIn() * inner1_fcp->getNumOut();
 	int inner1_b_len = inner1_fcp->getNumOut();
 
-	int softmax_w_len = softmax1_fcp->getNumIn() * softmax1_fcp->getNumOut();
-	int softmax_b_len = softmax1_fcp->getNumOut();
+	int softmax_w_len = inner2_fcp->getNumIn() * inner2_fcp->getNumOut();
+	int softmax_b_len = inner2_fcp->getNumOut();
 
 	int mini_data_len = inner1_fcp->getMinibatchSize()  * inner1_in_len;
 	int mini_label_len = inner1_fcp->getMinibatchSize() ;
@@ -218,13 +219,16 @@ cout << "done4\n";
 	SigmoidLayer<float> sigmoid1(sigmoid1_fcp);
 	sigmoid1.initCuda();
 
+	InnerProductLayer<float> inner2(inner2_fcp);
+	inner2.initCuda();
+
 	Logistic<float> softmax1(softmax1_fcp);
 	softmax1.initCuda();
 
 	Matrix<float>* inner1_w = inner1.getW();
 	Matrix<float>* inner1_bias = inner1.getBias();
-	Matrix<float>* softmax_w = softmax1.getW();
-	Matrix<float>* softmax_bias = softmax1.getBias();
+	Matrix<float>* softmax_w = inner2.getW();
+	Matrix<float>* softmax_bias = inner2.getBias();
 
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -257,6 +261,8 @@ cout << "done2\n";
 	Matrix<float>* inner1_dE_dy;
 	Matrix<float>* sigmoid1_y;
 	Matrix<float>* sigmoid1_dE_dy;
+	Matrix<float>* inner2_y;
+	Matrix<float>* inner2_dE_dy;
 
 	const int num_pars_type = 4;
 	float* my_pars[num_pars_type] = {inner1_w->getDevData(), inner1_bias->getDevData(), \
@@ -276,8 +282,8 @@ if(epoch_idx > 1){
 	inner1_bias->showValue("inner1b");
 	softmax_w->showValue("softmaxw");
 	softmax_bias->showValue("softmaxb");
-}
-*/
+}*/
+
 		for(int batch_idx = 0; batch_idx < num_minibatch; batch_idx++){
 
 			mini_data->changePtrFromStart(train_data->getDevData(), \
@@ -289,18 +295,22 @@ if(epoch_idx > 1){
 			inner1_y = inner1.getY();
 			sigmoid1.computeOutputs(inner1_y);
 			sigmoid1_y = sigmoid1.getY();
-			softmax1.computeOutputs(sigmoid1_y);
+			inner2.computeOutputs(sigmoid1_y);
+			inner2_y = inner2.getY();
+			softmax1.computeOutputs(inner2_y);
 			softmax1.computeError(mini_label, error);
 
-			softmax1.computeDerivsOfPars(sigmoid1_y, mini_label);
+			inner2_dE_dy = inner2.getDEDY();
+			softmax1.computeDerivsOfInput(inner2_dE_dy, mini_label);
 			sigmoid1_dE_dy = sigmoid1.getDEDY();
-			softmax1.computeDerivsOfInput(sigmoid1_dE_dy);
+			inner2.computeDerivsOfInput(sigmoid1_dE_dy);
+			inner2.computeDerivsOfPars(sigmoid1_y);
 			inner1_dE_dy = inner1.getDEDY();
 			sigmoid1.computeDerivsOfInput(inner1_dE_dy);
 			inner1.computeDerivsOfPars(mini_data);
 
 			inner1.updatePars();
-			softmax1.updatePars();
+			inner2.updatePars();
 
 			if((batch_idx + 1) % inner1_fcp->getNPush()  == 0){
 				if(epoch_idx == num_epoch - 1){
@@ -362,9 +372,10 @@ if(epoch_idx > 1){
 					inner1_y = inner1.getY();
 					sigmoid1.computeOutputs(inner1_y);
 					sigmoid1_y = sigmoid1.getY();
-					softmax1.computeOutputs(sigmoid1_y);
+					inner2.computeOutputs(sigmoid1_y);
+					inner2_y = inner2.getY();
+					softmax1.computeOutputs(inner2_y);
 					loglihoodValid += softmax1.computeError(mini_label, errorValid);
-
 				}
 				int totalValid = errorValid;
 				if(num_process > 2){
@@ -390,12 +401,12 @@ if(epoch_idx > 1){
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-		/*
-		if((epoch_idx + 1) % 4 == 0 ){
+	/*	
+		if((epoch_idx + 1) % 4 ){
 			inner1_fcp->lrMultiScale(0.95);
 			softmax1_fcp->lrMultiScale(0.95);
-		}*/ 
-
+		} 
+*/
 
 	}
 	if(rank == 1){
@@ -439,17 +450,17 @@ int main(int argc, char** argv){
 */
 
 	int minibatch_size = 100;
-	int inner1_num_in = 28*28;
-	int inner1_num_out = 500;
+	int inner1_num_in = 32*32*3;
+	int inner1_num_out = 1000;
 	int softmax_num_out = 10;
-	float inner1_w_lr = 0.1;
-	float inner1_b_lr = 0.1;
+	float inner1_w_lr = 0.002;
+	float inner1_b_lr = 0.002;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 	int n_push = 50;
 	int n_fetch = 49;
-	float softmax_w_lr = 0.1;
-	float softmax_b_lr = 0.1;
+	float softmax_w_lr = 0.0001;
+	float softmax_b_lr = 0.0001;
 	float softmax_momentum = 0.9;
 	float softmax_weight_decay = 0;
 
@@ -461,9 +472,14 @@ int main(int argc, char** argv){
 	FullConnectParam* sigmoid1_fcp = new FullConnectParam("sigmoid_layer", \
 			minibatch_size, inner1_num_out, inner1_num_out);
 
-	InnerParam* softmax_fcp = new InnerParam("softmax_layer1", \
+	InnerParam* inner2_fcp = new InnerParam("inner_layer2", \
 			softmax_w_lr, softmax_b_lr, softmax_momentum, \
 			softmax_weight_decay, n_push, n_fetch, softmax_num_out, inner1_fcp);
+
+	FullConnectParam* softmax1_fcp = new FullConnectParam("SOFTMAX_LAYER", \
+			minibatch_size, softmax_num_out, softmax_num_out);
+	
+
 /*
 cout << inner1_fcp->getWLR() << ":" \
 	<< inner1_fcp->getNPush() << ":" \
@@ -483,10 +499,10 @@ cout << softmax_fcp->getWLR() << ":" \
 	num_validbatch = num_valid / (minibatch_size * (num_process - 1));
 
 	if(rank == 0){ 
-		managerNode(inner1_fcp, softmax_fcp);
+		managerNode(inner1_fcp, inner2_fcp);
 	}   
 	else{
-		workerNode(inner1_fcp, sigmoid1_fcp, softmax_fcp);
+		workerNode(inner1_fcp, sigmoid1_fcp, inner2_fcp, softmax1_fcp);
 	} 	
 
 	MPI_Finalize();

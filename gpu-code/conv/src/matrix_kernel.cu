@@ -70,7 +70,7 @@ __global__ void kAddRowVector(Dtype* mat, Dtype* vec, Dtype* tgtMat, \
 }
 
 template <typename Dtype>
-__global__ void kSoftmax(Dtype* gData, int width, \
+__global__ void kSoftmax(Dtype* gData, Dtype* target, int width, \
 		int height) {   
 
 	//跟同一个block里面值比较大小取最大值，减去最大值
@@ -111,11 +111,11 @@ __global__ void kSoftmax(Dtype* gData, int width, \
 	__syncthreads();
 
 	if(idxX < width)
-		gData[idx] = __expf(gData[idx] - max);
+		target[idx] = __expf(gData[idx] - max);
 
 	//reduce求和
 	if(idxX < width)
-		ori[idxX] = gData[idx];
+		ori[idxX] = target[idx];
 	__syncthreads();
 
 	if(idxX >= pow2Length && idxX < width)
@@ -130,7 +130,7 @@ __global__ void kSoftmax(Dtype* gData, int width, \
 	}
 
 	if(idxX < width)
-		gData[idx] = gData[idx] / ori[0];
+		target[idx] = target[idx] / ori[0];
 
 }
 

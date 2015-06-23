@@ -37,14 +37,14 @@ public:
     Matrix(const Matrix *like);
 
     ~Matrix();
-
+/*
 	void copyFromHost(Dtype* data_value, const int data_len);
 	void copyFromDevice(const Matrix<Dtype>* dev_data);
 	void copyToHost(Dtype* data_value, const int data_len);
 	void copyToDevice(Matrix<Dtype>* dev_data);
 
 	void zeros();
-
+*/
     /// \brief 初始化类中成员，为行列赋值
     void _init(int numRows, int numCols);
 

@@ -99,6 +99,7 @@ void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
 //	this->_w->reValue(1.0f);
 //	this->_bias->reValue(2.0f);
 
+
 	if(this->_cp->getPad() > 0){
 		num_kernel = this->_cp->getMinibatchSize() * this->_cp->getPaddedInSize() * this->_cp->getPaddedInSize() * this->_cp->getInChannel();
 		num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \

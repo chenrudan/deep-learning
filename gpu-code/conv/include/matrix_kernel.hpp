@@ -28,7 +28,8 @@ __global__ void kSubtractFromScalar(Dtype* gData, float scalar, Dtype* target, \
 		int width, int height);
 
 template <typename Dtype>
-__global__ void kSoftmax(Dtype* gData, int width, int height);
+__global__ void kSoftmax(Dtype* gData, Dtype* target, int width, \
+		int height);
 
 template <typename Dtype>
 __global__ void kReciprocal(Dtype* gData, Dtype* target, int width, \

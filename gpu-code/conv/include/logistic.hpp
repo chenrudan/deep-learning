@@ -10,23 +10,27 @@
 #include "layer_kernel.cuh"
 
 template <typename Dtype>
-class Logistic : public TrainLayer<Dtype> {
+class Logistic : public Layer<Dtype> {
 
 public:
-	Logistic(InnerParam* fcp);
+	Logistic(FullConnectParam* fcp);
 	~Logistic();
 	
 	void initCuda();
 	void computeOutputs(Matrix<Dtype>* x);
 	double computeError(Matrix<Dtype>* labels, int& num_error);
-	using TrainLayer<Dtype>::computeDerivsOfPars;
-	void computeDerivsOfPars(Matrix<Dtype>* x, Matrix<Dtype>* labels);
-	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
+	using Layer<Dtype>::computeDerivsOfInput;
+	void computeDerivsOfInput(Matrix<Dtype>* x, Matrix<Dtype>* labels);
 
 private:
-	InnerParam* _fcp;
-	
+	FullConnectParam* _fcp;
+	Dtype* h_labels;
+	Dtype* y_CPU;
+	Dtype* correct_probs;
+	Matrix<Dtype>* d_max_pos_of_out;
+	Dtype* h_max_pos_of_out;
 
+	
 };
 
 #include "../src/logistic.cu"

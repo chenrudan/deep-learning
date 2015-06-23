@@ -87,6 +87,5 @@ void InnerProductLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	this->_w->getTranspose(w_T);
 	this->_dE_dy->rightMult(w_T, 1, dE_dx, this->handle);
 	delete w_T;
-
 }
 

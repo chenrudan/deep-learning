@@ -27,9 +27,9 @@ public:
 private:
     int* _max_pos;
     LocalConnectParam* _lcp;
-    Matrix<Dtype>* _y;
-    Matrix<Dtype>* _dE_dy;
 };
+
+#include "../src/pooling_layer.cu"
 
 #endif
 

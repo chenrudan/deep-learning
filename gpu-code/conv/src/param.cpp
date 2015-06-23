@@ -38,7 +38,7 @@ LocalConnectParam::LocalConnectParam(string name, \
 	this->_out_channel = out_channel;
 
 	this->_padded_in_size = this->_in_size + 2 * this->_pad;
-	this->_out_size = ceil(((this->_in_size - this->_filter_size)*1.0f) \
+	this->_out_size = ceil(((this->_padded_in_size - this->_filter_size)*1.0f) \
 			/ this->_stride) + 1;
 }
 
@@ -55,10 +55,13 @@ LocalConnectParam::LocalConnectParam(string name, \
 	this->_in_channel = lc_par->getOutChannel();
 	this->_pad = pad;
 	this->_filter_size = filter_size;
-	this->_out_channel = filter_channel;
+	if(filter_channel != 0)
+		this->_out_channel = filter_channel;
+	else
+		this->_out_channel = this->_in_channel;
 
 	this->_padded_in_size = this->_in_size + 2 * this->_pad;
-	this->_out_size = ceil(((this->_in_size - this->_filter_size)*1.0f) \
+	this->_out_size = ceil(((this->_padded_in_size - this->_filter_size)*1.0f) \
 			/ this->_stride) + 1;
 }
 
@@ -80,7 +83,6 @@ FullConnectParam::FullConnectParam(string name, \
 		const int num_out, Param* par) {
 //		: Param(name, par->getMinibatchSize()){
     type = PARAM_CONNECT_TYPE_FULL;
-	this->_num_out = num_out;
 	this->_name = name;
 	this->_minibatch_size = par->getMinibatchSize();
 
@@ -90,6 +92,10 @@ FullConnectParam::FullConnectParam(string name, \
 		this->_num_in = pow(par->getOutSize(), 2) * par->getOutChannel(); 
 	else if(ct == PARAM_CONNECT_TYPE_FULL)
 		this->_num_in = par->getNumOut(); 
+	if(num_out != 0)
+		this->_num_out = num_out;
+	else
+		this->_num_out = this->_num_in;
 }
 
 

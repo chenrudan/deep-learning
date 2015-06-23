@@ -27,9 +27,9 @@ public:
 
     Param(string name, const int minibatch_size);
 
-	inline virtual int getNumOut() {}
-	inline virtual int getOutChannel() {}
-	inline virtual int getOutSize() {}
+	inline virtual int getNumOut() {return 0;}
+	inline virtual int getOutChannel() {return 0;}
+	inline virtual int getOutSize() {return 0;}
 	
 
     inline int getMinibatchSize() {
@@ -59,6 +59,7 @@ public:
     inline void lrMultiScale(float lr_scale) {
         _w_lr *= lr_scale;
         _b_lr *= lr_scale;
+		cout << _w_lr << ":" << _b_lr << endl;
     }
     inline void lrChangeTo(float new_w, float new_b) {
         _w_lr = new_w;
@@ -110,7 +111,6 @@ public:
 		const int pad, const int stride, \
 		const int filter_size, const int filter_channel, \
 		LocalConnectParam* lc_par);
-
 
     inline int getInSize() {
         return _in_size;
@@ -207,26 +207,6 @@ public:
 
 };
 
-class PoolParam : public LocalConnectParam {
-public:
-    PoolParam(){}
-
-    ~PoolParam(){}
-
-    PoolParam(const string name, const int minibatch_size, \
-            const int in_size, const int pad, \
-            const int stride, const int pool_size, \
-            const int in_channel)
-            : LocalConnectParam(name, minibatch_size, in_size, \
-		            pad, stride, in_channel, pool_size, in_channel) {}
-
-    PoolParam(const string name, const int pad, \
-            const int stride, const int pool_size, \
-            LocalConnectParam *lc_par) \
-            : LocalConnectParam(name, pad, stride, \
-		            pool_size, lc_par->getOutChannel(), lc_par) {}
-
-};
 
 /// \brief 可以进行训练的全连接层
 class InnerParam : public TrainParam, public FullConnectParam {

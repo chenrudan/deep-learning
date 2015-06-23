@@ -41,7 +41,7 @@ public:
 	TrainLayer(TrainParam* tp){
 		_tp = tp;
 	}
-	TrainLayer();
+	TrainLayer() {}
 	virtual ~TrainLayer() {}
 
 	virtual void computeDerivsOfPars(Matrix<Dtype>* x) {}

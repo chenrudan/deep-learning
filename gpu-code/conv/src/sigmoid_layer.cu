@@ -7,7 +7,7 @@
 using namespace std;
 
 template <typename Dtype>
-SigmoidLayer<Dtype>::SigmoidLayer(FullConnectParam* fcp){
+SigmoidLayer<Dtype>::SigmoidLayer(Param* fcp){
 
 	this->_fcp           = fcp;
 }
@@ -22,9 +22,14 @@ template <typename Dtype>
 void SigmoidLayer<Dtype>::initCuda() {
 
 
+	ConnectType ct = this->_fcp->getConnectType();
+	int col;
+	if(ct == PARAM_CONNECT_TYPE_LOCAL)
+		col = pow(this->_fcp->getOutSize(), 2) * this->_fcp->getOutChannel(); 
+	else if(ct == PARAM_CONNECT_TYPE_FULL)
+		col = this->_fcp->getNumOut(); 
 	this->_y             = new Matrix<Dtype>(_fcp->getMinibatchSize(), \
-								_fcp->getNumOut());
-
+								col);
 	this->_dE_dy         = new Matrix<Dtype>(this->_y);
 }
 
@@ -35,7 +40,6 @@ void SigmoidLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){
 	x->apply(Matrix<Dtype>::SIGMOID, this->_y);
 //	this->_y->showValue("yj1");
 //	cout << this->_y->getNumRows() << ":" << this->_y->getNumCols() << ":"<< this->_y->getNumEles() << " \n" \
-		 << this->_dE_dy->getNumRows() << ":" << this->_dE_dy->getNumCols() << ":"<<this->_dE_dy->getNumEles() <<" \n" \
 		 << x->getNumRows() << ":" << x->getNumCols() << ":"<<x->getNumEles() <<endl;
 }
 

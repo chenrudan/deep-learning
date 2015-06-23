@@ -6,7 +6,7 @@
 
 using namespace std;
 
-/*
+
 template <typename Dtype>
 void Data<Dtype>::copyFromHost(Dtype* data_value_in, const int data_len){
 	cudaError_t status = cudaMemcpy(_data_value, data_value_in, \
@@ -54,4 +54,4 @@ template <typename Dtype>
 void Data<Dtype>::zeros(){
 	cudaMemset(_data_value, 0, _amount * sizeof(Dtype));
 }
-*/
+

@@ -13,7 +13,7 @@ class SigmoidLayer : public Layer<Dtype> {
 
 public:
 	
-	SigmoidLayer(FullConnectParam* fcp);
+	SigmoidLayer(Param* fcp);
 	~SigmoidLayer();
 
 	void initCuda();
@@ -21,7 +21,7 @@ public:
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
 private:
-	FullConnectParam* _fcp;
+	Param* _fcp;
 };
 
 

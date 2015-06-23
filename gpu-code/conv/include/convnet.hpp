@@ -1,5 +1,5 @@
 /// 
-/// \file convnet.cuh
+/// \file convnet.hpp
 /// @brief
 
 #ifndef CONVNET_H_
@@ -39,9 +39,9 @@ public:
 	void computeOutputs(Matrix<Dtype>* x);
 	void computeDerivsOfPars(Matrix<Dtype>* x);
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
-
-
 	
 };
+
+#include "../src/convnet.cu"
 
 #endif

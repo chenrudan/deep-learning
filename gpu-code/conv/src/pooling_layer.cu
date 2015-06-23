@@ -16,8 +16,8 @@ PoolingLayer<Dtype>::PoolingLayer(LocalConnectParam *lcp){
 template <typename Dtype>
 PoolingLayer<Dtype>::~PoolingLayer() {
 
-	delete  _y;
-	delete  _dE_dy;
+	delete this-> _y;
+	delete this->_dE_dy;
 
 	cudaFree(_max_pos);
 	cublasDestroy(this->handle);
@@ -28,9 +28,10 @@ void PoolingLayer<Dtype>::initCuda() {
 
 
 	this->_y               = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
-								pow(_lcp->getOutSize(), 2) * _lcp->getInChannel());
+								pow(_lcp->getOutSize(), 2) * _lcp->getOutChannel());
 
-	this->_dE_dy           = new Matrix<Dtype>(_y);
+	this->_dE_dy           = new Matrix<Dtype>(this->_y);
+
 
 	cudaError_t status;
 	status = cudaMalloc((void**) &_max_pos, \
@@ -40,7 +41,6 @@ void PoolingLayer<Dtype>::initCuda() {
 		fprintf(stderr, "!!!! device memory allocation error\n");
 		exit(EXIT_FAILURE);
 	}
-
 }
 
 template <typename Dtype>
@@ -50,10 +50,10 @@ void PoolingLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){
 			ceil(_lcp->getOutSize() / 16.0) * 16);
 
 //	x->reValue(32);
-	
+
 	max_pooling<<<blocks, threads, \
 		sizeof(Dtype)*pow(_lcp->getOutSize(), 2)*pow(_lcp->getFilterSize(), 2)>>>(x->getDevData(), \
-			_y->getDevData(), _max_pos, _lcp->getInSize(), \
+			this->_y->getDevData(), _max_pos, _lcp->getInSize(), \
 			_lcp->getOutSize(), _lcp->getFilterSize(), _lcp->getStride());  
 	cudaThreadSynchronize();
 
@@ -82,7 +82,7 @@ for(int i = 0; i < length; i++){
 }*/
 
 	compute_dE_dy_max<<<blocks, threads, \
-		sizeof(Dtype)*_lcp->getInSize()*_lcp->getInSize()>>>(_dE_dy->getDevData(), \
+		sizeof(Dtype)*_lcp->getInSize()*_lcp->getInSize()>>>(this->_dE_dy->getDevData(), \
 			dE_dx->getDevData(), _max_pos, _lcp->getInSize(), \
 			_lcp->getOutSize(), _lcp->getFilterSize(), _lcp->getStride());
 	cudaThreadSynchronize();
