@@ -135,6 +135,39 @@ __global__ void kSoftmax(Dtype* gData, Dtype* target, int width, \
 }
 
 template <typename Dtype>
+__global__ void kRelu(Dtype* gData, Dtype* target, int* record, int width, \
+		int height) {
+	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const int idx = idxY * width + idxX;
+
+	if(idxY < height && idxX < width){
+		if(gData[idx] > 0){
+			target[idx] = gData[idx];
+			record[idx] = 1;
+		}else{
+			target[idx] = 0;
+			record[idx] = 0;
+		}
+	}
+}
+template <typename Dtype>
+__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, int width, \
+		int height) {
+	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const int idx = idxY * width + idxX;
+
+	if(idxY < height && idxX < width){
+		if(record[idx] == 1){
+			target[idx] = gData[idx];
+		}else{
+			target[idx] = 0;
+		}
+	}
+}
+
+template <typename Dtype>
 __global__ void kSigmoid(Dtype* gData, Dtype* target, int width, \
 		int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;

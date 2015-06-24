@@ -16,6 +16,7 @@
 #include "param.h"
 #include "matrix.hpp"
 #include "sigmoid_layer.hpp"
+#include "relu_layer.hpp"
 #include "convnet.hpp"
 #include "pooling_layer.hpp"
 #include "matrix.hpp"
@@ -79,8 +80,8 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	   readData(valid_data, "../data/input/mnist_valid.bin", true);
 	   readData(train_label, "../data/input/mnist_label_train.bin", false);
 	   readData(valid_label, "../data/input/mnist_label_valid.bin", false);
-
 	 */
+
 	cout << "done7\n";
 
 	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
@@ -221,8 +222,8 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 }
 
 
-void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
-		LocalConnectParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* sigmoid2_fcp, \
+void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
+		LocalConnectParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* relu2_fcp, \
 		LocalConnectParam* pool2_pp, InnerParam* inner1_ip, FullConnectParam* sigmoid3_fcp, \
 		InnerParam* inner2_ip, FullConnectParam* softmax_fcp){
 	if(rank == 1){
@@ -322,8 +323,8 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 	ConvNet<float> cnn1(conv1_cp);
 	cnn1.initCuda();
 
-	SigmoidLayer<float> sigmoid1(sigmoid1_fcp);
-	sigmoid1.initCuda();
+	ReluLayer<float> relu1(relu1_fcp);
+	relu1.initCuda();
 
 	PoolingLayer<float> pool1(pool1_pp);
 	pool1.initCuda();
@@ -331,8 +332,8 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 	ConvNet<float> cnn2(conv2_cp);
 	cnn2.initCuda();
 
-	SigmoidLayer<float> sigmoid2(sigmoid2_fcp);
-	sigmoid2.initCuda();
+	ReluLayer<float> relu2(relu2_fcp);
+	relu2.initCuda();
 
 	PoolingLayer<float> pool2(pool2_pp);
 	pool2.initCuda();
@@ -390,14 +391,14 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 	Matrix<float>* cnn1_y = cnn1.getY();
 	Matrix<float>* cnn1_dE_dy = cnn1.getDEDY();
-	Matrix<float>* sigmoid1_y = sigmoid1.getY();
-	Matrix<float>* sigmoid1_dE_dy = sigmoid1.getDEDY();
+	Matrix<float>* relu1_y = relu1.getY();
+	Matrix<float>* relu1_dE_dy = relu1.getDEDY();
 	Matrix<float>* pool1_y = pool1.getY();
 	Matrix<float>* pool1_dE_dy = pool1.getDEDY();
 	Matrix<float>* cnn2_y = cnn2.getY();
 	Matrix<float>* cnn2_dE_dy = cnn2.getDEDY();
-	Matrix<float>* sigmoid2_y = sigmoid2.getY();
-	Matrix<float>* sigmoid2_dE_dy = sigmoid2.getDEDY();
+	Matrix<float>* relu2_y = relu2.getY();
+	Matrix<float>* relu2_dE_dy = relu2.getDEDY();
 	Matrix<float>* pool2_y = pool2.getY();
 	Matrix<float>* pool2_dE_dy = pool2.getDEDY();
 	Matrix<float>* inner1_y = inner1.getY();
@@ -410,8 +411,8 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 	/*
 	   cnn1_y->showValue("cnn1_y");
 	   cnn2_y->showValue("cnn2_y");
-	   sigmoid1_y->showValue("sigmoid1_y");
-	   sigmoid2_y->showValue("sigmoid2_y");
+	   relu1_y->showValue("relu1_y");
+	   relu2_y->showValue("relu2_y");
 	   sigmoid3_y->showValue("sigmoid3_y");
 	   inner1_y->showValue("inner1_y");
 	   inner2_y->showValue("inner2_y");
@@ -446,13 +447,13 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 					mini_label_len * batch_idx);
 
 			cnn1.computeOutputs(mini_data);
-			sigmoid1.computeOutputs(cnn1_y);
-			pool1.computeOutputs(sigmoid1_y);
+			relu1.computeOutputs(cnn1_y);
+			pool1.computeOutputs(relu1_y);
 
 			cnn2.computeOutputs(pool1_y);
-			sigmoid2.computeOutputs(cnn2_y);
+			relu2.computeOutputs(cnn2_y);
 
-			pool2.computeOutputs(sigmoid2_y);
+			pool2.computeOutputs(relu2_y);
 
 			inner1.computeOutputs(pool2_y);
 			sigmoid3.computeOutputs(inner1_y);
@@ -469,13 +470,13 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 			inner1.computeDerivsOfPars(pool2_y);
 			inner1.computeDerivsOfInput(pool2_dE_dy);
 
-			pool2.computeDerivsOfInput(sigmoid2_dE_dy);
-			sigmoid2.computeDerivsOfInput(cnn2_dE_dy);
+			pool2.computeDerivsOfInput(relu2_dE_dy);
+			relu2.computeDerivsOfInput(cnn2_dE_dy);
 			cnn2.computeDerivsOfPars(cnn2_y);
 			cnn2.computeDerivsOfInput(pool1_dE_dy);
 
-			pool1.computeDerivsOfInput(sigmoid1_dE_dy);
-			sigmoid1.computeDerivsOfInput(cnn1_dE_dy);
+			pool1.computeDerivsOfInput(relu1_dE_dy);
+			relu1.computeDerivsOfInput(cnn1_dE_dy);
 			cnn1.computeDerivsOfPars(mini_data);
 
 			cnn1.updatePars();
@@ -540,12 +541,12 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 					mini_label->changePtrFromStart(valid_label->getDevData(), \
 							mini_label_len * validIdx);
 					cnn1.computeOutputs(mini_data);
-					sigmoid1.computeOutputs(cnn1_y);
-					pool1.computeOutputs(sigmoid1_y);
+					relu1.computeOutputs(cnn1_y);
+					pool1.computeOutputs(relu1_y);
 
 					cnn2.computeOutputs(pool1_y);
-					sigmoid2.computeOutputs(cnn2_y);
-					pool2.computeOutputs(sigmoid2_y);
+					relu2.computeOutputs(cnn2_y);
+					pool2.computeOutputs(relu2_y);
 
 					inner1.computeOutputs(pool2_y);
 					sigmoid3.computeOutputs(inner1_y);
@@ -570,8 +571,8 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 
 				if(rank == 1)
-					cout << "epoch_idx: " << epoch_idx << ", error: " \
-						<<  (float)totalValid/ num_valid_per_process \
+					cout << "epoch_idx: " << epoch_idx << ", accuracy: " \
+						<<  1 - (float)totalValid/ num_valid_per_process \
 						<< ",likelihood: "<< loglihoodValid<< endl;
 			}
 
@@ -651,8 +652,8 @@ int main(int argc, char** argv){
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 16;
-	float conv1_w_lr = 1;
-	float conv1_b_lr = 0.5;
+	float conv1_w_lr = 0.01;
+	float conv1_b_lr = 0.01;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -667,8 +668,8 @@ int main(int argc, char** argv){
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 32;
-	float conv2_w_lr = 0.1;
-	float conv2_b_lr = 0.5;
+	float conv2_w_lr = 0.01;
+	float conv2_b_lr = 0.01;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
@@ -677,14 +678,14 @@ int main(int argc, char** argv){
 	int pool2_filter_size = 3;
 
 	int inner1_num_out = 1000;
-	float inner1_w_lr = 0.01;
-	float inner1_b_lr = 0.05;
+	float inner1_w_lr = 0.001;
+	float inner1_b_lr = 0.001;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 
 	int inner2_num_out = 10;
-	float inner2_w_lr = 0.01;
-	float inner2_b_lr = 0.005;
+	float inner2_w_lr = 0.0001;
+	float inner2_b_lr = 0.0001;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0;
 
@@ -693,7 +694,7 @@ int main(int argc, char** argv){
 			n_push, n_fetch, conv1_in_size, conv1_pad, conv1_stride, \
 			conv1_in_channel, conv1_filter_size, conv1_out_channel);
 
-	FullConnectParam* sigmoid1_fcp = new FullConnectParam("sigmoid1_layer", \
+	FullConnectParam* relu1_fcp = new FullConnectParam("relu1_layer", \
 			0, conv1_cp);
 
 	LocalConnectParam* pool1_pp = new LocalConnectParam("pool1_layer", pool1_pad, \
@@ -704,7 +705,7 @@ int main(int argc, char** argv){
 			n_fetch, conv2_pad, conv2_stride, conv2_filter_size, \
 			conv2_out_channel, pool1_pp);
 
-	FullConnectParam* sigmoid2_fcp = new FullConnectParam("sigmoid2_layer", \
+	FullConnectParam* relu2_fcp = new FullConnectParam("relu2_layer", \
 			0, conv2_cp);
 
 	LocalConnectParam* pool2_pp = new LocalConnectParam("pool2_layer", pool2_pad, \
@@ -731,8 +732,8 @@ int main(int argc, char** argv){
 		managerNode(conv1_cp, conv2_cp, inner1_ip, inner2_ip);
 	}   
 	else{
-		workerNode(conv1_cp, sigmoid1_fcp, pool1_pp, \
-				conv2_cp, sigmoid2_fcp, pool2_pp, \
+		workerNode(conv1_cp, relu1_fcp, pool1_pp, \
+				conv2_cp, relu2_fcp, pool2_pp, \
 				inner1_ip, sigmoid3_y, \
 				inner2_ip, softmax_fcp);
 	} 	

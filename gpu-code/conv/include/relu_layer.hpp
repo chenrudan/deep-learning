@@ -8,13 +8,12 @@
 #include <iostream>
 #include "layer.hpp"
 
-
 template <typename Dtype>
 class ReluLayer : public Layer<Dtype> {
 
 public:
 	
-	ReluLayer(FullConnectParam* fcp);
+	ReluLayer(Param* fcp);
 	~ReluLayer();
 
 	void initCuda();
@@ -22,12 +21,12 @@ public:
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
 private:
-	FullConnectParam* _fcp;
-
+	Param* _p;
+	int* _record;
 };
 
 
-
+#include "../src/relu_layer.cu"
 
 
 

@@ -130,6 +130,8 @@ public:
 
     void apply(FUNCTIONS f);
 
+	void applyRelu(Matrix<Dtype>* target, int* record, bool direction = true);
+
     /// \brief 矩阵间点加
     ///
     /// 将输入的三个矩阵点加，然后保存在调用矩阵中

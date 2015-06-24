@@ -216,8 +216,8 @@ __global__ void reshape_y(const float* un_y_h, float* y_h, \
 		const int oriCol = dstCol / convPixs;
 		const int oriRow = dstRow * convPixs + dstCol % convPixs;
 		un_y_h += oriRow * filter_channel + oriCol;
-		y_h[idx] = sigmoid(un_y_h[0]); 
-		//		y_h[idx] = (un_y_h[0]); 
+		//y_h[idx] = sigmoid(un_y_h[0]); 
+		y_h[idx] = (un_y_h[0]); 
 	}
 
 }

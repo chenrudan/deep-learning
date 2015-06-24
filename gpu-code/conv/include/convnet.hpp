@@ -28,6 +28,7 @@ private:
 
 	int _filt_pixs;
 	int _conv_pixs;
+	int _padded_in_pixs;
 	
 	ConvParam* _cp;
 

@@ -24,11 +24,9 @@ using namespace std;
 
 #define THREAD_END 100000
 enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
-	SWAP_CNN2_W_PUSH, SWAP_CNN2_BIAS_PUSH,	\
 		SWAP_INNER1_W_PUSH, SWAP_INNER1_BIAS_PUSH, \
 		SWAP_SOFTMAX_W_PUSH, SWAP_SOFTMAX_BIAS_PUSH, \
 		SWAP_CNN1_W_FETCH, SWAP_CNN1_BIAS_FETCH, \
-		SWAP_CNN2_W_FETCH, SWAP_CNN2_BIAS_FETCH, \
 		SWAP_INNER1_W_FETCH, SWAP_INNER1_BIAS_FETCH, \
 		SWAP_SOFTMAX_W_FETCH, SWAP_SOFTMAX_BIAS_FETCH};
 
@@ -44,7 +42,7 @@ int num_valid_per_process;
 int num_epoch = 500;
 
 
-void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
+void managerNode(ConvParam* conv1_cp, \
 		InnerParam* inner1_ip, InnerParam* inner2_ip){
 
 
@@ -52,10 +50,6 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	int cnn1_w_len = conv1_cp->getOutChannel() * conv1_cp->getFilterSize() \
 					 * conv1_cp->getFilterSize() * conv1_cp->getInChannel();
 	int cnn1_b_len = conv1_cp->getOutChannel();
-
-	int cnn2_w_len = conv2_cp->getOutChannel() * conv2_cp->getFilterSize() \
-					 * conv2_cp->getFilterSize() * conv2_cp->getInChannel();
-	int cnn2_b_len = conv2_cp->getOutChannel();
 
 	int inner1_w_len = inner1_ip->getNumIn() * inner1_ip->getNumOut();
 	int inner1_b_len = inner1_ip->getNumOut();
@@ -74,16 +68,15 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
 
-	/*
 	   readData(train_data, "../data/input/mnist_train.bin", true);
 	   readData(valid_data, "../data/input/mnist_valid.bin", true);
 	   readData(train_label, "../data/input/mnist_label_train.bin", false);
 	   readData(valid_label, "../data/input/mnist_label_valid.bin", false);
 
-	 */
 	cout << "done7\n";
 
 	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
+	/*
 	LoadCifar10<float> cifar10(cifar10_info);
 	for(int i = 1; i < 6; i++){
 		string s;
@@ -101,6 +94,7 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	train_label->copyFromHost(cifar10_info->train_label, num_train);
 	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * cnn1_in_len);
 	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
+	 */
 
 
 	cout << "done6\n";
@@ -109,14 +103,8 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 			conv1_cp->getOutChannel());
 	Matrix<float>* cnn1_bias = new Matrix<float>(1, conv1_cp->getOutChannel());
 
-	Matrix<float>* cnn2_w = new Matrix<float>(conv2_cp->getFilterSize() * \
-			conv2_cp->getFilterSize() * conv2_cp->getInChannel(), \
-			conv2_cp->getOutChannel());
-	Matrix<float>* cnn2_bias = new Matrix<float>(1, conv2_cp->getOutChannel());
-
 	Matrix<float>* inner1_w = new Matrix<float>(inner1_w_len / inner1_ip->getNumOut(), inner1_ip->getNumOut());
 	Matrix<float>* inner1_bias = new Matrix<float>(1, inner1_ip->getNumOut());
-
 
 	Matrix<float>* softmax_w = new Matrix<float>(softmax_w_len / inner2_ip->getNumOut(), inner2_ip->getNumOut());
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
@@ -124,10 +112,7 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	cout << "done5\n";
 	gaussRand(cnn1_w, 0.001);
 	//	initW(cnn1_w);
-	gaussRand(cnn2_w, 0.01);
-	//	initW(cnn2_w);
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
-	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
 
 	gaussRand(inner1_w, 0.01);
 	//	initW(inner1_w);
@@ -139,8 +124,6 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	/*
 	   readPars(cnn1_w, "cnn1_w_t1.bin");
 	   readPars(cnn1_bias, "cnn1_bias_t1.bin");
-	   readPars(cnn2_w, "cnn2_w_t1.bin");
-	   readPars(cnn2_bias, "cnn2_bias_t1.bin");
 	   readPars(inner1_w, "inner1_w_t1.bin");
 	   readPars(inner1_bias, "inner1_bias_t1.bin");
 	   readPars(softmax_w, "softmax_w_t1.bin");
@@ -149,8 +132,6 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 
 	MPI_Bcast(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -178,10 +159,9 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	const int trans_ops = 16;
 	const int num_pars_type = 8;
 	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
-		cnn2_w->getDevData(), cnn2_bias->getDevData(), \
 			inner1_w->getDevData(), inner1_bias->getDevData(), \
 			softmax_w->getDevData(), softmax_bias->getDevData()};
-	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
+	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, \
 		inner1_w_len, inner1_b_len, \
 			softmax_w_len, softmax_b_len};
 
@@ -212,8 +192,6 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 
 	delete cnn1_w;
 	delete cnn1_bias;
-	delete cnn2_w;
-	delete cnn2_bias;
 	delete inner1_w;
 	delete inner1_bias;
 	delete softmax_w;
@@ -222,8 +200,7 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 
 
 void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
-		LocalConnectParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* sigmoid2_fcp, \
-		LocalConnectParam* pool2_pp, InnerParam* inner1_ip, FullConnectParam* sigmoid3_fcp, \
+		LocalConnectParam* pool1_pp, InnerParam* inner1_ip, FullConnectParam* sigmoid3_fcp, \
 		InnerParam* inner2_ip, FullConnectParam* softmax_fcp){
 	if(rank == 1){
 		cout << "\n===========overall==============" \
@@ -253,26 +230,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 			<< "\npad: " << pool1_pp->getPad() \
 			<< "\nstride: " << pool1_pp->getStride();
 
-		cout << "\n===========cnn2==============" \
-			<< "\nin_size: " << conv2_cp->getInSize() \
-			<< "\nin_channel: " << conv2_cp->getInChannel() \
-			<< "\nfilter_size: " << conv2_cp->getFilterSize() \
-			<< "\nfilter_channel: " << conv2_cp->getOutChannel() \
-			<< "\nstride: " << conv2_cp->getStride() \
-			<< "\npad: " << conv2_cp->getPad() \
-			<< "\nw_lr: " << conv2_cp->getWLR() \
-			<< "\nb_lr: " << conv2_cp->getBiasLR() \
-			<< "\nmomentum: " << conv2_cp->getMomentum()\
-			<< "\nweight_decay: " << conv2_cp->getWeightDecay();
-
-		cout << "\n===========pool2==============" \
-			<< "\nin_size: " << pool2_pp->getInSize() \
-			<< "\nin_channel: " << pool2_pp->getInChannel() \
-			<< "\nfilter_size: " << pool2_pp->getFilterSize() \
-			<< "\nfilter_channel: " << pool2_pp->getOutChannel() \
-			<< "\npad: " << pool2_pp->getPad() \
-			<< "\nstride: " << pool2_pp->getStride();
-
 		cout << "\n===========inner_product1==============" \
 			<< "\nnum_in: " << inner1_ip->getNumIn() \
 			<< "\nnum_out: " << inner1_ip->getNumOut() \
@@ -300,10 +257,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 					 * conv1_cp->getFilterSize() * conv1_cp->getInChannel();
 	int cnn1_b_len = conv1_cp->getOutChannel();
 
-	int cnn2_w_len = conv2_cp->getOutChannel() * conv2_cp->getFilterSize() \
-					 * conv2_cp->getFilterSize() * conv2_cp->getInChannel();
-	int cnn2_b_len = conv2_cp->getOutChannel();
-
 	int inner1_w_len = inner1_ip->getNumIn() * inner1_ip->getNumOut();
 	int inner1_b_len = inner1_ip->getNumOut();
 
@@ -328,15 +281,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 	PoolingLayer<float> pool1(pool1_pp);
 	pool1.initCuda();
 
-	ConvNet<float> cnn2(conv2_cp);
-	cnn2.initCuda();
-
-	SigmoidLayer<float> sigmoid2(sigmoid2_fcp);
-	sigmoid2.initCuda();
-
-	PoolingLayer<float> pool2(pool2_pp);
-	pool2.initCuda();
-
 	InnerProductLayer<float> inner1(inner1_ip);
 	inner1.initCuda();
 
@@ -351,8 +295,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 	Matrix<float>* cnn1_w = cnn1.getW();
 	Matrix<float>* cnn1_bias = cnn1.getBias();
-	Matrix<float>* cnn2_w = cnn2.getW();
-	Matrix<float>* cnn2_bias = cnn2.getBias();
 	Matrix<float>* inner1_w = inner1.getW();
 	Matrix<float>* inner1_bias = inner1.getBias();
 	Matrix<float>* softmax_w = inner2.getW();
@@ -360,8 +302,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 	MPI_Bcast(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -394,12 +334,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 	Matrix<float>* sigmoid1_dE_dy = sigmoid1.getDEDY();
 	Matrix<float>* pool1_y = pool1.getY();
 	Matrix<float>* pool1_dE_dy = pool1.getDEDY();
-	Matrix<float>* cnn2_y = cnn2.getY();
-	Matrix<float>* cnn2_dE_dy = cnn2.getDEDY();
-	Matrix<float>* sigmoid2_y = sigmoid2.getY();
-	Matrix<float>* sigmoid2_dE_dy = sigmoid2.getDEDY();
-	Matrix<float>* pool2_y = pool2.getY();
-	Matrix<float>* pool2_dE_dy = pool2.getDEDY();
 	Matrix<float>* inner1_y = inner1.getY();
 	Matrix<float>* inner1_dE_dy = inner1.getDEDY();
 	Matrix<float>* sigmoid3_y = sigmoid3.getY();
@@ -409,9 +343,7 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 	/*
 	   cnn1_y->showValue("cnn1_y");
-	   cnn2_y->showValue("cnn2_y");
 	   sigmoid1_y->showValue("sigmoid1_y");
-	   sigmoid2_y->showValue("sigmoid2_y");
 	   sigmoid3_y->showValue("sigmoid3_y");
 	   inner1_y->showValue("inner1_y");
 	   inner2_y->showValue("inner2_y");
@@ -419,10 +351,9 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 	const int num_pars_type = 8;
 	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
-		cnn2_w->getDevData(), cnn2_bias->getDevData(), \
 			inner1_w->getDevData(), inner1_bias->getDevData(), \
 			softmax_w->getDevData(), softmax_bias->getDevData()};
-	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
+	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, \
 		inner1_w_len, inner1_b_len, \
 			softmax_w_len, softmax_b_len};
 
@@ -449,12 +380,7 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 			sigmoid1.computeOutputs(cnn1_y);
 			pool1.computeOutputs(sigmoid1_y);
 
-			cnn2.computeOutputs(pool1_y);
-			sigmoid2.computeOutputs(cnn2_y);
-
-			pool2.computeOutputs(sigmoid2_y);
-
-			inner1.computeOutputs(pool2_y);
+			inner1.computeOutputs(pool1_y);
 			sigmoid3.computeOutputs(inner1_y);
 			inner2.computeOutputs(sigmoid3_y);
 			softmax.computeOutputs(inner2_y);
@@ -466,20 +392,14 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 			inner2.computeDerivsOfInput(sigmoid3_dE_dy);
 
 			sigmoid3.computeDerivsOfInput(inner1_dE_dy);
-			inner1.computeDerivsOfPars(pool2_y);
-			inner1.computeDerivsOfInput(pool2_dE_dy);
-
-			pool2.computeDerivsOfInput(sigmoid2_dE_dy);
-			sigmoid2.computeDerivsOfInput(cnn2_dE_dy);
-			cnn2.computeDerivsOfPars(cnn2_y);
-			cnn2.computeDerivsOfInput(pool1_dE_dy);
+			inner1.computeDerivsOfPars(pool1_y);
+			inner1.computeDerivsOfInput(pool1_dE_dy);
 
 			pool1.computeDerivsOfInput(sigmoid1_dE_dy);
 			sigmoid1.computeDerivsOfInput(cnn1_dE_dy);
 			cnn1.computeDerivsOfPars(mini_data);
 
 			cnn1.updatePars();
-			cnn2.updatePars();
 			inner1.updatePars();
 			inner2.updatePars();
 
@@ -543,11 +463,7 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 					sigmoid1.computeOutputs(cnn1_y);
 					pool1.computeOutputs(sigmoid1_y);
 
-					cnn2.computeOutputs(pool1_y);
-					sigmoid2.computeOutputs(cnn2_y);
-					pool2.computeOutputs(sigmoid2_y);
-
-					inner1.computeOutputs(pool2_y);
+					inner1.computeOutputs(pool1_y);
 					sigmoid3.computeOutputs(inner1_y);
 					inner2.computeOutputs(sigmoid3_y);
 					softmax.computeOutputs(inner2_y);
@@ -587,8 +503,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 		   savePars(cnn1_w, "./pars/cnn1_w_t1.bin");
 		   savePars(cnn1_bias, "./pars/cnn1_bias_t1.bin");
-		   savePars(cnn2_w, "./pars/cnn2_w_t1.bin");
-		   savePars(cnn2_bias, "./pars/cnn2_bias_t1.bin");
 		   savePars(inner1_w, "./pars/inner1_w_t1.bin");
 		   savePars(inner1_bias, "./pars/inner1_bias_t1.bin");
 		   savePars(softmax_w, "./pars/softmax_w_t1.bin");
@@ -597,10 +511,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 
 
 		if((epoch_idx + 1) % 5 == 0){
-			conv1_cp->lrMultiScale(0.9);
-			conv2_cp->lrMultiScale(0.9);
-			inner1_ip->lrMultiScale(0.9);
-			inner2_ip->lrMultiScale(0.9);
 
 		}
 
@@ -612,7 +522,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* sigmoid1_fcp, \
 	}
 	savePars(cnn1_w, "./pars/mnist/cnn1_w_t3.bin");
 	savePars(cnn1_y, "./pars/mnist/cnn1_y_t3.bin");
-	savePars(cnn2_y, "./pars/mnist/cnn2_y_t3.bin");	
 
 
 	delete mini_data;
@@ -645,14 +554,14 @@ int main(int argc, char** argv){
 	cudaSetDevice(rank%numGpus);
 
 	int minibatch_size = 100;
-	int conv1_in_size = 32;
-	int conv1_in_channel = 3;
+	int conv1_in_size = 28;
+	int conv1_in_channel = 1;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 16;
 	float conv1_w_lr = 1;
-	float conv1_b_lr = 0.5;
+	float conv1_b_lr = 1;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -663,28 +572,15 @@ int main(int argc, char** argv){
 	int pool1_stride = 2;
 	int pool1_filter_size = 3;
 
-	int conv2_pad = 2;
-	int conv2_stride = 1;
-	int conv2_filter_size = 5;
-	int conv2_out_channel = 32;
-	float conv2_w_lr = 0.1;
-	float conv2_b_lr = 0.5;
-	float conv2_momentum = 0.9;
-	float conv2_weight_decay = 0;
-
-	int pool2_pad = 0;
-	int pool2_stride = 2;
-	int pool2_filter_size = 3;
-
 	int inner1_num_out = 1000;
 	float inner1_w_lr = 0.01;
-	float inner1_b_lr = 0.05;
+	float inner1_b_lr = 0.01;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 
 	int inner2_num_out = 10;
-	float inner2_w_lr = 0.01;
-	float inner2_b_lr = 0.005;
+	float inner2_w_lr = 0.001;
+	float inner2_b_lr = 0.001;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0;
 
@@ -699,20 +595,9 @@ int main(int argc, char** argv){
 	LocalConnectParam* pool1_pp = new LocalConnectParam("pool1_layer", pool1_pad, \
 			pool1_stride, pool1_filter_size, 0, conv1_cp);
 
-	ConvParam* conv2_cp = new ConvParam("conv2_layer", conv2_w_lr, \
-			conv2_b_lr, conv2_momentum, conv2_weight_decay, n_push, \
-			n_fetch, conv2_pad, conv2_stride, conv2_filter_size, \
-			conv2_out_channel, pool1_pp);
-
-	FullConnectParam* sigmoid2_fcp = new FullConnectParam("sigmoid2_layer", \
-			0, conv2_cp);
-
-	LocalConnectParam* pool2_pp = new LocalConnectParam("pool2_layer", pool2_pad, \
-			pool2_stride, pool2_filter_size, 0, conv2_cp);
-
 	InnerParam* inner1_ip = new InnerParam("inner1_layer", inner1_w_lr, \
 			inner1_b_lr, inner1_momentum, inner1_weight_decay, n_push, \
-			n_fetch, inner1_num_out, pool2_pp);
+			n_fetch, inner1_num_out, pool1_pp);
 
 	FullConnectParam* sigmoid3_y = new FullConnectParam("sigmoid3_layer", \
 			0, inner1_ip);
@@ -728,11 +613,10 @@ int main(int argc, char** argv){
 	num_minibatch = num_train / (minibatch_size * (num_process - 1));
 	num_validbatch = num_valid / (minibatch_size * (num_process - 1));
 	if(rank == 0){ 
-		managerNode(conv1_cp, conv2_cp, inner1_ip, inner2_ip);
+		managerNode(conv1_cp, inner1_ip, inner2_ip);
 	}   
 	else{
 		workerNode(conv1_cp, sigmoid1_fcp, pool1_pp, \
-				conv2_cp, sigmoid2_fcp, pool2_pp, \
 				inner1_ip, sigmoid3_y, \
 				inner2_ip, softmax_fcp);
 	} 	

@@ -44,6 +44,14 @@ __global__ void kSigmoid(Dtype* gData, Dtype* target, int width, \
 		int height);
 
 template <typename Dtype>
+__global__ void kRelu(Dtype* gData, Dtype* target, int* record, int width, \
+		int height);
+
+template <typename Dtype>
+__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, int width, \
+		int height);
+
+template <typename Dtype>
 __global__ void kDumbSumCols(Dtype* mat, Dtype* vec, int width, \
 		int height); 
 
