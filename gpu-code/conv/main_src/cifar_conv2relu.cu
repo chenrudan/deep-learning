@@ -133,8 +133,8 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	gaussRand(inner1_w, 0.01);
 	//	initW(inner1_w);
 	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-	//	gaussRand(softmax_w, 0.1);
-	initW(softmax_w);
+	gaussRand(softmax_w, 0.1);
+	//initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
 	/*
@@ -223,8 +223,8 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 
 
 void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
-		LocalConnectParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* relu2_fcp, \
-		LocalConnectParam* pool2_pp, InnerParam* inner1_ip, FullConnectParam* sigmoid3_fcp, \
+		PoolParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* relu2_fcp, \
+		PoolParam* pool2_pp, InnerParam* inner1_ip, FullConnectParam* sigmoid3_fcp, \
 		InnerParam* inner2_ip, FullConnectParam* softmax_fcp){
 	if(rank == 1){
 		cout << "\n===========overall==============" \
@@ -578,6 +578,9 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 
 
 		}
+		if(rank == 1)
+			cout << "train: epoch_idx: " << epoch_idx << ", error: " \
+				<<  1 - (float)error/num_train_per_process  << endl;
 		if(rank == 1){
 			t1 = clock() - t1;
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
@@ -596,14 +599,14 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 		   savePars(softmax_bias, "./pars/softmax_bias_t1.bin");
 		   }*/
 
-
+/*
 		if((epoch_idx + 1) % 5 == 0){
 			conv1_cp->lrMultiScale(0.9);
 			conv2_cp->lrMultiScale(0.9);
 			inner1_ip->lrMultiScale(0.9);
 			inner2_ip->lrMultiScale(0.9);
 
-		}
+		}*/
 
 	}
 	if(rank == 1){
@@ -652,10 +655,10 @@ int main(int argc, char** argv){
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 16;
-	float conv1_w_lr = 0.01;
-	float conv1_b_lr = 0.01;
+	float conv1_w_lr = 0.001;
+	float conv1_b_lr = 0.002;
 	float conv1_momentum = 0.9;
-	float conv1_weight_decay = 0;
+	float conv1_weight_decay = 0.004;
 	int n_push = 49;
 	int n_fetch = 50;
 
@@ -663,31 +666,33 @@ int main(int argc, char** argv){
 	int pool1_pad = 0;
 	int pool1_stride = 2;
 	int pool1_filter_size = 3;
+	PoolingType pool1_type = MAX_POOLING;
 
 	int conv2_pad = 2;
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 32;
-	float conv2_w_lr = 0.01;
-	float conv2_b_lr = 0.01;
+	float conv2_w_lr = 0.001;
+	float conv2_b_lr = 0.002;
 	float conv2_momentum = 0.9;
-	float conv2_weight_decay = 0;
+	float conv2_weight_decay = 0.004;
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
 	int pool2_filter_size = 3;
+	PoolingType pool2_type = MAX_POOLING;
 
 	int inner1_num_out = 1000;
 	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.001;
+	float inner1_b_lr = 0.002;
 	float inner1_momentum = 0.9;
-	float inner1_weight_decay = 0;
+	float inner1_weight_decay = 0.004;
 
 	int inner2_num_out = 10;
-	float inner2_w_lr = 0.0001;
-	float inner2_b_lr = 0.0001;
+	float inner2_w_lr = 0.001;
+	float inner2_b_lr = 0.002;
 	float inner2_momentum = 0.9;
-	float inner2_weight_decay = 0;
+	float inner2_weight_decay = 0.004;
 
 	ConvParam* conv1_cp = new ConvParam("conv1_layer", minibatch_size, \
 			conv1_w_lr, conv1_b_lr, conv1_momentum, conv1_weight_decay, \
@@ -697,8 +702,8 @@ int main(int argc, char** argv){
 	FullConnectParam* relu1_fcp = new FullConnectParam("relu1_layer", \
 			0, conv1_cp);
 
-	LocalConnectParam* pool1_pp = new LocalConnectParam("pool1_layer", pool1_pad, \
-			pool1_stride, pool1_filter_size, 0, conv1_cp);
+	PoolParam* pool1_pp = new PoolParam("pool1_layer", pool1_pad, \
+			pool1_stride, pool1_filter_size, 0, conv1_cp, pool1_type);
 
 	ConvParam* conv2_cp = new ConvParam("conv2_layer", conv2_w_lr, \
 			conv2_b_lr, conv2_momentum, conv2_weight_decay, n_push, \
@@ -708,8 +713,8 @@ int main(int argc, char** argv){
 	FullConnectParam* relu2_fcp = new FullConnectParam("relu2_layer", \
 			0, conv2_cp);
 
-	LocalConnectParam* pool2_pp = new LocalConnectParam("pool2_layer", pool2_pad, \
-			pool2_stride, pool2_filter_size, 0, conv2_cp);
+	PoolParam* pool2_pp = new PoolParam("pool2_layer", pool2_pad, \
+			pool2_stride, pool2_filter_size, 0, conv2_cp, pool2_type);
 
 	InnerParam* inner1_ip = new InnerParam("inner1_layer", inner1_w_lr, \
 			inner1_b_lr, inner1_momentum, inner1_weight_decay, n_push, \

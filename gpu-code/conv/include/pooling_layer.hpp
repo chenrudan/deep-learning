@@ -14,7 +14,7 @@ template <typename Dtype>
 class PoolingLayer : public Layer<Dtype> {
 
 public:
-    PoolingLayer(LocalConnectParam *lcp);
+    PoolingLayer(PoolParam *lcp);
 
     ~PoolingLayer();
 
@@ -26,7 +26,7 @@ public:
 
 private:
     int* _max_pos;
-    LocalConnectParam* _lcp;
+    PoolParam* _lcp;
 };
 
 #include "../src/pooling_layer.cu"

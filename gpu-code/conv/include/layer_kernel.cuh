@@ -47,8 +47,6 @@ __global__ void convolution_forward(const float* imgs, const float* filters, \
 		const float* biases, float* targets, const int filConvtimes, \
 		const int imgConvtimes);
 
-__global__ void avg_pooling(float* convOutputs, float* targets);
-
 __global__ void compute_dE_dy_j(const float* y_j, const float* labels, \
 		float* dE_dy_j, const int width);
 
@@ -57,6 +55,14 @@ __global__ void compute_dE_dy_h_avg(const float* dE_dy_i, float* out);
 __global__ void compute_dE_dy_max(float* dE_dy_i, float* out, int* maxPoolPos, \
 		const int conv_forward_size, const int pool_forward_size, \
 		const int max_pool_size, const int stride);
+
+__global__ void compute_dE_dy_avg(float* dE_dy_i, float* out, \
+		const int conv_forward_size, const int pool_forward_size, \
+		const int avg_pool_size, const int stride);
+
+__global__ void avg_pooling(float* convOutputs, float* targets, \
+		const int conv_forward_size, const int pool_forward_size, \
+		const int avg_pool_size, const int stride);
 
 __global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos, \
 		const int conv_forward_size, const int pool_forward_size, \

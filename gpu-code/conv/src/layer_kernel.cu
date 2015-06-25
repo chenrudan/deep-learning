@@ -33,8 +33,8 @@ __global__ void ori_to_padding(const float* src, float* dst, const int numKernel
 		const int imgRow = (srcCol % imgPixs) / img_size; 
 		const int imgCol = (srcCol % imgPixs) % img_size; 
 		index = imgIdx * img_channel * paddedImgPixs + imgChannelIdx * paddedImgPixs \
-					+ (imgRow + pad) * padded_img_size \
-					+ (imgCol + pad); 
+				+ (imgRow + pad) * padded_img_size \
+				+ (imgCol + pad); 
 		dst[index] = src[idx]; 
 	}
 
@@ -112,7 +112,7 @@ __global__ void im2col_filt(const float* imgs, float* targets, \
 		index = imgIdx * img_channel * imgPixs + channelIdx * imgPixs \
 				+ imgRow * img_size \
 				+ imgCol; 
-			//输出图片的位置
+		//输出图片的位置
 		targets[idx] = imgs[index];
 	}
 	__syncthreads();
@@ -149,7 +149,7 @@ __global__ void im2col_conv(const float* imgs, float* targets, \
 		index = imgIdx * img_channel * imgPixs + channelIdx * imgPixs \
 				+ imgRow * img_size \
 				+ imgCol; 
-			//输出图片的位置
+		//输出图片的位置
 		targets[idx] = imgs[index];
 	}
 	__syncthreads();
@@ -192,10 +192,10 @@ __global__ void reshape_In(float* in, const float* un_in, \
 		const int lowerBound = pad;
 		const int higherBound = padded_img_size - pad;
 		if(imgRow >= lowerBound && imgRow < higherBound \
-			&& imgCol >= lowerBound && imgCol < higherBound){
-				index = imgIdx * img_channel * imgPixs + dstCol * imgPixs \
-						+ (imgRow - pad) * in_size \
-						+ (imgCol - pad); 
+				&& imgCol >= lowerBound && imgCol < higherBound){
+			index = imgIdx * img_channel * imgPixs + dstCol * imgPixs \
+					+ (imgRow - pad) * in_size \
+					+ (imgCol - pad); 
 			in[index] = un_in[idx]; 
 		}
 	}
@@ -309,6 +309,57 @@ __global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos,
 	}
 }
 
+__global__ void avg_pooling(float* convOutputs, float* targets, \
+		const int conv_forward_size, const int pool_forward_size, \
+		const int avg_pool_size, const int stride){
+
+	const int numFilters = gridDim.y;
+	const int imgIdx = blockIdx.x;
+	const int filtIdx = blockIdx.y;
+
+	extern __shared__ float shFeatureMap[];
+
+	int convPixs = conv_forward_size * conv_forward_size;
+	int poolPixs = pool_forward_size * pool_forward_size;
+
+	if(threadIdx.x < pool_forward_size && threadIdx.y < pool_forward_size){
+		convOutputs += imgIdx * numFilters * convPixs + filtIdx * convPixs; 
+		targets += imgIdx * numFilters * poolPixs + filtIdx * poolPixs \
+				   + threadIdx.y * pool_forward_size + threadIdx.x;
+
+		for(int i = 0; i < avg_pool_size; i++){
+			for(int j = 0; j < avg_pool_size; j++){
+				int convRow = threadIdx.y * stride + i;
+				int convCol = threadIdx.x * stride + j;
+				int shRow = threadIdx.y * avg_pool_size + i;
+				int shCol = threadIdx.x * avg_pool_size + j;
+				if(convRow < conv_forward_size && convCol < conv_forward_size){
+					shFeatureMap[shRow * pool_forward_size * avg_pool_size + shCol] \
+						= convOutputs[convRow * conv_forward_size + convCol];
+				}
+				else{
+					shFeatureMap[shRow * pool_forward_size * avg_pool_size + shCol] \
+						= 0;
+				}
+			}
+		}
+		__syncthreads();
+
+		float *myShFM = &shFeatureMap[0];
+		myShFM +=  threadIdx.y * avg_pool_size * pool_forward_size * avg_pool_size \
+				   + threadIdx.x * avg_pool_size;
+
+		float avg_value = 0;
+		for(int i = 0; i < avg_pool_size; i++){
+			for(int j = 0; j < avg_pool_size; j++){
+				avg_value += myShFM[i * avg_pool_size * pool_forward_size + j];
+			}
+		}
+		targets[0] = avg_value / (avg_pool_size * avg_pool_size);
+	}
+}
+
+
 
 __global__ void compute_dE_dy_max(float* dE_dy_i, float* out, int* maxPoolPos, \
 		const int conv_forward_size, const int pool_forward_size, \
@@ -324,7 +375,7 @@ __global__ void compute_dE_dy_max(float* dE_dy_i, float* out, int* maxPoolPos, \
 	const int filtIdx = blockIdx.y;
 
 	int posIdx= threadIdx.y * conv_forward_size * stride \
-	               + threadIdx.x * stride;
+				+ threadIdx.x * stride;
 
 	if(threadIdx.x < pool_forward_size && threadIdx.y < pool_forward_size){
 		out += imgIdx * numFilters * convPixs + filtIdx * convPixs \
@@ -334,7 +385,7 @@ __global__ void compute_dE_dy_max(float* dE_dy_i, float* out, int* maxPoolPos, \
 				   + threadIdx.y * pool_forward_size + threadIdx.x;
 		maxPoolPos += imgIdx * numFilters * poolPixs + filtIdx * poolPixs \
 					  + threadIdx.y * pool_forward_size + threadIdx.x;
-		
+
 		for(int i = threadIdx.x; i < conv_forward_size; i+=pool_forward_size){
 			for(int j = threadIdx.y; j < conv_forward_size; j+=pool_forward_size){
 				result[i*conv_forward_size + j]	= 0;
@@ -356,6 +407,51 @@ __global__ void compute_dE_dy_max(float* dE_dy_i, float* out, int* maxPoolPos, \
 		if(row <= conv_forward_size && col <= conv_forward_size){
 			out[row * conv_forward_size + col] = result[posIdx];
 		}
+	}
+}
+
+__global__ void compute_dE_dy_avg(float* dE_dy_i, float* out, \
+		const int conv_forward_size, const int pool_forward_size, \
+		const int avg_pool_size, const int stride){
+
+	extern __shared__ float result[];
+
+	int convPixs = conv_forward_size * conv_forward_size;
+	int poolPixs = pool_forward_size * pool_forward_size;
+
+	const int numFilters = gridDim.y;
+	const int imgIdx = blockIdx.x;
+	const int filtIdx = blockIdx.y;
+
+	if(threadIdx.x < pool_forward_size && threadIdx.y < pool_forward_size){
+		//pooling之后的某一个值对应的输入起始点
+		out += imgIdx * numFilters * convPixs + filtIdx * convPixs;
+		//本线程对应的pooling值
+		dE_dy_i += imgIdx * numFilters * poolPixs + filtIdx * poolPixs \
+				   + threadIdx.y * pool_forward_size + threadIdx.x;
+
+		float ele;
+		for(int i = threadIdx.x; i < conv_forward_size; i+=pool_forward_size){
+			for(int j = threadIdx.y; j < conv_forward_size; j+=pool_forward_size){
+				result[i*conv_forward_size + j]	= 0;
+			}
+		}
+		for(int i = 0; i < avg_pool_size; i++){
+			for(int j = 0; j < avg_pool_size; j++){
+				int convRow = threadIdx.y * stride + i;
+				int convCol = threadIdx.x * stride + j;
+				if(convRow < conv_forward_size && convCol < conv_forward_size){
+					ele = dE_dy_i[0] / (avg_pool_size * avg_pool_size);
+					__syncthreads();
+					atomicAdd(result+convRow*conv_forward_size + convCol, ele);
+					__syncthreads();
+				}
+
+			}
+		}
+		for(int i = threadIdx.x; i < conv_forward_size; i+=pool_forward_size)
+			for(int j = threadIdx.y; j < conv_forward_size; j+=pool_forward_size)
+				out[i * conv_forward_size + j] = result[i * conv_forward_size + j];
 	}
 }
 

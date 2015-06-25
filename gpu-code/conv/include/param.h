@@ -1,5 +1,5 @@
 ///
-/// \file param.hpp
+/// \file param.h
 ///
 #ifndef PARAM_H_
 #define PARAM_H_
@@ -15,6 +15,10 @@ typedef enum PARAM_CONNECT_TYPE {
     PARAM_CONNECT_TYPE_FULL = 1
 } ConnectType;
 
+typedef enum POOLING_TYPE {
+	MAX_POOLING = 0,
+	AVG_POOLING = 1
+} PoolingType;
 
 /// \brief 实现了每一层的参数
 ///
@@ -204,6 +208,36 @@ public:
 				   	n_push, n_fetch), \
               LocalConnectParam(name, pad, stride, \
 		            filter_size, filter_channel, lc_par)  {}
+};
+
+class PoolParam : public LocalConnectParam {
+public:
+		PoolParam() {}
+		~PoolParam() {}
+
+    	PoolParam(const string name, const int minibatch_size, \
+            const int in_size, const int pad, const int stride, \
+			const int in_channel, const int filter_size, \
+			const int filter_channel, PoolingType p_type) 
+            :  LocalConnectParam(name, minibatch_size, in_size, \
+					pad, stride, in_channel, filter_size, filter_channel) {
+				_p_type = p_type;
+			}
+
+    	PoolParam(const string name, const int pad, const int stride, \
+			const int filter_size, const int filter_channel, \
+			LocalConnectParam* lc_par, PoolingType p_type) 
+            :  LocalConnectParam(name, pad, stride, filter_size, \
+					filter_channel, lc_par) {
+				_p_type = p_type;
+			}
+
+		inline PoolingType getPoolType(){
+			return _p_type;
+		}
+
+private:
+	PoolingType _p_type;	
 
 };
 

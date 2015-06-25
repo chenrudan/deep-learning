@@ -20,6 +20,7 @@ TrainParam::TrainParam(const float w_lr, const float b_lr, \
 	this->_momentum = momentum;
 	this->_n_push = n_push;
 	this->_n_fetch = n_fetch;
+	this->_weight_decay = weight_decay * w_lr;
 }
 
 LocalConnectParam::LocalConnectParam(string name, \
