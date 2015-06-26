@@ -22,6 +22,10 @@ public:
 
 	void zeros();
 
+	inline Dtype* getDevData() const {
+		return _data_value;
+	}
+
 
 protected:
 	//数据形状不固定，由子类来定

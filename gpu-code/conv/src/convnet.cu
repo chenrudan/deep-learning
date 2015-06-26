@@ -36,7 +36,9 @@ ConvNet<Dtype>::~ConvNet() {
 	delete unrolled_x1;
 	delete unranged_y;
 	delete unrolled_x2;
-	delete ranged_dE_dx;
+	delete ranged_dE_dy;
+	delete ranged_dE_dy2;
+	delete unrolled_dE_db_tmp;
 	delete dE_db_tmp;
 	delete unrolled_conv;
 	delete ranged_w;
@@ -79,9 +81,14 @@ void ConvNet<Dtype>::initCuda() {
 	unrolled_x2 			= new Matrix<Dtype>(_filt_pixs \
 									* this->_cp->getInChannel(), \
 									this->_cp->getMinibatchSize() * _conv_pixs);
-	ranged_dE_dx 			= new Matrix<Dtype>(this->_cp->getMinibatchSize() \
+	ranged_dE_dy 			= new Matrix<Dtype>(this->_cp->getMinibatchSize() \
 									* _conv_pixs, \
 									this->_cp->getOutChannel());
+	ranged_dE_dy2 			= new Matrix<Dtype>(this->_cp->getMinibatchSize() \
+									* this->_cp->getOutChannel(), \
+									_conv_pixs);
+	unrolled_dE_db_tmp 		= new Matrix<Dtype>(this->_cp->getMinibatchSize() \
+									* this->_cp->getOutChannel(), 1);
 	dE_db_tmp 				= new Matrix<Dtype>(this->_cp->getMinibatchSize(), \
 									this->_cp->getOutChannel());
 
@@ -171,21 +178,33 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 				 * this->_cp->getOutChannel();
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
 				: (num_kernel / MAX_NUM_THREAD + 1);
-	reshape_dE_dx_sigmoid<<<num_block, MAX_NUM_THREAD>>>(ranged_dE_dx->getDevData(), \
+	reshape_dE_dy<<<num_block, MAX_NUM_THREAD>>>(ranged_dE_dy->getDevData(), \
 			this->_dE_dy->getDevData(), num_kernel, this->_cp->getOutSize(), \
 			this->_cp->getOutChannel());
 
-	unrolled_x2->rightMult(ranged_dE_dx, 1, this->_dE_dw, this->handle);
+	unrolled_x2->rightMult(ranged_dE_dy, 1, this->_dE_dw, this->handle);
 
-//ranged_dE_dx->showValue("dedxdh");	
+//ranged_dE_dy->showValue("dedxdh");	
 //this->_dE_dy->showValue("dedy");
 //this->_dE_dw->showValue("dedwhk");
 
-	dim3 blocks = dim3(this->_cp->getMinibatchSize(), this->_cp->getOutChannel());
-	dim3 threads = dim3(this->_cp->getOutSize(), this->_cp->getOutSize());
-	compute_dE_db<<<blocks, threads, sizeof(Dtype)>>>(this->_dE_dy->getDevData(), \
-			dE_db_tmp->getDevData(), this->_cp->getOutSize());
+	//重排输出的导数来计算对b的导数
+	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs \
+				 * this->_cp->getOutChannel();
+	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+				: (num_kernel / MAX_NUM_THREAD + 1);
+	reshape_dE_dy2<<<num_block, MAX_NUM_THREAD>>>(ranged_dE_dy2->getDevData(), \
+			this->_dE_dy->getDevData(), num_kernel, this->_cp->getOutSize(), \
+			this->_cp->getOutChannel());
 	cudaThreadSynchronize();
+	ranged_dE_dy2->sumCol(unrolled_dE_db_tmp);
+	
+	num_kernel = this->_cp->getMinibatchSize() * this->_cp->getOutChannel();
+	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
+				: (num_kernel / MAX_NUM_THREAD + 1);
+	reshape_dE_db_tmp<<<num_block, MAX_NUM_THREAD>>>(dE_db_tmp->getDevData(), \
+			unrolled_dE_db_tmp->getDevData(), num_kernel, this->_cp->getOutChannel());
+
 	dE_db_tmp->sumRow(this->_dE_db);
 }
 

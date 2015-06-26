@@ -26,6 +26,7 @@ HXX_SRCS = $(subst $(INCLUDES_DIR), $(SRCS_DIR), ${HXX_INCLUDES:.hpp=.cpp})
 HXX_SRCS += $(subst $(INCLUDES_DIR), $(SRCS_DIR), ${HXX_INCLUDES:.hpp=.cu})
 CU_SRCS = $(filter-out $(HXX_SRCS), $(shell find $(SRCS_DIR) -name "*.cu"))
 CXX_SRCS = $(filter-out $(HXX_SRCS), $(shell find $(SRCS_DIR) -name "*.cpp"))
+CU_HPP_SRCS = $(filter $(HXX_SRCS), $(shell find $(SRCS_DIR) -name "*.cu"))
 
 #生成的链接文件
 CXX_OBJS += $(subst $(SRCS_DIR), $(OBJ_DIR), ${CXX_SRCS:.cpp=.o})
@@ -52,9 +53,9 @@ $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cpp
 $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cu
 	$(NVCC) $(CCFLAGS) $^ $(INCLUDES) -o $@
 
-$(BUILD_TARGET): $(CXX_OBJS) $(CU_OBJS) $(SRCS_TARGET)
+$(BUILD_TARGET): $(CXX_OBJS) $(CU_OBJS) $(SRCS_TARGET) $(CU_HPP_SRCS)
 	$(NVCC) $(NVCCFLAGS) $(SRCS_TARGET) $(INCLUDES) -o $(OBJ_TARGET)
-	$(LINK) -o $(BUILD_TARGET) $(OBJ_TARGET)  $(CXX_OBJS) $(CU_OBJS) $(LIB)  
+	$(LINK) -o $(BUILD_TARGET) $(OBJ_TARGET) $(CXX_OBJS) $(CU_OBJS) $(LIB) $(INCLUDES)
 	
 	if [ $(MULTI_MECHINE) -eq 1 ] ; then \
 		scp $(BUILD_TARGET) crd@gpu-server1:/home/crd/conv/bin; \

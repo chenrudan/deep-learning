@@ -37,15 +37,8 @@ public:
     Matrix(const Matrix *like);
 
     ~Matrix();
-/*
-	void copyFromHost(Dtype* data_value, const int data_len);
-	void copyFromDevice(const Matrix<Dtype>* dev_data);
-	void copyToHost(Dtype* data_value, const int data_len);
-	void copyToDevice(Matrix<Dtype>* dev_data);
-
-	void zeros();
-*/
     /// \brief 初始化类中成员，为行列赋值
+	
     void _init(int numRows, int numCols);
 
     /// \brief 判断两个对象维数是否相等
@@ -63,10 +56,6 @@ public:
 
     inline int getNumEles() const {
         return this->_amount;
-    }
-
-    inline Dtype *getDevData() const {
-        return this->_data_value;
     }
 
     inline void changePtr(const int add) {
@@ -153,7 +142,7 @@ public:
     /// \brief 给矩阵重新赋值
     ///
     /// 输入是float时，矩阵全部赋值为这个值。输入是int时，矩阵每个位置对这个int取余
-    void reValue(Dtype value);
+    void reValue(float value);
 
     void reValue(int value);
 

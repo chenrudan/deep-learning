@@ -16,22 +16,28 @@ template <typename Dtype>
 Logistic<Dtype>::~Logistic<Dtype>() {
 
 	delete this->_y;
-	delete h_labels;
-	delete y_CPU;
-	delete correct_probs;
+	delete[] h_labels;
+	delete[] y_CPU;
+	delete[] correct_probs;
 	delete d_max_pos_of_out;
-	delete h_max_pos_of_out;
+	delete[] h_max_pos_of_out;
+	delete _d_record;
+	delete[] _h_record;
 }
 
 template <typename Dtype>
 void Logistic<Dtype>::initCuda() {
 
-	this->_y            = new Matrix<Dtype>(this->_fcp->getMinibatchSize(), this->_fcp->getNumOut());
+	this->_y            = new Matrix<Dtype>(this->_fcp->getMinibatchSize(), \
+								this->_fcp->getNumOut());
 	h_labels 			= new Dtype[this->_fcp->getMinibatchSize()];
 	y_CPU 				= new Dtype[this->_y->getNumEles()];
 	correct_probs 		= new Dtype[this->_y->getNumRows()];
 	d_max_pos_of_out 	= new Matrix<Dtype>(this->_y->getNumRows(), 1);
 	h_max_pos_of_out 	= new Dtype[this->_y->getNumRows()];
+
+	_d_record 		= new Matrix<int>(this->_y->getNumCols(), this->_y->getNumCols());
+	_h_record 		= new int[this->_y->getNumCols() * this->_y->getNumCols()];
 }
 
 template <typename Dtype>
@@ -66,6 +72,7 @@ double Logistic<Dtype>::computeError(Matrix<Dtype>* labels, int& num_error){
 //cout << predict_label << ":" << true_label << " ";
 		if(predict_label != true_label)
 			num_error++;
+		_h_record[predict_label * this->_y->getNumCols() + true_label]++ ;
 	}
 //cout << endl;
 	double result = 0;

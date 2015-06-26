@@ -107,8 +107,8 @@ cout << "done7\n";
 	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * cnn1_in_len);
 	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
 			
-	savePars(train_data, "snapshot/input_snap/train_data.bin");
-	savePars(train_label, "snapshot/input_snap/train_label.bin");
+//	savePars(train_data, "snapshot/input_snap/train_data.bin");
+//	savePars(train_label, "snapshot/input_snap/train_label.bin");
 
 
 cout << "done6\n";
@@ -135,7 +135,7 @@ cout << "done6\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.0001);
+	gaussRand(cnn1_w, 0.001);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
@@ -359,7 +359,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 	int valid_data_len_part = num_valid_per_process * cnn1_in_len;
 	int valid_label_len_part = num_valid_per_process;
 
-cout << "done4\n";
 	ConvNet<float> cnn1(conv1_cp);
 	cnn1.initCuda();
 
@@ -481,6 +480,8 @@ cout << "done9\n";
 	t = clock();
 	clock_t t1;
 	t1 = clock();
+	Matrix<int>* total_record = new Matrix<int>(softmax_fcp->getNumIn(), softmax_fcp->getNumIn());
+
 	for(int epoch_idx = 0; epoch_idx < num_epoch; epoch_idx++){
 		int error = 0;
 
@@ -585,7 +586,8 @@ cout << "done9\n";
 				}
 			}
 
-			if(batch_idx == num_minibatch - 1){ 
+			if(batch_idx == num_minibatch - 1){
+			   	softmax.setRecordToZero();	
 				int errorValid = 0;
 				float loglihoodValid = 0;
 				for(int validIdx = 0; validIdx < num_validbatch; validIdx++){
@@ -616,21 +618,33 @@ cout << "done9\n";
 
 				}
 				int totalValid = errorValid;
+				Matrix<int>* process_record = softmax.getResultRecord();
+				total_record->copyFromDevice(process_record);
+				//0号进程不能参与传递参数，故没有使用reduce
 				if(num_process > 2){
 					if(rank == 1){
 						for(int i = 2; i < num_process; i++){
 							MPI_Recv(&errorValid, 1, MPI_INT, i, i, \
 									MPI_COMM_WORLD, &status);   
 							totalValid += errorValid;
+							MPI_Recv(process_record->getDevData(), \
+									process_record->getNumEles(), \
+									MPI_INT, i, i*10, MPI_COMM_WORLD, &status);
+							total_record->add(process_record, 1, 1);
 						}       
 					}else{  
 						MPI_Send(&errorValid, 1, MPI_INT, 1, rank, MPI_COMM_WORLD);
+						MPI_Send(process_record->getDevData(), \
+								process_record->getNumEles(), \
+								MPI_INT, 1, rank * 10, MPI_COMM_WORLD);
 					}       
 				}       
-				if(rank == 1)
+				if(rank == 1){
 					cout << "      valid: epoch_idx: " << epoch_idx << ", error: " \
 						<<  1 - (float)totalValid/num_valid_per_process \
 						<< ",likelihood: "<< loglihoodValid<< endl;
+					total_record->showValue("Confusion matrix");
+				}
 			}
 		}
 		if(rank == 1)
@@ -642,34 +656,32 @@ cout << "done9\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-	/*	
-		if((epoch_idx + 1) % 20 == 0){
-			conv1_cp->lrMultiScale(0.1);
-			conv2_cp->lrMultiScale(0.1);
-			conv3_cp->lrMultiScale(0.1);
-			inner1_ip->lrMultiScale(0.1);
-			inner2_ip->lrMultiScale(0.1);
+		
+		if((epoch_idx + 1) % 5 == 0){
+			conv1_cp->lrMultiScale(0.9);
+			conv2_cp->lrMultiScale(0.9);
+			conv3_cp->lrMultiScale(0.9);
+			inner1_ip->lrMultiScale(0.9);
+			inner2_ip->lrMultiScale(0.9);
 		}
-	*/	
+	
 		if((epoch_idx + 1)% 100 == 0){
         	string s;
         	stringstream ss;
         	ss << epoch_idx;
         	ss >> s;    
-			savePars(cnn1_w, "../snapshot/w_snap/cnn1_w_" + s + "_t1.bin");
+			savePars(cnn1_w, "/snapshot/w_snap/cnn1_w_" + s + "_t1.bin");
 			cout << s << endl;
-			savePars(cnn1_bias, "../snapshot/w_snap/cnn1_bias_" + s + "_t1.bin");
-			savePars(cnn2_w, "../snapshot/w_snap/cnn2_w_" + s + "_t1.bin");
-			savePars(cnn2_bias, "../snapshot/w_snap/cnn2_bias_" + s + "_t1.bin");
-			savePars(cnn3_w, "../snapshot/w_snap/cnn3_w_" + s + "_t1.bin");
-			savePars(cnn3_bias, "../snapshot/w_snap/cnn3_bias_" + s + "_t1.bin");
-			savePars(inner1_w, "../snapshot/w_snap/inner1_w_" + s + "_t1.bin");
-			savePars(inner1_bias, "../snapshot/w_snap/inner1_bias_" + s + "_t1.bin");
-			savePars(softmax_w, "../snapshot/w_snap/softmax1_w_" + s + "_t1.bin");
-			savePars(softmax_bias, "../snapshot/w_snap/softmax1_bias_" + s + "_t1.bin");
+			savePars(cnn1_bias, "/snapshot/w_snap/cnn1_bias_" + s + "_t1.bin");
+			savePars(cnn2_w, "/snapshot/w_snap/cnn2_w_" + s + "_t1.bin");
+			savePars(cnn2_bias, "/snapshot/w_snap/cnn2_bias_" + s + "_t1.bin");
+			savePars(cnn3_w, "/snapshot/w_snap/cnn3_w_" + s + "_t1.bin");
+			savePars(cnn3_bias, "/snapshot/w_snap/cnn3_bias_" + s + "_t1.bin");
+			savePars(inner1_w, "/snapshot/w_snap/inner1_w_" + s + "_t1.bin");
+			savePars(inner1_bias, "/snapshot/w_snap/inner1_bias_" + s + "_t1.bin");
+			savePars(softmax_w, "/snapshot/w_snap/softmax1_w_" + s + "_t1.bin");
+			savePars(softmax_bias, "/snapshot/w_snap/softmax1_bias_" + s + "_t1.bin");
 		}
-
-
 	}
 	if(rank == 1){
 		t = clock() - t;
@@ -682,6 +694,7 @@ cout << "done9\n";
 	delete train_label;
 	delete valid_data;
 	delete valid_label;
+	delete total_record;
 }
 
 int main(int argc, char** argv){
@@ -712,8 +725,8 @@ int main(int argc, char** argv){
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 16;
-	float conv1_w_lr = 0.001;
-	float conv1_b_lr = 0.002;
+	float conv1_w_lr = 0.01;
+	float conv1_b_lr = 0.02;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -729,22 +742,22 @@ int main(int argc, char** argv){
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 32;
-	float conv2_w_lr = 0.001;
-	float conv2_b_lr = 0.002;
+	float conv2_w_lr = 0.01;
+	float conv2_b_lr = 0.02;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
 	int pool2_filter_size = 3;
-	PoolingType pool2_type = AVG_POOLING;
+	PoolingType pool2_type = MAX_POOLING;
 
 	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
 	int conv3_out_channel = 64;
-	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.002;
+	float conv3_w_lr = 0.01;
+	float conv3_b_lr = 0.02;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0.004;
 
