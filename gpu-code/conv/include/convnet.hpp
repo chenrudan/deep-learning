@@ -8,8 +8,6 @@
 #include <iostream>
 #include "layer.hpp"
 
-#define MAX_NUM_KERNEL 4096
-#define MAX_NUM_THREAD 1024
 
 template <typename Dtype>
 class ConvNet : public TrainLayer<Dtype>{

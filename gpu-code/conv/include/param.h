@@ -10,6 +10,10 @@
 
 using namespace std;
 
+#define MAX_THREAD_SIZE 32
+#define MAX_NUM_KERNEL 4096
+#define MAX_NUM_THREAD 1024
+
 typedef enum PARAM_CONNECT_TYPE {
     PARAM_CONNECT_TYPE_LOCAL = 0,
     PARAM_CONNECT_TYPE_FULL = 1
@@ -29,7 +33,8 @@ public:
 
     virtual ~Param() { }
 
-    Param(string name, const int minibatch_size);
+    Param(string name, const int minibatch_size) : _name(name), \
+							_minibatch_size(minibatch_size){}
 
 	inline virtual int getNumOut() {return 0;}
 	inline virtual int getOutChannel() {return 0;}
@@ -58,7 +63,10 @@ public:
 
     TrainParam(const float w_lr, const float b_lr, \
             const float momentum, const float weight_decay, \
-			const int n_push, const int n_fetch);
+			const int n_push, const int n_fetch) \
+		: _w_lr(w_lr), _b_lr(b_lr), _momentum(momentum), \
+		_weight_decay(w_lr*weight_decay), _n_push(n_push), \
+		_n_fetch(n_fetch){}
 
     inline void lrMultiScale(float lr_scale) {
         _w_lr *= lr_scale;
@@ -109,12 +117,40 @@ public:
     LocalConnectParam(string name, \
 		const int minibatch_size, const int in_size, \
 		const int pad, const int stride, const int in_channel, \
-		const int filter_size, const int out_channel);
+		const int filter_size, const int out_channel) \
+		: _in_size(in_size), _stride(stride), _in_channel(in_channel), \
+		_pad(pad), _filter_size(filter_size), _out_channel(out_channel){
+
+			this->_name = name;
+			this->_minibatch_size = minibatch_size;
+			this->type = PARAM_CONNECT_TYPE_LOCAL;
+			_padded_in_size = in_size + 2 * pad;
+			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
+		}
 
     LocalConnectParam(string name, \
 		const int pad, const int stride, \
 		const int filter_size, const int filter_channel, \
-		LocalConnectParam* lc_par);
+		LocalConnectParam* lc_par) \
+		: _in_size(lc_par->getOutSize()), _stride(stride), \
+		_in_channel(lc_par->getOutChannel()), _pad(pad), \
+		_filter_size(filter_size) {
+			
+			this->_name = name;
+			this->_minibatch_size = lc_par->getMinibatchSize();
+		
+			if(filter_channel != 0)
+				_out_channel = filter_channel;
+			else
+				_out_channel = _in_channel;
+
+			this->type = PARAM_CONNECT_TYPE_LOCAL;
+			_padded_in_size = _in_size + 2 * pad;
+			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
+
+		}
+
+
 
     inline int getInSize() {
         return _in_size;
@@ -143,7 +179,7 @@ public:
         return _pad;
     }
 
-protected:
+private:
     int _in_size;
     int _pad;
     int _padded_in_size;
@@ -164,9 +200,30 @@ public:
     virtual ~FullConnectParam() { }
     FullConnectParam(string name, \
 		const int minibatch_size, const int num_in, \
-		const int num_out);
+		const int num_out) \
+		: _num_in(num_in), _num_out(num_out) {
+			this->_name = name;
+			this->_minibatch_size = minibatch_size;
+			this->type = PARAM_CONNECT_TYPE_FULL;
+		}
     FullConnectParam(string name, \
-		const int num_out, Param* par);
+		const int num_out, Param* par){
+			this->_name = name;
+			this->_minibatch_size = par->getMinibatchSize();
+			this->type = PARAM_CONNECT_TYPE_FULL;
+			
+			///由传递进来的层类型决定计算方式
+			ConnectType ct = par->getConnectType();
+			if(ct == PARAM_CONNECT_TYPE_LOCAL)
+				_num_in = pow(par->getOutSize(), 2) * par->getOutChannel(); 
+			else if(ct == PARAM_CONNECT_TYPE_FULL)
+				_num_in = par->getNumOut(); 
+	
+			if(num_out != 0)
+				_num_out = num_out;
+			else
+				_num_out = _num_in;
+		}
 
 
     inline int getNumIn() {
@@ -177,7 +234,7 @@ public:
         return _num_out;
     }
 
-protected:
+private:
     int _num_in;
     int _num_out;
 };
@@ -220,25 +277,42 @@ public:
 			const int in_channel, const int filter_size, \
 			const int filter_channel, PoolingType p_type) 
             :  LocalConnectParam(name, minibatch_size, in_size, \
-					pad, stride, in_channel, filter_size, filter_channel) {
-				_p_type = p_type;
+					pad, stride, in_channel, filter_size, filter_channel) , \
+			_p_type(p_type){
+				_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
+							* 1.0f / MAX_THREAD_SIZE) + 1;
+				_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
 			}
+			
+
 
     	PoolParam(const string name, const int pad, const int stride, \
 			const int filter_size, const int filter_channel, \
 			LocalConnectParam* lc_par, PoolingType p_type) 
             :  LocalConnectParam(name, pad, stride, filter_size, \
-					filter_channel, lc_par) {
-				_p_type = p_type;
+					filter_channel, lc_par), \
+			_p_type(p_type){
+				_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
+							* 1.0f / MAX_THREAD_SIZE) + 1;
+				_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
 			}
+
 
 		inline PoolingType getPoolType(){
 			return _p_type;
 		}
+		inline int getBoxNumSize(){
+			return _box_num_size;
+		}
+		inline int getBoxInSize(){
+			return _box_in_size;
+		}
+
 
 private:
 	PoolingType _p_type;	
-
+	int _box_in_size; ///>用来计算一个box输出的卷积输入
+	int _box_num_size;  ///>总的box个数的行/列 
 };
 
 

@@ -25,8 +25,9 @@ public:
     void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
 private:
-    int* _max_pos;
+    Matrix<int>* _max_pos;
     PoolParam* _lcp;
+	Matrix<Dtype>* unranged_dE_dx;
 };
 
 #include "../src/pooling_layer.cu"

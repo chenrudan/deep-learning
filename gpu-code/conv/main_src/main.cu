@@ -735,7 +735,7 @@ int main(int argc, char** argv){
 	//sigmoid层参数可以先忽略
 	int pool1_pad = 0;
 	int pool1_stride = 2;
-	int pool1_filter_size = 3;
+	int pool1_filter_size = 2;
 	PoolingType pool1_type = MAX_POOLING;
 
 	int conv2_pad = 2;
@@ -749,7 +749,7 @@ int main(int argc, char** argv){
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
-	int pool2_filter_size = 3;
+	int pool2_filter_size = 2;
 	PoolingType pool2_type = MAX_POOLING;
 
 	int conv3_pad = 2;
@@ -763,7 +763,7 @@ int main(int argc, char** argv){
 
 	int pool3_pad = 0;
 	int pool3_stride = 2;
-	int pool3_filter_size = 3;
+	int pool3_filter_size = 2;
 	PoolingType pool3_type = AVG_POOLING;
 
 	int inner1_num_out = 64;
