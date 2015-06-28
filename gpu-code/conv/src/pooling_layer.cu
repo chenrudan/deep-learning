@@ -21,6 +21,8 @@ PoolingLayer<Dtype>::~PoolingLayer() {
 
 	if(_lcp->getPoolType() == MAX_POOLING )
 		delete _max_pos;
+	if(_lcp->getOutSize() > MAX_THREAD_SIZE)	
+		delete unranged_dE_dx;
 	cublasDestroy(this->handle);
 }
 
@@ -39,10 +41,10 @@ void PoolingLayer<Dtype>::initCuda() {
 			pow(_lcp->getOutSize(), 2) * _lcp->getOutChannel());
 	
 	}
-//	if(_lcp->getOutSize() > MAX_THREAD_SIZE){	
+	if(_lcp->getOutSize() > MAX_THREAD_SIZE){	
 		unranged_dE_dx = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
-				pow(_box_in_size * _box_num_size, 2) * _lcp->getOutChannel());
-//	}
+				pow(_lcp->getBoxInSize() * _lcp->getBoxNumSize(), 2) * _lcp->getOutChannel());
+	}
 
 }
 
@@ -102,12 +104,10 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
 	dim3 threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE);
 
-	this->_dE_dy->reValue(16);
-	this->_dE_dy->showValue("dEdy");
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-		_max_pos->reValue(1.0f);
-		_max_pos->showValue("maxpos");
+//		_max_pos->reValue(1.0f);
+//		_max_pos->showValue("maxpos");
 
 		if(_lcp->getOutSize() > MAX_THREAD_SIZE){
 			compute_dE_dy_max<<<blocks, threads, \
@@ -121,10 +121,11 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 					dE_dx->getDevData(), _max_pos->getDevData(), _lcp->getInSize(), \
 					_lcp->getInChannel(), _lcp->getOutSize(), \
 					_lcp->getFilterSize(), _lcp->getStride(), _lcp->getBoxNumSize());
-			dE_dx->showValue("dEdx");
 		}
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
+	this->_dE_dy->reValue(9.0f);
+//	this->_dE_dy->showValue("dEdy");
 		if(_lcp->getOutSize() > MAX_THREAD_SIZE){
 		
 		
@@ -134,6 +135,7 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 					dE_dx->getDevData(), _lcp->getInSize(), _lcp->getInChannel(), \
 					_lcp->getOutSize(), _lcp->getFilterSize(), \
 					_lcp->getStride(), _lcp->getBoxNumSize());
+			dE_dx->showValue("dEdx");
 		}
 
 	}else{
