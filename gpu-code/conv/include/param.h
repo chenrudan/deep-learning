@@ -307,6 +307,7 @@ public:
 		inline int getBoxInSize(){
 			return _box_in_size;
 		}
+		
 
 
 private:

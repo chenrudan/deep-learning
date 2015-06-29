@@ -43,7 +43,8 @@ void PoolingLayer<Dtype>::initCuda() {
 	}
 	if(_lcp->getOutSize() > MAX_THREAD_SIZE){	
 		unranged_dE_dx = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
-				pow(_lcp->getBoxInSize() * _lcp->getBoxNumSize(), 2) * _lcp->getOutChannel());
+				pow(_lcp->getBoxInSize() * _lcp->getBoxNumSize(), 2) \
+				* _lcp->getOutChannel());
 	}
 
 }
@@ -89,15 +90,6 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 	dE_dx->zeros();
 	int num_box = pow(_lcp->getBoxNumSize(), 2);
-	cout << "inchannel: " << _lcp->getInChannel() \
-		<< "\nnum_box: "<< num_box  \
-		<< "\nminibatchsize: "<< _lcp->getMinibatchSize()  \
-		<< "\nfiltersize: "<< _lcp->getFilterSize()  \
-		<< "\ninsize: "<< _lcp->getInSize()  \
-		<< "\noutsize: "<< _lcp->getOutSize()  \
-		<< "\noutchannel: "<< _lcp->getOutChannel()  \
-		<< "\nstride: "<< _lcp->getStride() \
-		<< endl;
 
 		/// 计算一个box的pooling对应的输入行列大小
 
@@ -106,42 +98,42 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-//		_max_pos->reValue(1.0f);
-//		_max_pos->showValue("maxpos");
+	this->_dE_dy->reValue(16);
+		_max_pos->reValue(1.0f);
+		_max_pos->showValue("maxpos");
 
 		if(_lcp->getOutSize() > MAX_THREAD_SIZE){
 			compute_dE_dy_max<<<blocks, threads, \
 				sizeof(Dtype)*pow(_lcp->getBoxInSize(), 2)>>>(this->_dE_dy->getDevData(), \
 					unranged_dE_dx->getDevData(), _max_pos->getDevData(), _lcp->getBoxInSize(), \
-					_lcp->getInChannel(), _lcp->getOutSize(), \
+					MAX_THREAD_SIZE, _lcp->getInChannel(), _lcp->getOutSize(), \
 					_lcp->getFilterSize(), _lcp->getStride(), _lcp->getBoxNumSize());
 		}else{
 			compute_dE_dy_max<<<blocks, threads, \
 				sizeof(Dtype)*pow(_lcp->getInSize(), 2)>>>(this->_dE_dy->getDevData(), \
 					dE_dx->getDevData(), _max_pos->getDevData(), _lcp->getInSize(), \
-					_lcp->getInChannel(), _lcp->getOutSize(), \
+					_lcp->getOutSize(), _lcp->getInChannel(), _lcp->getOutSize(), \
 					_lcp->getFilterSize(), _lcp->getStride(), _lcp->getBoxNumSize());
+			dE_dx->showValue("dEdx");
 		}
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
-	this->_dE_dy->reValue(9.0f);
-//	this->_dE_dy->showValue("dEdy");
 		if(_lcp->getOutSize() > MAX_THREAD_SIZE){
 		
 		
 		}else{
 			compute_dE_dy_avg<<<blocks, threads, \
 				sizeof(Dtype)*_lcp->getInSize()*_lcp->getInSize()>>>(this->_dE_dy->getDevData(), \
-					dE_dx->getDevData(), _lcp->getInSize(), _lcp->getInChannel(), \
+					dE_dx->getDevData(), _lcp->getInSize(), _lcp->getOutSize(), _lcp->getInChannel(), \
 					_lcp->getOutSize(), _lcp->getFilterSize(), \
 					_lcp->getStride(), _lcp->getBoxNumSize());
-			dE_dx->showValue("dEdx");
 		}
 
 	}else{
 		cout << "Pooling type is invalid !\n";	
 		exit(EXIT_FAILURE);
 	}
+	//this->_dE_dy->showValue("dEdy");
 
 	cudaThreadSynchronize();
 }

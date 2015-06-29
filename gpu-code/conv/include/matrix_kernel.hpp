@@ -21,55 +21,51 @@ __global__ void kTranspose(Dtype* srcData, Dtype* dstData, \
 /// \param[in] width 传递矩阵的长宽
 template <typename Dtype>
 __global__ void kAddRowVector(Dtype* mat, Dtype* vec, Dtype* tgtMat, \
-		int width, int height, float scaleVec); 
+		const int width, const int height, float scaleVec); 
 
 template <typename Dtype>
 __global__ void kSubtractFromScalar(Dtype* gData, float scalar, Dtype* target, \
-		int width, int height);
+		const int width, const int height);
 
 template <typename Dtype>
-__global__ void kSoftmax(Dtype* gData, Dtype* target, int width, \
-		int height);
+__global__ void kSoftmax(Dtype* gData, Dtype* target, const int width, \
+		const int height);
 
 template <typename Dtype>
-__global__ void kReciprocal(Dtype* gData, Dtype* target, int width, \
-		int height);
+__global__ void kReciprocal(Dtype* gData, Dtype* target, const int width, \
+		const int height);
 
 template <typename Dtype>
-__global__ void kLog(Dtype* gData, Dtype* target, int width, \
-		int height);
+__global__ void kLog(Dtype* gData, Dtype* target, const int width, \
+		const int height);
 
 template <typename Dtype>
-__global__ void kSigmoid(Dtype* gData, Dtype* target, int width, \
-		int height);
+__global__ void kSigmoid(Dtype* gData, Dtype* target, const int width, \
+		const int height);
 
 template <typename Dtype>
-__global__ void kRelu(Dtype* gData, Dtype* target, int* record, int width, \
-		int height);
+__global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int width, \
+		const int height);
 
 template <typename Dtype>
-__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, int width, \
-		int height);
+__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, const int width, \
+		const int height);
 
 template <typename Dtype>
-__global__ void kDumbSumCols(Dtype* mat, Dtype* vec, int width, \
-		int height); 
+__global__ void kDumbSumCols(Dtype* mat, Dtype* vec, const int width, \
+		const int height); 
 
 template <typename Dtype>
-__global__ void kDumbMaxPosInRow(Dtype* mat, Dtype* vec, int width, \
-		int height); 
+__global__ void kDumbMaxPosInRow(Dtype* mat, Dtype* vec, const int width, \
+		const int height); 
 
 template <typename Dtype>
 __global__ void kMult(Dtype* matA, Dtype* matB, Dtype* tgtMat, \
-		int width, int height);
+		const int width, const int height);
 
 template <typename Dtype>
 __global__ void kAdd(Dtype* matA, Dtype* matB, Dtype* tgtMat, float scaleA,  \
-		float scaleB, int width, int height);
-
-
-
-
+		float scaleB, const int width, const int height);
 
 #include "../src/matrix_kernel.cu"
 

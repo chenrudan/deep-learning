@@ -300,6 +300,27 @@ void Matrix<Dtype>::add(Matrix<Dtype>* b, float scale_this, float scale_B){
 }
 
 template <typename Dtype>
+void Matrix<Dtype>::compactOverlapOfMat(Matrix<Dtype>* targets, const int com_stride, \
+		const int com_len){
+	const int width = this->_shape[1];
+	const int height = this->_shape[0];
+	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
+	assert(num_blocks_x < NUM_BLOCKS_MAX);
+	const int num_blocks_y = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), \
+				NUM_BLOCKS_MAX));
+	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
+	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
+
+	kCompactOverlap<<<grid_size, block_size, \
+			sizeof(Dtype) * targets->getNumEles() >>>(this->getDevData(), \
+			targets->getDevData(), com_stride, com_len, width, height);
+	cudaThreadSynchronize();
+
+}
+
+
+
+template <typename Dtype>
 void Matrix<Dtype>::showValue(string name){
 
 	Dtype* tmp_yh = new Dtype[this->_amount];
@@ -308,7 +329,7 @@ void Matrix<Dtype>::showValue(string name){
 	cout << this->_shape[0] << ":" << this->_shape[1] << endl;
 	for(int i = 0; i < this->_shape[0]; i++){
 		for(int j = 0; j < this->_shape[1]; j++){
-			cout << tmp_yh[i * this->_shape[1] + j] << "\t";
+			cout << tmp_yh[i * this->_shape[1] + j] << "  ";
 			if(j != 0 && j % (this->_shape[1]) == this->_shape[1]  - 1)
 				cout << endl;
 			if(this->_shape[1] == 1)

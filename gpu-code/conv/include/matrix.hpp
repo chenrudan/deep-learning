@@ -135,6 +135,14 @@ public:
     /// \param[out] max_vec 保存每一行的最大值的位置
     void maxPosInRow(Matrix<Dtype> *max_vec);
 
+	/// \brief 按一定的间隔和一定的长度压缩原矩阵中认为重叠的部分
+	/// \param[in] com_stride 每次移动的长度
+	/// \param[in] com_len 重叠部分的长度
+	/// \param[out] targets 保存压缩后的矩阵
+	void compactOverlapOfMat(Matrix<Dtype>* targets, const int com_stride, \
+				const int com_len);
+
+
     /// \brief 打印矩阵
     /// \param[in] name 矩阵的名称
     void showValue(string name);

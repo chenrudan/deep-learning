@@ -279,7 +279,7 @@ __global__ void compute_dE_dy_j(const float* y_j, const float* labels, \
 
 
 
-__global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos, \
+__global__ void max_pooling(const float* convOutputs, float* targets, int* maxPoolPos, \
 		const int conv_forward_size, const int in_channels, const int pool_forward_size, \
 		const int max_pool_size, const int stride, const int box_num_size){
 
@@ -344,7 +344,7 @@ __global__ void max_pooling(float* convOutputs, float* targets, int* maxPoolPos,
 	}
 }
 
-__global__ void avg_pooling(float* convOutputs, float* targets, \
+__global__ void avg_pooling(const float* convOutputs, float* targets, \
 		const int conv_forward_size, const int in_channels, \
 		const int pool_forward_size, const int avg_pool_size, \
 		const int stride, const int box_num_size){
@@ -404,8 +404,9 @@ __global__ void avg_pooling(float* convOutputs, float* targets, \
 
 
 
-__global__ void compute_dE_dy_max(float* dE_dy_i, float* targets, int* maxPoolPos, \
-		const int box_in_size, const int num_filters, \
+__global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
+		int* maxPoolPos, const int box_in_size, const int box_out_size, \
+		const int num_filters, \
 		const int pool_forward_size, const int max_pool_size, \
 		const int stride, const int box_num_size){
 	
@@ -432,21 +433,18 @@ __global__ void compute_dE_dy_max(float* dE_dy_i, float* targets, int* maxPoolPo
 
 	int posIdx= threadIdx.y * box_in_size * stride \
 				+ threadIdx.x * stride;
-		
-	for(int i = threadIdx.y; i < box_in_size; i+= blockDim.y){
-		for(int j = threadIdx.x; j < box_in_size; j+= blockDim.x){
-			result[i * box_in_size + j]	= 0;
-		}
-	}
 
 	if(out_row < pool_forward_size && out_col < pool_forward_size){
 		targets += img_idx * num_filters * in_pixs + filt_idx * in_pixs \
-			   + in_row * in_size \
-			   + in_col; 
+			   + in_row * in_size + in_col; 
 		dE_dy_i += img_idx * num_filters * pool_pixs + filt_idx * pool_pixs \
 				   + out_row * pool_forward_size + out_col;
 		maxPoolPos += img_idx * num_filters * pool_pixs + filt_idx * pool_pixs \
 					  + out_row * pool_forward_size + out_col;
+
+		for(int i = threadIdx.x; i < box_in_size; i+=box_out_size)
+			for(int j = threadIdx.y; j < box_in_size; j+=box_out_size)
+				result[i*box_in_size + j] = 0;
 
 		int pos = maxPoolPos[0];
 		int row = pos / max_pool_size;
@@ -464,8 +462,9 @@ __global__ void compute_dE_dy_max(float* dE_dy_i, float* targets, int* maxPoolPo
 	}
 }
 
-__global__ void compute_dE_dy_avg(float* dE_dy_i, float* targets, \
-		const int box_in_size, const int num_filters, \
+__global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
+		const int box_in_size, const int box_out_size, \
+		const int num_filters, \
 		const int pool_forward_size, const int avg_pool_size, \
 		const int stride, const int box_num_size){
 
@@ -488,23 +487,20 @@ __global__ void compute_dE_dy_avg(float* dE_dy_i, float* targets, \
 	int out_row = MAX_THREAD_SIZE * box_row_idx + threadIdx.y;
 	int out_col = MAX_THREAD_SIZE * box_col_idx + threadIdx.x;
 
-	for(int i = threadIdx.y; i < box_in_size; i+= blockDim.y){
-		for(int j = threadIdx.x; j < box_in_size; j+= blockDim.x){
-			result[i * box_in_size + j]	= 0;
-		}
-	}
-
-	targets += img_idx * num_filters * in_pixs + filt_idx * in_pixs \
-			   + box_row_idx * box_in_size * in_size \
-			   + box_col_idx * box_in_size;
 
 	if(out_row < pool_forward_size && out_col < pool_forward_size){
 		//计算本块pooling对应的输入conv块起始位置
 		//本线程对应的pooling值
+		targets += img_idx * num_filters * in_pixs + filt_idx * in_pixs \
+				   	+ box_row_idx * box_in_size * in_size \
+			   	 	+ box_col_idx * box_in_size;
 		dE_dy_i += img_idx * num_filters * pool_pixs + filt_idx * pool_pixs \
 				   + out_row * pool_forward_size + out_col;
 
 		float ele;
+		for(int i = threadIdx.x; i < box_in_size; i+=box_out_size)
+			for(int j = threadIdx.y; j < box_in_size; j+=box_out_size)
+				result[i*box_in_size + j]	= 0;
 
 		for(int i = 0; i < avg_pool_size; i++){
 			for(int j = 0; j < avg_pool_size; j++){
@@ -512,21 +508,17 @@ __global__ void compute_dE_dy_avg(float* dE_dy_i, float* targets, \
 				int box_in_col = threadIdx.x * stride + j;
 				if(box_in_row < box_in_size && box_in_col < box_in_size){
 					ele = dE_dy_i[0] / (avg_pool_size * avg_pool_size);
-					ele = box_in_row * box_in_size + box_in_col;
 					__syncthreads();
-					atomicAdd(result+box_in_row*box_in_size + box_in_col, ele);
+					atomicAdd(result + box_in_row*box_in_size+box_in_col, ele);
 					__syncthreads();
 				}
 			}
 		}
+		for(int i = threadIdx.y; i < box_in_size; i+=box_out_size)
+			for(int j = threadIdx.x; j < box_in_size; j+=box_out_size)
+				targets[i * in_size + j] = result[i * box_in_size + j];
 	}
 
-	for(int i = threadIdx.y; i < box_in_size; i+=blockDim.y){
-		for(int j = threadIdx.x; j < box_in_size; j+=blockDim.x){
-			targets[i * in_size + j] = result[i * box_in_size + j];
-		}
-	}
-	
 }
 
 __global__ void compute_dE_db(const float* dE_dy, float* dE_db_h, \

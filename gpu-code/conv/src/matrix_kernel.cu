@@ -15,46 +15,10 @@ __device__ Dtype mySigmoid(Dtype x) {
 		return 1 / (1 + __expf(-x));
 }
 
-template <typename Dtype>
-__global__ void multiRowCol(Dtype* aData, Dtype* bData, float scaleAB, \
-		Dtype* target, const int numInRowCol, const int times ){
-	extern __shared__ Dtype result[];
-	//a的每一行与b的每一行相乘
-
-	const int idx = threadIdx.x * blockDim.y + threadIdx.y;
-	const int threadNum = blockDim.x * blockDim.y;
-	const int mIdx = blockIdx.x;
-	const int nIdx = blockIdx.y;
-
-	aData += mIdx * numInRowCol + idx;
-	bData += nIdx * numInRowCol + idx;
-	target += mIdx * gridDim.y + nIdx;
-
-	if(idx == 0){
-		result[0] = 0;
-	}
-
-	Dtype ele = 0;
-	for(int i = 0; i < times; i++){
-		ele += scaleAB * aData[i * threadNum] * bData[i * threadNum];
-	}
-	if((threadNum * times < numInRowCol) && (idx < numInRowCol - threadNum * times)){
-		ele += scaleAB * aData[threadNum * times] \
-			   * bData[threadNum * times];
-	}
-	__syncthreads();
-	atomicAdd(result, ele);
-	__syncthreads();
-
-	if(idx == 0){
-		target[0] = result[0];
-	}
-}
-
 
 template <typename Dtype>
 __global__ void kAddRowVector(Dtype* mat, Dtype* vec, Dtype* tgtMat, \
-		int width, int height, float scaleVec) {
+		const int width, const int height, float scaleVec) {
 
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
@@ -70,8 +34,8 @@ __global__ void kAddRowVector(Dtype* mat, Dtype* vec, Dtype* tgtMat, \
 }
 
 template <typename Dtype>
-__global__ void kSoftmax(Dtype* gData, Dtype* target, int width, \
-		int height) {   
+__global__ void kSoftmax(Dtype* gData, Dtype* target, const int width, \
+		const int height) {   
 
 	//跟同一个block里面值比较大小取最大值，减去最大值
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
@@ -135,8 +99,8 @@ __global__ void kSoftmax(Dtype* gData, Dtype* target, int width, \
 }
 
 template <typename Dtype>
-__global__ void kRelu(Dtype* gData, Dtype* target, int* record, int width, \
-		int height) {
+__global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int width, \
+		const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -152,8 +116,8 @@ __global__ void kRelu(Dtype* gData, Dtype* target, int* record, int width, \
 	}
 }
 template <typename Dtype>
-__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, int width, \
-		int height) {
+__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, const int width, \
+		const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -168,8 +132,8 @@ __global__ void kReluBack(Dtype* gData, Dtype* target, int* record, int width, \
 }
 
 template <typename Dtype>
-__global__ void kSigmoid(Dtype* gData, Dtype* target, int width, \
-		int height) {
+__global__ void kSigmoid(Dtype* gData, Dtype* target, const int width, \
+		const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -180,8 +144,8 @@ __global__ void kSigmoid(Dtype* gData, Dtype* target, int width, \
 
 
 template <typename Dtype>
-__global__ void kReciprocal(Dtype* gData, Dtype* target, int width, \
-		int height) {
+__global__ void kReciprocal(Dtype* gData, Dtype* target, const int width, \
+		const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -191,8 +155,8 @@ __global__ void kReciprocal(Dtype* gData, Dtype* target, int width, \
 }
 
 template <typename Dtype>
-__global__ void kLog(Dtype* gData, Dtype* target, int width, \
-		int height) {   
+__global__ void kLog(Dtype* gData, Dtype* target, const int width, \
+		const int height) {   
 
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
@@ -207,7 +171,7 @@ __global__ void kLog(Dtype* gData, Dtype* target, int width, \
 
 template <typename Dtype>
 __global__ void kCompactCol(const Dtype* ori, Dtype* target, const int interval, \
-		int width, int height){
+		const int width, const int height){
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int oriIdx = idxY * width * interval + idxX * interval;
@@ -224,8 +188,8 @@ __global__ void kCompactCol(const Dtype* ori, Dtype* target, const int interval,
 
 
 template <typename Dtype>
-__global__ void kDumbSumCols(Dtype* mat, Dtype* vec, int width, \
-		int height) {
+__global__ void kDumbSumCols(Dtype* mat, Dtype* vec, const int width, \
+		const int height) {
 
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
@@ -263,8 +227,8 @@ __global__ void kDumbSumCols(Dtype* mat, Dtype* vec, int width, \
 
 
 template <typename Dtype>
-__global__ void kDumbMaxPosInRow(Dtype* mat, Dtype* vec, int width, \
-		int height) {
+__global__ void kDumbMaxPosInRow(Dtype* mat, Dtype* vec, const int width, \
+		const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -304,7 +268,7 @@ __global__ void kDumbMaxPosInRow(Dtype* mat, Dtype* vec, int width, \
 
 template <typename Dtype>
 __global__ void kMultByColVector(Dtype* mat, Dtype* vec, Dtype* tgtMat, \
-		int width, int height) {
+		const int width, const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -315,7 +279,7 @@ __global__ void kMultByColVector(Dtype* mat, Dtype* vec, Dtype* tgtMat, \
 
 template <typename Dtype>
 __global__ void kSubtractFromScalar(Dtype* gData, float scalar, Dtype* target, \
-		int width, int height) {
+		const int width, const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -326,7 +290,7 @@ __global__ void kSubtractFromScalar(Dtype* gData, float scalar, Dtype* target, \
 
 template <typename Dtype>
 __global__ void kMult(Dtype* matA, Dtype* matB, Dtype* tgtMat, \
-		int width, int height) {
+		const int width, const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -337,7 +301,7 @@ __global__ void kMult(Dtype* matA, Dtype* matB, Dtype* tgtMat, \
 
 template <typename Dtype>
 __global__ void kAdd(Dtype* matA, Dtype* matB, Dtype* tgtMat, float scaleA,  \
-		float scaleB, int width, int height) {
+		float scaleB, const int width, const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
 	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
 	const int idx = idxY * width + idxX;
@@ -360,6 +324,25 @@ __global__ void kTranspose(Dtype* srcData, Dtype* dstData, \
 		dstData[dstIdx] = srcData[srcIdx];
 
 }
+
+template <typename Dtype>
+__global__ void kCompactOverlap(Dtype* srcData, Dtype* dstData, \
+		const int com_stride, const int com_len, \
+		const int width, const int height){
+	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const int idx = idxY * width + idxX;  ///>输入位置
+	
+	const int out_width = width - 
+
+	extern __shared__ Dtype result[];
+
+	if(idxY < )	
+		
+
+}
+
+
 
 
 
