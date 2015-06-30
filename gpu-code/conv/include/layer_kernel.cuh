@@ -93,6 +93,9 @@ __global__ void compute_dE_db(const float* dE_dy, float* dE_db_h, \
 __global__ void compute_dE_dy(const float* y_j, const float* labels, \
 		float* dE_dy_j, const int width);
 
+__global__ void compactOverlap(float* src, float* targets, \
+		const int in_size, const int com_stride, const int com_len, \
+		const int out_size, const int out_channel);
 
 
 

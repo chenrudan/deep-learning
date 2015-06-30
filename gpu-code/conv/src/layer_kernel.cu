@@ -559,6 +559,45 @@ __global__ void compute_dE_dy(const float* y_j, const float* labels, \
 }
 
 
+__global__ void compactOverlap(float* src, float* targets, \
+		const int in_size, const int com_stride, const int com_len, \
+		const int out_size, const int out_channel){
+
+	const int filt_idx = blockIdx.y;
+	const int img_idx = blockIdx.x;
+
+	const int in_pixs = in_size * in_size;
+	const int out_pixs = out_size * out_size;
+
+	int out_row = threadIdx.y;
+	int out_col = threadIdx.x;
+	int in_row = out_row - com_len * (out_row / com_stride);
+	int in_col = out_col - com_len * (out_col / com_stride);
+
+	src += img_idx * out_channel * out_pixs + filt_idx * out_pixs;
+	targets += img_idx * out_channel * in_pixs + filt_idx * in_pixs;
+
+	extern __shared__ float result[];
+
+	for(int i = out_row; in_row < in_size; i += blockDim.y, in_row = i - com_len * (i / com_stride)){
+		for(int j = out_col; in_row < in_col; j += blockDim.x, in_col = j - com_len * (j / com_stride)){
+			
+			__syncthreads();
+			atomicAdd(result+in_row * in_size + in_col, src[i*out_size + j]);
+			__syncthreads();
+		}
+	}
+
+	for(int i = threadIdx.y; i < in_size; i += blockDim.y){
+		for(int j = threadIdx.x; j < in_size; j += blockDim.x){
+			targets[i * in_size + j] = result[i * in_size + j];
+		}
+	}
+}
+
+
+
+
 
 
 

@@ -325,25 +325,6 @@ __global__ void kTranspose(Dtype* srcData, Dtype* dstData, \
 
 }
 
-template <typename Dtype>
-__global__ void kCompactOverlap(Dtype* srcData, Dtype* dstData, \
-		const int com_stride, const int com_len, \
-		const int width, const int height){
-	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
-	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
-	const int idx = idxY * width + idxX;  ///>输入位置
-	
-	const int out_width = width - 
-
-	extern __shared__ Dtype result[];
-
-	if(idxY < )	
-		
-
-}
-
-
-
 
 
 

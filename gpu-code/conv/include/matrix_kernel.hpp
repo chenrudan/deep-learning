@@ -67,6 +67,7 @@ template <typename Dtype>
 __global__ void kAdd(Dtype* matA, Dtype* matB, Dtype* tgtMat, float scaleA,  \
 		float scaleB, const int width, const int height);
 
+
 #include "../src/matrix_kernel.cu"
 
 

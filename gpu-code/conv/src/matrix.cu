@@ -299,26 +299,6 @@ void Matrix<Dtype>::add(Matrix<Dtype>* b, float scale_this, float scale_B){
 	cudaThreadSynchronize();
 }
 
-template <typename Dtype>
-void Matrix<Dtype>::compactOverlapOfMat(Matrix<Dtype>* targets, const int com_stride, \
-		const int com_len){
-	const int width = this->_shape[1];
-	const int height = this->_shape[0];
-	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
-	assert(num_blocks_x < NUM_BLOCKS_MAX);
-	const int num_blocks_y = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), \
-				NUM_BLOCKS_MAX));
-	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
-	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1); 
-
-	kCompactOverlap<<<grid_size, block_size, \
-			sizeof(Dtype) * targets->getNumEles() >>>(this->getDevData(), \
-			targets->getDevData(), com_stride, com_len, width, height);
-	cudaThreadSynchronize();
-
-}
-
-
 
 template <typename Dtype>
 void Matrix<Dtype>::showValue(string name){

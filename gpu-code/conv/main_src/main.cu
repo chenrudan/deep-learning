@@ -36,8 +36,8 @@ enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 int num_process;
 int rank;
 
-int num_train = 50000;
-int num_valid = 10000;
+int num_train = 500;
+int num_valid = 100;
 int num_minibatch;
 int num_validbatch;
 int num_train_per_process;
@@ -88,7 +88,7 @@ cout << "done8\n";
 cout << "done7\n";
 
 	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
-	LoadCifar10<float> cifar10(cifar10_info);
+/*	LoadCifar10<float> cifar10(cifar10_info);
     for(int i = 1; i < 6; i++){
         string s;
         stringstream ss;
@@ -106,9 +106,11 @@ cout << "done7\n";
 	train_label->copyFromHost(cifar10_info->train_label, num_train);
 	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * cnn1_in_len);
 	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
-			
-//	savePars(train_data, "snapshot/input_snap/train_data.bin");
-//	savePars(train_label, "snapshot/input_snap/train_label.bin");
+*/			
+	train_data->reValue(1.0f);
+	train_label->reValue(1.0f);
+	valid_data->reValue(1.0f);
+	valid_label->reValue(1.0f);
 
 
 cout << "done6\n";
@@ -364,12 +366,15 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 
 	ReluLayer<float> relu1(relu1_fcp);
 	relu1.initCuda();
+cout << "done11\n";
 
 	PoolingLayer<float> pool1(pool1_pp);
 	pool1.initCuda();
 
+cout << "done13\n";
 	ConvNet<float> cnn2(conv2_cp);
 	cnn2.initCuda();
+cout << "done10\n";
 
 	ReluLayer<float> relu2(relu2_fcp);
 	relu2.initCuda();
@@ -392,6 +397,7 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 	ReluLayer<float> relu4(relu4_fcp);
 	relu4.initCuda();
 
+cout << "done12\n";
 	InnerProductLayer<float> inner2(inner2_ip);
 	inner2.initCuda();
 
@@ -718,8 +724,8 @@ int main(int argc, char** argv){
 	cudaGetDeviceCount(&numGpus);
 	cudaSetDevice(rank%numGpus);
 
-	int minibatch_size = 100;
-	int conv1_in_size = 32;
+	int minibatch_size = 10;
+	int conv1_in_size = 100;
 	int conv1_in_channel = 3;
 	int conv1_pad = 2;
 	int conv1_stride = 1;

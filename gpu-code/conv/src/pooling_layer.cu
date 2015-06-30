@@ -98,9 +98,9 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-	this->_dE_dy->reValue(16);
-		_max_pos->reValue(1.0f);
-		_max_pos->showValue("maxpos");
+//	this->_dE_dy->reValue(16);
+//		_max_pos->reValue(1.0f);
+//		_max_pos->showValue("maxpos");
 
 		if(_lcp->getOutSize() > MAX_THREAD_SIZE){
 			compute_dE_dy_max<<<blocks, threads, \
@@ -108,13 +108,22 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 					unranged_dE_dx->getDevData(), _max_pos->getDevData(), _lcp->getBoxInSize(), \
 					MAX_THREAD_SIZE, _lcp->getInChannel(), _lcp->getOutSize(), \
 					_lcp->getFilterSize(), _lcp->getStride(), _lcp->getBoxNumSize());
+
+/*			blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel());
+			threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE);
+			
+			compactOverlap<<<blocks, threads, sizeof(Dtype)*pow(_lcp->getInSize(),2)>>>( \
+*/					
+			
+
+			
 		}else{
 			compute_dE_dy_max<<<blocks, threads, \
 				sizeof(Dtype)*pow(_lcp->getInSize(), 2)>>>(this->_dE_dy->getDevData(), \
 					dE_dx->getDevData(), _max_pos->getDevData(), _lcp->getInSize(), \
 					_lcp->getOutSize(), _lcp->getInChannel(), _lcp->getOutSize(), \
 					_lcp->getFilterSize(), _lcp->getStride(), _lcp->getBoxNumSize());
-			dE_dx->showValue("dEdx");
+//			dE_dx->showValue("dEdx");
 		}
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
