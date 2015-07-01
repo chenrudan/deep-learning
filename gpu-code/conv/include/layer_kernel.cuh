@@ -77,12 +77,13 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 __global__ void avg_pooling(const float* convOutputs, float* targets, \
 		const int box_in_size, const int in_channels, \
 		const int pool_forward_size, const int avg_pool_size, \
-		const int stride, const int box_num_size);
+		const int stride, const int box_out_size, const int box_num_size);
 
 __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPoolPos, \
 		const int conv_forward_size, const int in_channels, \
 		const int pool_forward_size, const int max_pool_size, \
-		const int stride, const int box_num_size);
+		const int stride, \
+		const int box_out_size, const int box_num_size);
 
 __global__ void convolution_backward(const float* imgs, const float* filters, \
 		float* targets, int filConvtimes, int imgConvtimes);

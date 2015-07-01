@@ -530,14 +530,17 @@ cout << "done9\n";
 			cnn3.computeDerivsOfPars(cnn3_y);
 			cnn3.computeDerivsOfInput(pool2_dE_dy);
 
+cout << "done25\n";
 			pool2.computeDerivsOfInput(relu2_dE_dy);
 			relu2.computeDerivsOfInput(cnn2_dE_dy);
 			cnn2.computeDerivsOfPars(cnn2_y);
 			cnn2.computeDerivsOfInput(pool1_dE_dy);
+cout << "done24\n";
 
 			pool1.computeDerivsOfInput(relu1_dE_dy);
 			relu1.computeDerivsOfInput(cnn1_dE_dy);
 			cnn1.computeDerivsOfPars(mini_data);
+cout << "done23\n";
 
 			cnn1.updatePars();
 			cnn2.updatePars();
@@ -756,7 +759,7 @@ int main(int argc, char** argv){
 	int pool2_pad = 0;
 	int pool2_stride = 2;
 	int pool2_filter_size = 2;
-	PoolingType pool2_type = AVG_POOLING;
+	PoolingType pool2_type = MAX_POOLING;
 
 	int conv3_pad = 2;
 	int conv3_stride = 1;
@@ -770,7 +773,7 @@ int main(int argc, char** argv){
 	int pool3_pad = 0;
 	int pool3_stride = 2;
 	int pool3_filter_size = 2;
-	PoolingType pool3_type = AVG_POOLING;
+	PoolingType pool3_type = MAX_POOLING;
 
 	int inner1_num_out = 64;
 	float inner1_w_lr = 0.001;

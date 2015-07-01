@@ -281,7 +281,8 @@ __global__ void compute_dE_dy_j(const float* y_j, const float* labels, \
 
 __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPoolPos, \
 		const int conv_forward_size, const int in_channels, const int pool_forward_size, \
-		const int max_pool_size, const int stride, const int box_num_size){
+		const int max_pool_size, const int stride, \
+		const int box_out_size, const int box_num_size){
 
 	const int num_box = box_num_size * box_num_size;	
 	const int img_idx = blockIdx.x;
@@ -295,7 +296,7 @@ __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPo
 	int conv_pixs = conv_forward_size * conv_forward_size;
 	int pool_pixs = pool_forward_size * pool_forward_size;
 
-	//输出的行列idx
+	//输出的行列idx，当输出大于MAX_THREAD_SIZE的时候每个线程都做了计算
 	int out_row = MAX_THREAD_SIZE * box_row_idx + threadIdx.y;
 	int out_col = MAX_THREAD_SIZE * box_col_idx + threadIdx.x;
 
@@ -314,11 +315,11 @@ __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPo
 				int shRow = threadIdx.y * max_pool_size + i;
 				int shCol = threadIdx.x * max_pool_size + j;
 				if(conv_row < conv_forward_size && conv_col < conv_forward_size){
-					shFeatureMap[shRow * pool_forward_size * max_pool_size + shCol] \
+					shFeatureMap[shRow * box_out_size * max_pool_size + shCol] \
 						= convOutputs[conv_row * conv_forward_size + conv_col];
 				}
 				else{
-					shFeatureMap[shRow * pool_forward_size * max_pool_size + shCol] \
+					shFeatureMap[shRow * box_out_size * max_pool_size + shCol] \
 						= 0;
 				}
 			}
@@ -326,15 +327,15 @@ __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPo
 		__syncthreads();
 
 		float *myShFM = &shFeatureMap[0];
-		myShFM +=  threadIdx.y * max_pool_size * pool_forward_size * max_pool_size \
+		myShFM +=  threadIdx.y * max_pool_size * box_out_size * max_pool_size \
 				   + threadIdx.x * max_pool_size;
 
 		float max_value = myShFM[0];
 		int max_pos = 0;
 		for(int i = 0; i < max_pool_size; i++){
 			for(int j = 0; j < max_pool_size; j++){
-				if(myShFM[i * max_pool_size * pool_forward_size + j] > max_value){
-					max_value = myShFM[i * max_pool_size * pool_forward_size + j];
+				if(myShFM[i * max_pool_size * box_out_size + j] > max_value){
+					max_value = myShFM[i * max_pool_size * box_out_size + j];
 					max_pos = i * max_pool_size + j;
 				}
 			}
@@ -347,7 +348,7 @@ __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPo
 __global__ void avg_pooling(const float* convOutputs, float* targets, \
 		const int conv_forward_size, const int in_channels, \
 		const int pool_forward_size, const int avg_pool_size, \
-		const int stride, const int box_num_size){
+		const int stride, const int box_out_size, const int box_num_size){
 	
 	const int num_box = box_num_size * box_num_size;	
 	const int img_idx = blockIdx.x;
@@ -376,11 +377,11 @@ __global__ void avg_pooling(const float* convOutputs, float* targets, \
 				int shRow = threadIdx.y * avg_pool_size + i;
 				int shCol = threadIdx.x * avg_pool_size + j;
 				if(conv_row < conv_forward_size && conv_col < conv_forward_size){
-					shFeatureMap[shRow * pool_forward_size * avg_pool_size + shCol] \
+					shFeatureMap[shRow * box_out_size * avg_pool_size + shCol] \
 						= convOutputs[conv_row * conv_forward_size + conv_col];
 				}
 				else{
-					shFeatureMap[shRow * pool_forward_size * avg_pool_size + shCol] \
+					shFeatureMap[shRow * box_out_size * avg_pool_size + shCol] \
 						= 0;
 				}
 			}
@@ -389,13 +390,13 @@ __global__ void avg_pooling(const float* convOutputs, float* targets, \
 
 		float *myShFM = &shFeatureMap[0];
 		//计算当前一个输出点的输入位置
-		myShFM +=  threadIdx.y * avg_pool_size * pool_forward_size * avg_pool_size \
+		myShFM +=  threadIdx.y * avg_pool_size * box_out_size * avg_pool_size \
 				   + threadIdx.x * avg_pool_size;
 
 		float avg_value = 0;
 		for(int i = 0; i < avg_pool_size; i++){
 			for(int j = 0; j < avg_pool_size; j++){
-				avg_value += myShFM[i * avg_pool_size * pool_forward_size + j];
+				avg_value += myShFM[i * avg_pool_size * box_out_size + j];
 			}
 		}
 		targets[0] = avg_value / (avg_pool_size * avg_pool_size);
