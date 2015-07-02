@@ -423,8 +423,8 @@ __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
 	int pool_pixs = pool_forward_size * pool_forward_size;
 
 	//输出的行列idx
-	int out_row = MAX_THREAD_SIZE * box_row_idx + threadIdx.y;
-	int out_col = MAX_THREAD_SIZE * box_col_idx + threadIdx.x;
+	int out_row = box_out_size * box_row_idx + threadIdx.y;
+	int out_col = box_out_size * box_col_idx + threadIdx.x;
 
 	int in_row = box_in_size * box_row_idx + threadIdx.y * stride;
    	int	in_col = box_in_size * box_col_idx + threadIdx.x * stride;
@@ -432,8 +432,6 @@ __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
 	//共享内存的大小只有计算一块pool输出的对应conv输入
 	extern __shared__ float result[];
 
-	int posIdx= threadIdx.y * box_in_size * stride \
-				+ threadIdx.x * stride;
 
 	if(out_row < pool_forward_size && out_col < pool_forward_size){
 		targets += img_idx * num_filters * in_pixs + filt_idx * in_pixs \
@@ -443,8 +441,12 @@ __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
 		maxPoolPos += img_idx * num_filters * pool_pixs + filt_idx * pool_pixs \
 					  + out_row * pool_forward_size + out_col;
 
-		for(int i = threadIdx.x; i < box_in_size; i+=box_out_size)
-			for(int j = threadIdx.y; j < box_in_size; j+=box_out_size)
+		int posIdx= threadIdx.y * box_in_size * stride \
+					+ threadIdx.x * stride;
+
+		int interval = pool_forward_size - box_out_size * (box_num_size - 1);
+		for(int i = threadIdx.y; i < box_in_size; i += interval)
+			for(int j = threadIdx.x; j < box_in_size; j += interval)
 				result[i*box_in_size + j] = 0;
 
 		int pos = maxPoolPos[0];
@@ -459,7 +461,9 @@ __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
 		atomicAdd(result+posIdx, ele);
 		__syncthreads();
 
-		targets[row * in_size + col] = result[posIdx];
+		if(in_row + row < in_size && in_col + col < in_size){
+			targets[row * in_size + col] = result[posIdx];
+		}
 	}
 }
 
@@ -485,9 +489,8 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 	int pool_pixs = pool_forward_size * pool_forward_size;
 
 	//输出的行列idx,当pooling之后的width小于32时，box_row_idx会等于0
-	int out_row = MAX_THREAD_SIZE * box_row_idx + threadIdx.y;
-	int out_col = MAX_THREAD_SIZE * box_col_idx + threadIdx.x;
-
+	int out_row = box_out_size * box_row_idx + threadIdx.y;
+	int out_col = box_out_size * box_col_idx + threadIdx.x;
 
 	if(out_row < pool_forward_size && out_col < pool_forward_size){
 		//计算本块pooling对应的输入conv块起始位置
@@ -499,8 +502,9 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 				   + out_row * pool_forward_size + out_col;
 
 		float ele;
-		for(int i = threadIdx.x; i < box_in_size; i+=box_out_size)
-			for(int j = threadIdx.y; j < box_in_size; j+=box_out_size)
+		int interval = pool_forward_size - box_out_size * (box_num_size - 1);
+		for(int i = threadIdx.x; i < box_in_size; i+=interval)
+			for(int j = threadIdx.y; j < box_in_size; j+=interval)
 				result[i*box_in_size + j]	= 0;
 
 		for(int i = 0; i < avg_pool_size; i++){
@@ -515,8 +519,8 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 				}
 			}
 		}
-		for(int i = threadIdx.y; i < box_in_size; i+=box_out_size)
-			for(int j = threadIdx.x; j < box_in_size; j+=box_out_size)
+		for(int i = threadIdx.y; i < box_in_size; i+=interval)
+			for(int j = threadIdx.x; j < box_in_size; j+=interval)
 				targets[i * in_size + j] = result[i * box_in_size + j];
 	}
 
@@ -561,7 +565,7 @@ __global__ void compute_dE_dy(const float* y_j, const float* labels, \
 
 
 __global__ void compactOverlap(float* src, float* targets, \
-		const int in_size, const int com_stride, const int com_len, \
+		const int in_size, const int com_stride, const int overlap_len, \
 		const int out_size, const int out_channel){
 
 	const int filt_idx = blockIdx.y;
@@ -570,25 +574,35 @@ __global__ void compactOverlap(float* src, float* targets, \
 	const int in_pixs = in_size * in_size;
 	const int out_pixs = out_size * out_size;
 
-	int out_row = threadIdx.y;
-	int out_col = threadIdx.x;
-	int in_row = out_row - com_len * (out_row / com_stride);
-	int in_col = out_col - com_len * (out_col / com_stride);
+	//in是conv，out是经过pool对输入产生了多个box
+	int in_row = threadIdx.y - overlap_len * (threadIdx.y / com_stride);
+	int in_col = threadIdx.x - overlap_len * (threadIdx.x / com_stride);
 
 	src += img_idx * out_channel * out_pixs + filt_idx * out_pixs;
 	targets += img_idx * out_channel * in_pixs + filt_idx * in_pixs;
 
 	extern __shared__ float result[];
 
-	for(int i = out_row; in_row < in_size; i += blockDim.y, in_row = i - com_len * (i / com_stride)){
-		for(int j = out_col; in_row < in_col; j += blockDim.x, in_col = j - com_len * (j / com_stride)){
-			
-			__syncthreads();
-			atomicAdd(result+in_row * in_size + in_col, src[i*out_size + j]);
-			__syncthreads();
-		}
-	}
+	for(int i = threadIdx.y; i < in_size; i += blockDim.y)
+		for(int j = threadIdx.x; j < in_size; j += blockDim.x)
+			result[i * in_size + j] = 0;
 
+	int i = threadIdx.y;
+	int j = threadIdx.x;
+	while(in_row < in_size){
+		while(in_col < in_size){
+		
+			__syncthreads();
+			atomicAdd(result + in_row * in_size + in_col, src[i * out_size + j]);
+			__syncthreads();
+			
+			j += blockDim.x;
+			in_col = j - overlap_len * (j / com_stride);
+		}
+		i += blockDim.y;
+		in_row = i - overlap_len * (i / com_stride);
+	}
+		
 	for(int i = threadIdx.y; i < in_size; i += blockDim.y){
 		for(int j = threadIdx.x; j < in_size; j += blockDim.x){
 			targets[i * in_size + j] = result[i * in_size + j];

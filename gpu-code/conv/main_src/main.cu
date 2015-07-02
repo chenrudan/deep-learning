@@ -36,8 +36,8 @@ enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 int num_process;
 int rank;
 
-int num_train = 500;
-int num_valid = 100;
+int num_train = 50000;
+int num_valid = 10000;
 int num_minibatch;
 int num_validbatch;
 int num_train_per_process;
@@ -78,17 +78,16 @@ cout << "done8\n";
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
 
-/*
     readData(train_data, "../data/input/mnist_train.bin", true);
     readData(valid_data, "../data/input/mnist_valid.bin", true);
     readData(train_label, "../data/input/mnist_label_train.bin", false);
     readData(valid_label, "../data/input/mnist_label_valid.bin", false);
-*/
 
 cout << "done7\n";
 
 	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
-/*	LoadCifar10<float> cifar10(cifar10_info);
+/*			
+	LoadCifar10<float> cifar10(cifar10_info);
     for(int i = 1; i < 6; i++){
         string s;
         stringstream ss;
@@ -106,12 +105,12 @@ cout << "done7\n";
 	train_label->copyFromHost(cifar10_info->train_label, num_train);
 	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * cnn1_in_len);
 	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
-*/			
+
 	train_data->reValue(1.0f);
 	train_label->reValue(1.0f);
 	valid_data->reValue(1.0f);
 	valid_label->reValue(1.0f);
-
+*/
 
 cout << "done6\n";
 	Matrix<float>* cnn1_w = new Matrix<float>(conv1_cp->getFilterSize() * \
@@ -530,17 +529,14 @@ cout << "done9\n";
 			cnn3.computeDerivsOfPars(cnn3_y);
 			cnn3.computeDerivsOfInput(pool2_dE_dy);
 
-cout << "done25\n";
 			pool2.computeDerivsOfInput(relu2_dE_dy);
 			relu2.computeDerivsOfInput(cnn2_dE_dy);
 			cnn2.computeDerivsOfPars(cnn2_y);
 			cnn2.computeDerivsOfInput(pool1_dE_dy);
-cout << "done24\n";
 
 			pool1.computeDerivsOfInput(relu1_dE_dy);
 			relu1.computeDerivsOfInput(cnn1_dE_dy);
 			cnn1.computeDerivsOfPars(mini_data);
-cout << "done23\n";
 
 			cnn1.updatePars();
 			cnn2.updatePars();
@@ -665,14 +661,14 @@ cout << "done23\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-		
+		/*
 		if((epoch_idx + 1) % 5 == 0){
 			conv1_cp->lrMultiScale(0.9);
 			conv2_cp->lrMultiScale(0.9);
 			conv3_cp->lrMultiScale(0.9);
 			inner1_ip->lrMultiScale(0.9);
 			inner2_ip->lrMultiScale(0.9);
-		}
+		}*/
 	
 		if((epoch_idx + 1)% 100 == 0){
         	string s;
@@ -727,9 +723,9 @@ int main(int argc, char** argv){
 	cudaGetDeviceCount(&numGpus);
 	cudaSetDevice(rank%numGpus);
 
-	int minibatch_size = 10;
-	int conv1_in_size = 100;
-	int conv1_in_channel = 3;
+	int minibatch_size = 100;
+	int conv1_in_size = 28;
+	int conv1_in_channel = 1;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
@@ -745,7 +741,7 @@ int main(int argc, char** argv){
 	int pool1_pad = 0;
 	int pool1_stride = 2;
 	int pool1_filter_size = 3;
-	PoolingType pool1_type = MAX_POOLING;
+	PoolingType pool1_type = AVG_POOLING;
 
 	int conv2_pad = 2;
 	int conv2_stride = 1;
@@ -759,7 +755,7 @@ int main(int argc, char** argv){
 	int pool2_pad = 0;
 	int pool2_stride = 2;
 	int pool2_filter_size = 2;
-	PoolingType pool2_type = MAX_POOLING;
+	PoolingType pool2_type = AVG_POOLING;
 
 	int conv3_pad = 2;
 	int conv3_stride = 1;
@@ -773,17 +769,17 @@ int main(int argc, char** argv){
 	int pool3_pad = 0;
 	int pool3_stride = 2;
 	int pool3_filter_size = 2;
-	PoolingType pool3_type = MAX_POOLING;
+	PoolingType pool3_type = AVG_POOLING;
 
 	int inner1_num_out = 64;
-	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.002;
+	float inner1_w_lr = 0.01;
+	float inner1_b_lr = 0.02;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0.004;
 
 	int inner2_num_out = 10;
-	float inner2_w_lr = 0.001;
-	float inner2_b_lr = 0.002;
+	float inner2_w_lr = 0.01;
+	float inner2_b_lr = 0.02;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0.01;
 

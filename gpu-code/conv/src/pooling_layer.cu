@@ -21,7 +21,8 @@ PoolingLayer<Dtype>::~PoolingLayer() {
 
 	if(_lcp->getPoolType() == MAX_POOLING )
 		delete _max_pos;
-	if(_lcp->getOutSize() > MAX_THREAD_SIZE)	
+	int overlap_len = _lcp->getFilterSize() - _lcp->getStride();
+	if(_lcp->getOutSize() > MAX_THREAD_SIZE && overlap_len > 0)	
 		delete unranged_dE_dx;
 	cublasDestroy(this->handle);
 }
@@ -41,7 +42,8 @@ void PoolingLayer<Dtype>::initCuda() {
 			pow(_lcp->getOutSize(), 2) * _lcp->getOutChannel());
 	
 	}
-	if(_lcp->getOutSize() > MAX_THREAD_SIZE){	
+	int overlap_len = _lcp->getFilterSize() - _lcp->getStride();
+	if(_lcp->getOutSize() > MAX_THREAD_SIZE && overlap_len > 0){	
 		unranged_dE_dx = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
 				pow(_lcp->getBoxInSize() * _lcp->getBoxNumSize(), 2) \
 				* _lcp->getOutChannel());
@@ -94,7 +96,6 @@ void PoolingLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){
 template <typename Dtype>
 void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
-	dE_dx->zeros();
 	int num_box = pow(_lcp->getBoxNumSize(), 2);
 
 		/// 计算一个box的pooling对应的输入行列大小
@@ -109,39 +110,40 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 						  ? _lcp->getInSize() : _lcp->getBoxInSize();
 
 	int overlap_len = _lcp->getFilterSize() - _lcp->getStride();
-	float* p_dE_dx;
-	if(MAX_THREAD_SIZE < _lcp->getOutSize() && overlap_len > 0)
+
+	Dtype* p_dE_dx;
+	if(MAX_THREAD_SIZE < _lcp->getOutSize() && overlap_len > 0){
+		unranged_dE_dx->zeros();
 		p_dE_dx = unranged_dE_dx->getDevData();
-	else
+	}else{
+		dE_dx->zeros();
 		p_dE_dx = dE_dx->getDevData();
+	}
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-	this->_dE_dy->reValue(50);
-		_max_pos->reValue(1.0f);
-//		_max_pos->showValue("maxpos");
-
+//	this->_dE_dy->reValue(50);
+//	_max_pos->reValue(1.0f);
 		compute_dE_dy_max<<<blocks, threads, \
-				sizeof(Dtype)*pow(_lcp->getBoxInSize(), 2)>>>(this->_dE_dy->getDevData(), \
+				sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
 					p_dE_dx, _max_pos->getDevData(), box_in_size, \
 					box_out_size, _lcp->getInChannel(), _lcp->getOutSize(), \
 					_lcp->getFilterSize(), _lcp->getStride(), _lcp->getBoxNumSize());
 
-
 		if(_lcp->getOutSize() > MAX_THREAD_SIZE && overlap_len > 0){
+	//unranged_dE_dx->showValue("unrangeddEdx");
 			blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel());
-			threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE);
 			
 			compactOverlap<<<blocks, threads, sizeof(Dtype)*pow(_lcp->getInSize(),2)>>>( \
 					unranged_dE_dx->getDevData(), dE_dx->getDevData(), _lcp->getInSize(), \
-					MAX_THREAD_SIZE,  _lcp->getFilterSize() - _lcp->getStride(), \
-					_lcp->getOutSize(), _lcp->getOutChannel());
+					_lcp->getBoxInSize(),  overlap_len, \
+					_lcp->getBoxInSize() * _lcp->getBoxNumSize(), _lcp->getOutChannel());
 		}
-			
-			dE_dx->showValue("dEdx");
+//	dE_dx->showValue("dEdx");
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
+//	this->_dE_dy->reValue(50);
 			compute_dE_dy_avg<<<blocks, threads, \
-				sizeof(Dtype)*_lcp->getInSize()*_lcp->getInSize()>>>(this->_dE_dy->getDevData(), \
+				sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
 					p_dE_dx, box_in_size, box_out_size, \
 					_lcp->getInChannel(), \
 					_lcp->getOutSize(), _lcp->getFilterSize(), \
@@ -149,14 +151,15 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 		if(_lcp->getOutSize() > MAX_THREAD_SIZE && overlap_len > 0){
 			blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel());
-			threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE);
 			
+//	unranged_dE_dx->showValue("unrangeddEdx");
 			compactOverlap<<<blocks, threads, sizeof(Dtype)*pow(_lcp->getInSize(),2)>>>( \
 					unranged_dE_dx->getDevData(), dE_dx->getDevData(), _lcp->getInSize(), \
-					MAX_THREAD_SIZE,  _lcp->getFilterSize() - _lcp->getStride(), \
-					_lcp->getOutSize(), _lcp->getOutChannel());
+					_lcp->getBoxInSize(),  overlap_len, \
+					_lcp->getBoxInSize() * _lcp->getBoxNumSize(), _lcp->getOutChannel());
 		
 		}
+//	dE_dx->showValue("dEdx");
 
 	}else{
 		cout << "Pooling type is invalid !\n";	
