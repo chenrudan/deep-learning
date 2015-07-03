@@ -77,12 +77,12 @@ cout << "done8\n";
 	Matrix<float>* valid_data = new Matrix<float>(num_valid, cnn1_in_len);
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
-
+/*
     readData(train_data, "../data/input/mnist_train.bin", true);
     readData(valid_data, "../data/input/mnist_valid.bin", true);
     readData(train_label, "../data/input/mnist_label_train.bin", false);
     readData(valid_label, "../data/input/mnist_label_valid.bin", false);
-
+*/
 cout << "done7\n";
 
 	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
@@ -724,7 +724,7 @@ int main(int argc, char** argv){
 	cudaSetDevice(rank%numGpus);
 
 	int minibatch_size = 100;
-	int conv1_in_size = 28;
+	int conv1_in_size = 100;
 	int conv1_in_channel = 1;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
