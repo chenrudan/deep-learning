@@ -77,16 +77,19 @@ cout << "done8\n";
 	Matrix<float>* valid_data = new Matrix<float>(num_valid, cnn1_in_len);
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
+
 /*
+
     readData(train_data, "../data/input/mnist_train.bin", true);
     readData(valid_data, "../data/input/mnist_valid.bin", true);
     readData(train_label, "../data/input/mnist_label_train.bin", false);
     readData(valid_label, "../data/input/mnist_label_valid.bin", false);
 */
 cout << "done7\n";
+	
 
-	ImgInfo<float> *cifar10_info = new ImgInfo<float>;
-/*			
+	ImgInfo<float> *cifar10_info = new ImgInfo<float>(50000, 10000, 32, 3);
+			
 	LoadCifar10<float> cifar10(cifar10_info);
     for(int i = 1; i < 6; i++){
         string s;
@@ -106,6 +109,7 @@ cout << "done7\n";
 	valid_data->copyFromHost(cifar10_info->test_pixel, num_valid * cnn1_in_len);
 	valid_label->copyFromHost(cifar10_info->test_label, num_valid);
 
+/*
 	train_data->reValue(1.0f);
 	train_label->reValue(1.0f);
 	valid_data->reValue(1.0f);
@@ -724,8 +728,8 @@ int main(int argc, char** argv){
 	cudaSetDevice(rank%numGpus);
 
 	int minibatch_size = 100;
-	int conv1_in_size = 100;
-	int conv1_in_channel = 1;
+	int conv1_in_size = 32;
+	int conv1_in_channel = 3;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
