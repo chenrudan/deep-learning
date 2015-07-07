@@ -109,7 +109,7 @@ void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
 
 	int num_kernel;
 	int num_block;
-//	_x->reValue(32);
+//	_x->reValue(100);
 //	this->_w->reValue(1.0f);
 //	this->_bias->reValue(2.0f);
 
@@ -146,7 +146,7 @@ void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
 	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), \
 			this->_y->getDevData(), num_kernel, this->_cp->getOutSize(), \
 			this->_cp->getOutChannel());
-	//unrolled_x1->showValue("data");
+//	unrolled_x1->showValue("data");
 //	this->_w->showValue("whk");
 //	this->_y->showValue("yh");
 }
@@ -155,9 +155,8 @@ template <typename Dtype>
 void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 	
 //this->_dE_dy->showValue("dedy");
-//	x->reValue(32);
 //	x->showValue("x");
-//	padded_x->showValue("pad");
+	padded_x->reValue(100);
 
 	int num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * _filt_pixs \
 					 * this->_cp->getInChannel();
@@ -171,7 +170,7 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 			this->_cp->getOutSize(), this->_cp->getStride());	
 
 //	unrolled_x2->showValue("x2");
-//	this->_dE_dy->reValue(32);
+	this->_dE_dy->reValue(1.0f);
 //unrolled_x2->reValue(1);
 
 	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs \
@@ -186,7 +185,7 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 
 //ranged_dE_dy->showValue("dedxdh");	
 //this->_dE_dy->showValue("dedy");
-//this->_dE_dw->showValue("dedwhk");
+this->_dE_dw->showValue("dedwhk");
 
 	//重排输出的导数来计算对b的导数
 	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs \
@@ -206,6 +205,7 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 			unrolled_dE_db_tmp->getDevData(), num_kernel, this->_cp->getOutChannel());
 
 	dE_db_tmp->sumRow(this->_dE_db);
+this->_dE_db->showValue("dEdb");
 }
 
 template <typename Dtype>

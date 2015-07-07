@@ -13,32 +13,49 @@
 
 using namespace std;
 
+/// \brief 数据的基本保存单元，一张图片会产生这样的一个对象，但是数据不是它们读取的，它们只保存指针
+template <typename Dtype>
+class ImgData {
+
+public:
+	ImgData() {}
+	ImgData(Dtype* pixel, Dtype* label, const int pixel_len) \
+		: _pixel(pixel), _label(label), _pixel_len(pixel_len) {}
+	~ImgData() {}
+
+
+	Dtype* getPixel(){
+		return _pixel;
+	}
+	Dtype* getLabel(){
+		return _label;
+	}
+
+	void swap(const ImgData&);
+protected:
+	int _pixel_len;
+	Dtype* _pixel;
+	Dtype* _label;
+};
+
+
+
 /// \brief 执行下载数据行为的类
 ///
 template <typename Dtype>
 class LoadLayer {
 
 public:
-	
-	LoadLayer();
+
+	/// \brief 默认构造函数表示个数信息需要从文件中读取，而不是传递进来的
+	LoadLayer() {}
+	LoadLayer(const int num_train, const int num_valid, \
+		const int num_test, const int img_size, const int img_channel);
 	virtual ~LoadLayer();
 
 	virtual void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr) {}
 
 	void processOneImg(Dtype* pixel_ptr);
-
-};
-
-/// \brief 保存了需要进行运算的所有数据集的信息，但是不进行操作
-template <typename Dtype>
-class DatasetInfo {
-
-public:
-	/// \brief 默认构造函数表示个数信息需要从文件中读取，而不是传递进来的
-	DatasetInfo();
-	DatasetInfo(const int num_train, const int num_valid, \
-		const int num_test, const int img_size, const int img_channel);
-	~DatasetInfo();
 
 	int getNumTrain(){
 		return _num_train;
@@ -56,8 +73,26 @@ public:
 		return _img_channel;
 	}
 
-protected:
+	Dtype* getTrainPixel(){
+		return _train_pixel;
+	}
+	Dtype* getTrainLabel(){
+		return _train_label;
+	}
+	Dtype* getValidPixel(){
+		return _valid_pixel;
+	}
+	Dtype* getValidLabel(){
+		return _valid_label;
+	}
+	Dtype* getTestPixel(){
+		return _test_pixel;
+	}
+	Dtype* getTestLabel(){
+		return _test_label;
+	}
 
+protected:
 	int _num_train;
 	int _num_valid;
 	int _num_test;
@@ -66,29 +101,21 @@ protected:
 	int _img_sqrt;
 
 	///返回cpu数据
-	Dtype* _train_label, *_train_label_ptr;
-	Dtype* _valid_label, *_valid_label_ptr;
-	Dtype* _test_label, *_test_label_ptr;
-	Dtype* _train_pixel, *_train_pixel_ptr;
-	Dtype* _valid_pixel, *_valid_pixel_ptr;
-	Dtype* _test_pixel, *_test_pixel_ptr;
+	Dtype* _train_label;
+	Dtype* _valid_label;
+	Dtype* _test_label;
+	Dtype* _train_pixel;
+	Dtype* _valid_pixel;
+	Dtype* _test_pixel;
+	Dtype* _train_label_ptr;
+	Dtype* _valid_label_ptr;
+	Dtype* _test_label_ptr;
+	Dtype* _train_pixel_ptr;
+	Dtype* _valid_pixel_ptr;
+	Dtype* _test_pixel_ptr;
 
-	friend class LoadLayer;
+	bool _is_base_alloc;
 
-};
-
-/// \brief 数据的基本保存单元，一张图片会产生这样的一个对象，但是数据不是它们读取的，它们只保存指针
-template <typename Dtype>
-class ImgData {
-
-public:
-	ImgData(const Dtype* pixel, const Dtype* label) \
-		: _pixel(pixel), _label(label) {}
-	~ImgData() {}
-
-protected:
-	Dtype* _pixel;
-	Dtype* _label;
 };
 
 
@@ -97,53 +124,34 @@ class LoadParticle : public LoadLayer<Dtype> {
 
 public:
 	LoadParticle();
-	~LoadParticle() {}
+	~LoadParticle();
 
 	using LoadLayer<Dtype>::loadBinary;
-	void loadBinary(string filename, Dtype* &pixel_ptr);
+	void loadBinary(string filename, Dtype* &pixel_ptr, \
+			Dtype* &label_ptr, Dtype fixed_label);
+	void shuffleComb();
 
 private:
-	DatasetInfo* _particle_DatasetInfo;
 
-	Dtype* _all_pixel;
-	Dtype* _all_label;
-	vector<ImgData> _all_comb;
+	Dtype* _all_pixel, *_all_pixel_ptr;
+	Dtype* _all_label, *_all_label_ptr;
+	vector<ImgData<Dtype> > _all_comb;
 };
-
-
-
-/*template <typename Dtype>
-class ImgDataIterator {
-
-private:
-	vector<Dtype*>
-
-public:
-	typedef random_access_iterator_tag iterator_category;
-	typedef vector<Dtype*> value_type;
-	typedef prtdiff_t difference_type;
-	typedef vector<Dtype*>* pointer;
-	typedef vector<Dtype*>& reference;
-};*/
 
 
 template <typename Dtype>
 class LoadCifar10 : public LoadLayer<Dtype> {
 
 public: 
-	LoadCifar10();
-	~LoadCifar10();
+	LoadCifar10(const int num_train, const int num_valid, \
+		const int num_test, const int img_size, const int img_channel);
 
-	/// @brief 一次性读取文件中数据，成功读取返回true，失败返回false
-	void loadOnce();
+	~LoadCifar10() {}
+
 	void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr);
 
-private:
-	DatasetInfo* _cifar10_DatasetInfo;
+
 };
-
-
-
 
 #include "../src/load_layer.cpp"
 

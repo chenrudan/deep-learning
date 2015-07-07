@@ -25,13 +25,11 @@ using namespace std;
 enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 	SWAP_CNN2_W_PUSH, SWAP_CNN2_BIAS_PUSH,	\
 	SWAP_CNN3_W_PUSH, SWAP_CNN3_BIAS_PUSH,	\
-	SWAP_CNN4_W_PUSH, SWAP_CNN4_BIAS_PUSH,	\
 	SWAP_INNER1_W_PUSH, SWAP_INNER1_BIAS_PUSH, \
 	SWAP_SOFTMAX_W_PUSH, SWAP_SOFTMAX_BIAS_PUSH, \
 	SWAP_CNN1_W_FETCH, SWAP_CNN1_BIAS_FETCH, \
 	SWAP_CNN2_W_FETCH, SWAP_CNN2_BIAS_FETCH, \
 	SWAP_CNN3_W_FETCH, SWAP_CNN3_BIAS_FETCH, \
-	SWAP_CNN4_W_FETCH, SWAP_CNN4_BIAS_FETCH, \
 	SWAP_INNER1_W_FETCH, SWAP_INNER1_BIAS_FETCH, \
 	SWAP_SOFTMAX_W_FETCH, SWAP_SOFTMAX_BIAS_FETCH};
 
@@ -47,8 +45,10 @@ int num_valid_per_process;
 int num_epoch = 50;
 
 void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
-		ConvParam* conv3_cp, ConvParam* conv4_cp, InnerParam* inner1_ip, \
+		ConvParam* conv3_cp, InnerParam* inner1_ip, \
 		InnerParam* inner2_ip){
+	
+
 
 	int cnn1_in_len = conv1_cp->getInSize() * conv1_cp->getInSize() * conv1_cp->getInChannel();
 	int cnn1_w_len = conv1_cp->getOutChannel() * conv1_cp->getFilterSize() \
@@ -63,10 +63,6 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 			* conv3_cp->getFilterSize() * conv3_cp->getInChannel();
 	int cnn3_b_len = conv3_cp->getOutChannel();
 
-	int cnn4_w_len = conv4_cp->getOutChannel() * conv4_cp->getFilterSize() \
-			* conv4_cp->getFilterSize() * conv4_cp->getInChannel();
-	int cnn4_b_len = conv4_cp->getOutChannel();
-	
 	int inner1_w_len = inner1_ip->getNumIn() * inner1_ip->getNumOut();
 	int inner1_b_len = inner1_ip->getNumOut();
 
@@ -130,11 +126,6 @@ cout << "done6\n";
 			conv3_cp->getOutChannel());
 	Matrix<float>* cnn3_bias = new Matrix<float>(1, conv3_cp->getOutChannel());
 
-	Matrix<float>* cnn4_w = new Matrix<float>(conv4_cp->getFilterSize() * \
-			conv4_cp->getFilterSize() * conv4_cp->getInChannel(), \
-			conv4_cp->getOutChannel());
-	Matrix<float>* cnn4_bias = new Matrix<float>(1, conv4_cp->getOutChannel());
-
 	Matrix<float>* inner1_w = new Matrix<float>(inner1_w_len / inner1_ip->getNumOut(), inner1_ip->getNumOut());
 	Matrix<float>* inner1_bias = new Matrix<float>(1, inner1_ip->getNumOut());
 
@@ -148,35 +139,29 @@ cout << "done5\n";
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
 	gaussRand(cnn3_w, 0.01);
-	gaussRand(cnn4_w, 0.01);
 //	initW(cnn3_w);
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
 	cudaMemset(cnn3_bias->getDevData(), 0, sizeof(float) * cnn3_b_len);
-	cudaMemset(cnn4_bias->getDevData(), 0, sizeof(float) * cnn4_b_len);
 
-	gaussRand(inner1_w, 0.01);
+	gaussRand(inner1_w, 0.1);
 //	initW(inner1_w);
 	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-	gaussRand(softmax_w, 0.01);
+	gaussRand(softmax_w, 0.1);
 //	initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
-cout << "done7\n";
 	MPI_Bcast(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn3_w->getDevData(), cnn3_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn3_bias->getDevData(), cnn3_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn4_w->getDevData(), cnn4_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn4_bias->getDevData(), cnn4_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_bias->getDevData(), softmax_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	
-cout << "done8\n";
 	for(int i = 1; i < num_process; i++){
 		MPI_Send(train_data->getDevData()+(i-1)*train_data_len_part, train_data_len_part, \
 				MPI_FLOAT, i, i, MPI_COMM_WORLD);
@@ -195,17 +180,15 @@ cout << "done8\n";
 
 	//pro进程，每个进程进行的数据交换次数，0123是push，4567是fetch
 	//4个数据地址，8个线程来分别实现两种操作
-	const int trans_ops = 24;
-	const int num_pars_type = 12;
+	const int trans_ops = 20;
+	const int num_pars_type = 10;
 	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
 			cnn2_w->getDevData(), cnn2_bias->getDevData(), \
 			cnn3_w->getDevData(), cnn3_bias->getDevData(), \
-			cnn4_w->getDevData(), cnn4_bias->getDevData(), \
 			inner1_w->getDevData(), inner1_bias->getDevData(), \
 			softmax_w->getDevData(), softmax_bias->getDevData()};
 	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
-				cnn3_w_len, cnn3_b_len, cnn4_w_len, cnn4_b_len, \
-				inner1_w_len, inner1_b_len, \
+				cnn3_w_len, cnn3_b_len, inner1_w_len, inner1_b_len, \
 				softmax_w_len, softmax_b_len};
 
 	#pragma omp parallel num_threads(trans_ops * (num_process - 1)) 
@@ -239,8 +222,6 @@ cout << "done8\n";
 	delete cnn2_bias;
 	delete cnn3_w;
 	delete cnn3_bias;
-	delete cnn4_w;
-	delete cnn4_bias;
 	delete inner1_w;
 	delete inner1_bias;
 	delete softmax_w;
@@ -251,8 +232,7 @@ cout << "done8\n";
 void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 		PoolParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* relu2_fcp, \
 		PoolParam* pool2_pp, ConvParam* conv3_cp, FullConnectParam* relu3_fcp, \
-		PoolParam* pool3_pp, ConvParam* conv4_cp, FullConnectParam* relu4_fcp, \
-		PoolParam* pool4_pp, InnerParam* inner1_ip, FullConnectParam* relu5_fcp, \
+		PoolParam* pool3_pp, InnerParam* inner1_ip, FullConnectParam* relu4_fcp, \
 		InnerParam* inner2_ip, FullConnectParam* softmax_fcp){
 
 	if(rank == 1){
@@ -323,26 +303,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 			<< "\npad: " << pool3_pp->getPad() \
 			<< "\nstride: " << pool3_pp->getStride();
 
-		cout << "\n===========cnn4==============" \
-			<< "\nin_size: " << conv4_cp->getInSize() \
-			<< "\nin_channel: " << conv4_cp->getInChannel() \
-			<< "\nfilter_size: " << conv4_cp->getFilterSize() \
-			<< "\nfilter_channel: " << conv4_cp->getOutChannel() \
-			<< "\nstride: " << conv4_cp->getStride() \
-			<< "\npad: " << conv4_cp->getPad() \
-			<< "\nw_lr: " << conv4_cp->getWLR() \
-			<< "\nb_lr: " << conv4_cp->getBiasLR() \
-			<< "\nmomentum: " << conv4_cp->getMomentum()\
-			<< "\nweight_decay: " << conv4_cp->getWeightDecay();
-
-		cout << "\n===========pool4==============" \
-			<< "\nin_size: " << pool4_pp->getInSize() \
-			<< "\nin_channel: " << pool4_pp->getInChannel() \
-			<< "\nfilter_size: " << pool4_pp->getFilterSize() \
-			<< "\nfilter_channel: " << pool4_pp->getOutChannel() \
-			<< "\npad: " << pool4_pp->getPad() \
-			<< "\nstride: " << pool4_pp->getStride();
-
 		cout << "\n===========inner_product1==============" \
 			<< "\nnum_in: " << inner1_ip->getNumIn() \
 			<< "\nnum_out: " << inner1_ip->getNumOut() \
@@ -377,10 +337,6 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 	int cnn3_w_len = conv3_cp->getOutChannel() * conv3_cp->getFilterSize() \
 			* conv3_cp->getFilterSize() * conv3_cp->getInChannel();
 	int cnn3_b_len = conv3_cp->getOutChannel();
-
-	int cnn4_w_len = conv4_cp->getOutChannel() * conv4_cp->getFilterSize() \
-			* conv4_cp->getFilterSize() * conv4_cp->getInChannel();
-	int cnn4_b_len = conv4_cp->getOutChannel();
 
 	int inner1_w_len = inner1_ip->getNumIn() * inner1_ip->getNumOut();
 	int inner1_b_len = inner1_ip->getNumOut();
@@ -425,37 +381,26 @@ cout << "done10\n";
 
 	PoolingLayer<float> pool3(pool3_pp);
 	pool3.initCuda();
-	
-	ConvNet<float> cnn4(conv4_cp);
-	cnn4.initCuda();
-
-	ReluLayer<float> relu4(relu4_fcp);
-	relu4.initCuda();
-
-	PoolingLayer<float> pool4(pool4_pp);
-	pool4.initCuda();
 
 	InnerProductLayer<float> inner1(inner1_ip);
 	inner1.initCuda();
 
-	ReluLayer<float> relu5(relu5_fcp);
-	relu5.initCuda();
+	ReluLayer<float> relu4(relu4_fcp);
+	relu4.initCuda();
 
+cout << "done12\n";
 	InnerProductLayer<float> inner2(inner2_ip);
 	inner2.initCuda();
 
 	Logistic<float> softmax(softmax_fcp);
 	softmax.initCuda();
 
-cout << "done12\n";
 	Matrix<float>* cnn1_w = cnn1.getW();
 	Matrix<float>* cnn1_bias = cnn1.getBias();
 	Matrix<float>* cnn2_w = cnn2.getW();
 	Matrix<float>* cnn2_bias = cnn2.getBias();
 	Matrix<float>* cnn3_w = cnn3.getW();
 	Matrix<float>* cnn3_bias = cnn3.getBias();
-	Matrix<float>* cnn4_w = cnn4.getW();
-	Matrix<float>* cnn4_bias = cnn4.getBias();
 	Matrix<float>* inner1_w = inner1.getW();
 	Matrix<float>* inner1_bias = inner1.getBias();
 	Matrix<float>* softmax_w = inner2.getW();
@@ -467,8 +412,6 @@ cout << "done12\n";
 	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn3_w->getDevData(), cnn3_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(cnn3_bias->getDevData(), cnn3_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn4_w->getDevData(), cnn4_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn4_bias->getDevData(), cnn4_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -513,29 +456,21 @@ cout << "done9\n";
 	Matrix<float>* relu3_dE_dy = relu3.getDEDY();
 	Matrix<float>* pool3_y = pool3.getY();
 	Matrix<float>* pool3_dE_dy = pool3.getDEDY();
-	Matrix<float>* cnn4_y = cnn4.getY();
-	Matrix<float>* cnn4_dE_dy = cnn4.getDEDY();
-	Matrix<float>* relu4_y = relu4.getY();
-	Matrix<float>* relu4_dE_dy = relu4.getDEDY();
-	Matrix<float>* pool4_y = pool4.getY();
-	Matrix<float>* pool4_dE_dy = pool4.getDEDY();
 	Matrix<float>* inner1_y = inner1.getY();
 	Matrix<float>* inner1_dE_dy = inner1.getDEDY();
-	Matrix<float>* relu5_y = relu5.getY();
-	Matrix<float>* relu5_dE_dy = relu5.getDEDY();
+	Matrix<float>* relu4_y = relu4.getY();
+	Matrix<float>* relu4_dE_dy = relu4.getDEDY();
 	Matrix<float>* inner2_y = inner2.getY();
 	Matrix<float>* inner2_dE_dy = inner2.getDEDY();
 
-	const int num_pars_type = 12;
+	const int num_pars_type = 10;
 	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
 			cnn2_w->getDevData(), cnn2_bias->getDevData(), \
 			cnn3_w->getDevData(), cnn3_bias->getDevData(), \
-			cnn4_w->getDevData(), cnn4_bias->getDevData(), \
 			inner1_w->getDevData(), inner1_bias->getDevData(), \
 			softmax_w->getDevData(), softmax_bias->getDevData()};
 	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
-				cnn3_w_len, cnn3_b_len, cnn4_w_len, cnn4_b_len, \
-				inner1_w_len, inner1_b_len, \
+				cnn3_w_len, cnn3_b_len, inner1_w_len, inner1_b_len, \
 			     softmax_w_len, softmax_b_len};
 
 	clock_t t;
@@ -566,29 +501,20 @@ cout << "done9\n";
 			relu3.computeOutputs(cnn3_y);
 			pool3.computeOutputs(relu3_y);
 
-			cnn4.computeOutputs(pool3_y);
-			relu4.computeOutputs(cnn4_y);
-			pool4.computeOutputs(relu4_y);
-
-			inner1.computeOutputs(pool4_y);
-			relu5.computeOutputs(inner1_y);
-			inner2.computeOutputs(relu5_y);
+			inner1.computeOutputs(pool3_y);
+			relu4.computeOutputs(inner1_y);
+			inner2.computeOutputs(relu4_y);
 			softmax.computeOutputs(inner2_y);
 
 			softmax.computeError(mini_label, error);
 
 			softmax.computeDerivsOfInput(inner2_dE_dy, mini_label);
-			inner2.computeDerivsOfPars(relu5_y);
-			inner2.computeDerivsOfInput(relu5_dE_dy);
+			inner2.computeDerivsOfPars(relu4_y);
+			inner2.computeDerivsOfInput(relu4_dE_dy);
 
-			relu5.computeDerivsOfInput(inner1_dE_dy);
-			inner1.computeDerivsOfPars(pool4_y);
-			inner1.computeDerivsOfInput(pool4_dE_dy);
-
-			pool4.computeDerivsOfInput(relu4_dE_dy);
-			relu4.computeDerivsOfInput(cnn4_dE_dy);
-			cnn4.computeDerivsOfPars(cnn4_y);
-			cnn4.computeDerivsOfInput(pool3_dE_dy);
+			relu4.computeDerivsOfInput(inner1_dE_dy);
+			inner1.computeDerivsOfPars(pool3_y);
+			inner1.computeDerivsOfInput(pool3_dE_dy);
 
 			pool3.computeDerivsOfInput(relu3_dE_dy);
 			relu3.computeDerivsOfInput(cnn3_dE_dy);
@@ -607,7 +533,6 @@ cout << "done9\n";
 			cnn1.updatePars();
 			cnn2.updatePars();
 			cnn3.updatePars();
-			cnn4.updatePars();
 			inner1.updatePars();
 			inner2.updatePars();
 
@@ -681,13 +606,9 @@ cout << "done9\n";
 					relu3.computeOutputs(cnn3_y);
 					pool3.computeOutputs(relu3_y);
 
-					cnn4.computeOutputs(pool3_y);
-					relu4.computeOutputs(cnn4_y);
-					pool4.computeOutputs(relu4_y);
-
-					inner1.computeOutputs(pool4_y);
-					relu5.computeOutputs(inner1_y);
-					inner2.computeOutputs(relu5_y);
+					inner1.computeOutputs(pool3_y);
+					relu4.computeOutputs(inner1_y);
+					inner2.computeOutputs(relu4_y);
 					softmax.computeOutputs(inner2_y);
 
 					loglihoodValid += softmax.computeError(mini_label, errorValid);
@@ -732,8 +653,6 @@ cout << "done9\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-
-		softmax_w->showValue("softmax_w");
 		/*
 		if((epoch_idx + 1) % 5 == 0){
 			conv1_cp->lrMultiScale(0.9);
@@ -742,8 +661,7 @@ cout << "done9\n";
 			inner1_ip->lrMultiScale(0.9);
 			inner2_ip->lrMultiScale(0.9);
 		}*/
-
-/*	
+	
 		if((epoch_idx + 1)% 100 == 0){
         	string s;
         	stringstream ss;
@@ -761,7 +679,6 @@ cout << "done9\n";
 			savePars(softmax_w, "/snapshot/w_snap/softmax1_w_" + s + "_t1.bin");
 			savePars(softmax_bias, "/snapshot/w_snap/softmax1_bias_" + s + "_t1.bin");
 		}
-*/		
 	}
 	if(rank == 1){
 		t = clock() - t;
@@ -769,7 +686,7 @@ cout << "done9\n";
 		t = clock();
 	}
 
-	savePars(relu5_y, "./snapshot/output_snap/relu5_y.bin");
+	savePars(relu4_y, "./snapshot/output_snap/relu4_y.bin");
 
 	delete mini_data;
 	delete mini_label;
@@ -804,10 +721,10 @@ int main(int argc, char** argv){
 	int minibatch_size = 10;
 	int conv1_in_size = 100;
 	int conv1_in_channel = 1;
-	int conv1_pad = 0;
+	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
-	int conv1_out_channel = 8;
+	int conv1_out_channel = 16;
 	float conv1_w_lr = 0.001;
 	float conv1_b_lr = 0.002;
 	float conv1_momentum = 0.9;
@@ -818,13 +735,13 @@ int main(int argc, char** argv){
 	//sigmoid层参数可以先忽略
 	int pool1_pad = 0;
 	int pool1_stride = 2;
-	int pool1_filter_size = 2;
+	int pool1_filter_size = 3;
 	PoolingType pool1_type = MAX_POOLING;
 
-	int conv2_pad = 0;
+	int conv2_pad = 2;
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
-	int conv2_out_channel = 16;
+	int conv2_out_channel = 32;
 	float conv2_w_lr = 0.001;
 	float conv2_b_lr = 0.002;
 	float conv2_momentum = 0.9;
@@ -835,10 +752,10 @@ int main(int argc, char** argv){
 	int pool2_filter_size = 2;
 	PoolingType pool2_type = MAX_POOLING;
 
-	int conv3_pad = 0;
+	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
-	int conv3_out_channel = 16;
+	int conv3_out_channel = 64;
 	float conv3_w_lr = 0.001;
 	float conv3_b_lr = 0.002;
 	float conv3_momentum = 0.9;
@@ -849,20 +766,6 @@ int main(int argc, char** argv){
 	int pool3_filter_size = 2;
 	PoolingType pool3_type = MAX_POOLING;
 
-	int conv4_pad = 0;
-	int conv4_stride = 1;
-	int conv4_filter_size = 5;
-	int conv4_out_channel = 32;
-	float conv4_w_lr = 0.001;
-	float conv4_b_lr = 0.002;
-	float conv4_momentum = 0.9;
-	float conv4_weight_decay = 0.004;
-
-	int pool4_pad = 0;
-	int pool4_stride = 2;
-	int pool4_filter_size = 2;
-	PoolingType pool4_type = MAX_POOLING;
-
 	int inner1_num_out = 64;
 	float inner1_w_lr = 0.001;
 	float inner1_b_lr = 0.002;
@@ -870,8 +773,8 @@ int main(int argc, char** argv){
 	float inner1_weight_decay = 0.004;
 
 	int inner2_num_out = 2;
-	float inner2_w_lr = 0.001;
-	float inner2_b_lr = 0.002;
+	float inner2_w_lr = 0.0001;
+	float inner2_b_lr = 0.0002;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0.01;
 
@@ -908,27 +811,16 @@ int main(int argc, char** argv){
 	PoolParam* pool3_pp = new PoolParam("pool3_layer", pool3_pad, \
 			pool3_stride, pool3_filter_size, 0, conv3_cp, pool3_type);
 
-	ConvParam* conv4_cp = new ConvParam("conv4_layer", conv4_w_lr, \
-			conv4_b_lr, conv4_momentum, conv4_weight_decay, n_push, \
-			n_fetch, conv4_pad, conv4_stride, conv4_filter_size, \
-			conv4_out_channel, pool3_pp);
-
-	FullConnectParam* relu4_fcp = new FullConnectParam("relu4_layer", \
-			0, conv4_cp);
-
-	PoolParam* pool4_pp = new PoolParam("pool4_layer", pool4_pad, \
-			pool4_stride, pool4_filter_size, 0, conv4_cp, pool4_type);
-
 	InnerParam* inner1_ip = new InnerParam("inner1_layer", inner1_w_lr, \
 			inner1_b_lr, inner1_momentum, inner1_weight_decay, n_push, \
-			n_fetch, inner1_num_out, pool4_pp);
+			n_fetch, inner1_num_out, pool3_pp);
 
-	FullConnectParam* relu5_fcp = new FullConnectParam("relu5_layer", \
+	FullConnectParam* relu4_y = new FullConnectParam("relu4_layer", \
 			0, inner1_ip);
 
 	InnerParam* inner2_ip = new InnerParam("inner2_layer", inner2_w_lr, \
 			inner2_b_lr, inner2_momentum, inner2_weight_decay, \
-			n_push, n_fetch, inner2_num_out, relu5_fcp);
+			n_push, n_fetch, inner2_num_out, relu4_y);
 
 	FullConnectParam* softmax_fcp = new FullConnectParam("softmax_layer", \
 			0, inner2_ip);
@@ -940,14 +832,13 @@ int main(int argc, char** argv){
 
 
 	if(rank == 0){ 
-		managerNode(conv1_cp, conv2_cp, conv3_cp, conv4_cp, inner1_ip, inner2_ip);
+		managerNode(conv1_cp, conv2_cp, conv3_cp, inner1_ip, inner2_ip);
 	}   
 	else{
 		workerNode(conv1_cp, relu1_fcp, pool1_pp, \
 				conv2_cp, relu2_fcp, pool2_pp, \
 				conv3_cp, relu3_fcp, pool3_pp, \
-				conv4_cp, relu4_fcp, pool4_pp, \
-				inner1_ip, relu5_fcp, \
+				inner1_ip, relu4_y, \
 				inner2_ip, softmax_fcp);
 	} 	
 
