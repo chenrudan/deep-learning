@@ -215,12 +215,8 @@ template <typename Dtype>
 void Matrix<Dtype>::sumCol(Matrix<Dtype>* target){
 	const int width = this->_shape[1];
 	const int height = this->_shape[0];
-	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
-	assert(num_blocks_x < NUM_BLOCKS_MAX);
-	dim3 grid_size(1, height, 1); 
-	dim3 block_size(num_blocks_x * ADD_BLOCK_SIZE, 1, 1); 
-	
-	kDumbSumCols<Dtype><<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
+
+	kDumbSumCols<Dtype><<<height, 1024, sizeof(Dtype) * width>>>(this->_data_value, \
 			target->getDevData(), width, height);
 	cudaThreadSynchronize();
 }

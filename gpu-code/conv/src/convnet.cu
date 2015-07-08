@@ -156,7 +156,7 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 	
 //this->_dE_dy->showValue("dedy");
 //	x->showValue("x");
-	padded_x->reValue(100);
+//	padded_x->reValue(100);
 
 	int num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * _filt_pixs \
 					 * this->_cp->getInChannel();
@@ -171,8 +171,7 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 
 //	unrolled_x2->showValue("x2");
 	this->_dE_dy->reValue(1.0f);
-//unrolled_x2->reValue(1);
-
+	
 	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs \
 				 * this->_cp->getOutChannel();
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
@@ -185,7 +184,7 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 
 //ranged_dE_dy->showValue("dedxdh");	
 //this->_dE_dy->showValue("dedy");
-this->_dE_dw->showValue("dedwhk");
+//this->_dE_dw->showValue("dedwhk");
 
 	//重排输出的导数来计算对b的导数
 	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs \
@@ -196,7 +195,10 @@ this->_dE_dw->showValue("dedwhk");
 			this->_dE_dy->getDevData(), num_kernel, this->_cp->getOutSize(), \
 			this->_cp->getOutChannel());
 	cudaThreadSynchronize();
+
+ranged_dE_dy2->showValue("dedy2");
 	ranged_dE_dy2->sumCol(unrolled_dE_db_tmp);
+unrolled_dE_db_tmp->showValue("unrolled_dE_db_tmp");
 	
 	num_kernel = this->_cp->getMinibatchSize() * this->_cp->getOutChannel();
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
@@ -204,6 +206,7 @@ this->_dE_dw->showValue("dedwhk");
 	reshape_dE_db_tmp<<<num_block, MAX_NUM_THREAD>>>(dE_db_tmp->getDevData(), \
 			unrolled_dE_db_tmp->getDevData(), num_kernel, this->_cp->getOutChannel());
 
+this->dE_db_tmp->showValue("dEdbtmp");
 	dE_db_tmp->sumRow(this->_dE_db);
 this->_dE_db->showValue("dEdb");
 }
