@@ -44,6 +44,9 @@ public:
     inline int getMinibatchSize() {
         return _minibatch_size;
     }
+	inline string getName(){
+		return _name;
+	}
     inline ConnectType getConnectType() {
         return type;
     }

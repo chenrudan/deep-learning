@@ -119,7 +119,6 @@ void LoadLayer<Dtype>::processOneImg(Dtype* pixel_ptr){
 	Dtype avg = 0;
 	Dtype std = 0;
 	for(int i = 0; i < this->_img_sqrt; i++){
-
 		avg += pixel_ptr[i];
 	}
 	avg /= this->_img_sqrt;

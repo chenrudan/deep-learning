@@ -109,10 +109,11 @@ void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
 
 	int num_kernel;
 	int num_block;
-//	_x->reValue(100);
+	_x->reValue(100);
 //	this->_w->reValue(1.0f);
 //	this->_bias->reValue(2.0f);
 
+//_x->showValue("_x");	
 	if(this->_cp->getPad() > 0){
 		num_kernel = this->_cp->getMinibatchSize() * _padded_in_pixs \
 					 * this->_cp->getInChannel();
@@ -125,7 +126,7 @@ void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
 	}else
 		padded_x = _x;
 
-//	padded_x->showValue("padding");
+//padded_x->showValue(this->_cp->getName() + "padding");
 	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * _filt_pixs \
 				 *this->_cp->getInChannel();
 	num_block = num_kernel / MAX_NUM_THREAD + 1;
@@ -146,9 +147,9 @@ void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
 	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), \
 			this->_y->getDevData(), num_kernel, this->_cp->getOutSize(), \
 			this->_cp->getOutChannel());
-//	unrolled_x1->showValue("data");
+//	unrolled_x1->showValue(this->_cp->getName() + "data");
 //	this->_w->showValue("whk");
-//	this->_y->showValue("yh");
+//	this->_y->showValue(this->_cp->getName() + "yh");
 }
 
 template <typename Dtype>
@@ -184,7 +185,7 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 
 //ranged_dE_dy->showValue("dedxdh");	
 //this->_dE_dy->showValue("dedy");
-//this->_dE_dw->showValue("dedwhk");
+this->_dE_dw->showValue(this->_cp->getName() + "dedwhk");
 
 	//重排输出的导数来计算对b的导数
 	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs \
@@ -196,9 +197,9 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 			this->_cp->getOutChannel());
 	cudaThreadSynchronize();
 
-ranged_dE_dy2->showValue("dedy2");
 	ranged_dE_dy2->sumCol(unrolled_dE_db_tmp);
-unrolled_dE_db_tmp->showValue("unrolled_dE_db_tmp");
+//ranged_dE_dy2->showValue("dedy2");
+//unrolled_dE_db_tmp->showValue("unrolled_dE_db_tmp");
 	
 	num_kernel = this->_cp->getMinibatchSize() * this->_cp->getOutChannel();
 	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
@@ -206,9 +207,9 @@ unrolled_dE_db_tmp->showValue("unrolled_dE_db_tmp");
 	reshape_dE_db_tmp<<<num_block, MAX_NUM_THREAD>>>(dE_db_tmp->getDevData(), \
 			unrolled_dE_db_tmp->getDevData(), num_kernel, this->_cp->getOutChannel());
 
-this->dE_db_tmp->showValue("dEdbtmp");
+//this->dE_db_tmp->showValue("dEdbtmp");
 	dE_db_tmp->sumRow(this->_dE_db);
-this->_dE_db->showValue("dEdb");
+this->_dE_db->showValue(this->_cp->getName() + "dEdb");
 }
 
 template <typename Dtype>
@@ -219,7 +220,7 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	int	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) \
 					? MAX_NUM_KERNEL : (num_kernel / MAX_NUM_THREAD + 1);
 
-//this->_dE_dy->reValue(16);
+this->_dE_dy->reValue(48);
 
 	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(Dtype) * num_kernel);
 	im2col_img<<<num_block, MAX_NUM_THREAD>>>(this->_dE_dy->getDevData(), \
@@ -228,7 +229,7 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 			this->_cp->getInChannel(), this->_cp->getFilterSize(), \
 			this->_cp->getOutSize(), this->_cp->getStride());
 	cudaThreadSynchronize();
-//this->_w->reValue(1.0f);
+this->_w->reValue(1.0f);
 	num_kernel = this->_cp->getOutChannel() * _filt_pixs * this->_cp->getInChannel();
 	num_block = num_kernel / MAX_NUM_THREAD + 1;
 	reshape_w<<<num_block, MAX_NUM_THREAD>>>(ranged_w->getDevData(), \
@@ -255,7 +256,7 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 //	unrolled_conv->showValue("unrolledconv");
 //	rangedthis->_w->showValue("rangWhk");
 //		unranged_in->showValue("unrangIN");
-//	dE_dx->showValue("dx");
+	dE_dx->showValue(this->_cp->getName() + "dx");
 
 }
 

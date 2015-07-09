@@ -110,7 +110,6 @@ cout << "done8\n";
 	train_label->copyFromHost(particle->getTrainLabel(), num_train);
 	valid_data->copyFromHost(particle->getValidPixel(), num_valid * cnn1_in_len);
 	valid_label->copyFromHost(particle->getValidLabel(), num_valid);
-	
 //	savePars(train_data, "./snapshot/input_snap/train_data.bin");
 //	savePars(train_label, "./snapshot/input_snap/train_label.bin");
 
@@ -143,22 +142,22 @@ cout << "done6\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.001);
+	gaussRand(cnn1_w, 0.01);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
-	gaussRand(cnn3_w, 0.01);
-	gaussRand(cnn4_w, 0.01);
+	gaussRand(cnn3_w, 0.1);
+	gaussRand(cnn4_w, 0.1);
 //	initW(cnn3_w);
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
 	cudaMemset(cnn3_bias->getDevData(), 0, sizeof(float) * cnn3_b_len);
 	cudaMemset(cnn4_bias->getDevData(), 0, sizeof(float) * cnn4_b_len);
 
-	gaussRand(inner1_w, 0.01);
+	gaussRand(inner1_w, 0.1);
 //	initW(inner1_w);
 	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-	gaussRand(softmax_w, 0.01);
+	gaussRand(softmax_w, 0.1);
 //	initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
@@ -733,7 +732,11 @@ cout << "done9\n";
 			t1 = clock();
 		}
 
-		softmax_w->showValue("softmax_w");
+//		cnn1_w->showValue("cnn1_w");
+//		cnn2_w->showValue("cnn2_w");
+//		cnn3_w->showValue("cnn3_w");
+//		inner1_w->showValue("inner1_w");
+//		softmax_w->showValue("softmax_w");
 		/*
 		if((epoch_idx + 1) % 5 == 0){
 			conv1_cp->lrMultiScale(0.9);
@@ -808,8 +811,8 @@ int main(int argc, char** argv){
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 8;
-	float conv1_w_lr = 0.001;
-	float conv1_b_lr = 0.002;
+	float conv1_w_lr = 0.01;
+	float conv1_b_lr = 0.02;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -825,8 +828,8 @@ int main(int argc, char** argv){
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 16;
-	float conv2_w_lr = 0.001;
-	float conv2_b_lr = 0.002;
+	float conv2_w_lr = 0.01;
+	float conv2_b_lr = 0.02;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
@@ -839,8 +842,8 @@ int main(int argc, char** argv){
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
 	int conv3_out_channel = 16;
-	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.002;
+	float conv3_w_lr = 0.01;
+	float conv3_b_lr = 0.02;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0.004;
 
@@ -853,8 +856,8 @@ int main(int argc, char** argv){
 	int conv4_stride = 1;
 	int conv4_filter_size = 5;
 	int conv4_out_channel = 32;
-	float conv4_w_lr = 0.001;
-	float conv4_b_lr = 0.002;
+	float conv4_w_lr = 0.01;
+	float conv4_b_lr = 0.02;
 	float conv4_momentum = 0.9;
 	float conv4_weight_decay = 0.004;
 
@@ -864,14 +867,14 @@ int main(int argc, char** argv){
 	PoolingType pool4_type = MAX_POOLING;
 
 	int inner1_num_out = 64;
-	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.002;
+	float inner1_w_lr = 0.01;
+	float inner1_b_lr = 0.02;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0.004;
 
 	int inner2_num_out = 2;
-	float inner2_w_lr = 0.001;
-	float inner2_b_lr = 0.002;
+	float inner2_w_lr = 0.01;
+	float inner2_b_lr = 0.02;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0.01;
 

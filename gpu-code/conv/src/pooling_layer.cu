@@ -62,7 +62,7 @@ void PoolingLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){
 
 	/// 每个block计算输出32*32的大小
 	/// 同时并行多个block
-//		x->reValue(100);
+//		x->reValue(96);
 	int box_out_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
 					? _lcp->getOutSize() : MAX_THREAD_SIZE;
 	if(_lcp->getPoolType() == MAX_POOLING ){
@@ -121,7 +121,7 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	}
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-//	this->_dE_dy->reValue(50);
+//	this->_dE_dy->reValue(48);
 //	_max_pos->reValue(1.0f);
 		compute_dE_dy_max<<<blocks, threads, \
 				sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \

@@ -58,13 +58,6 @@ void InnerProductLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){
 	this->_y->addRowVector(this->_bias);
 //	this->_y->showValue("yj1");
 
-	//cout << this->_y->getNumRows() << ":" << this->_y->getNumCols() << ":"<< this->_y->getNumEles() << " \n" \
-		 << this->_w->getNumRows() << ":" << this->_w->getNumCols() << ":"<<this->_w->getNumEles() <<" \n" \
-		 << this->_bias->getNumRows() << ":" << this->_bias->getNumCols() << ":"<<this->_bias->getNumEles() <<" \n" \
-		 << this->_dE_dw->getNumRows() << ":" << this->_dE_dw->getNumCols() << ":"<<this->_dE_dw->getNumEles() <<" \n" \
-		 << this->_dE_db->getNumRows() << ":" << this->_dE_db->getNumCols() << ":"<<this->_dE_db->getNumEles() <<" \n" \
-		 << this->_dE_dy->getNumRows() << ":" << this->_dE_dy->getNumCols() << ":"<<this->_dE_dy->getNumEles() <<" \n" \
-		 << x->getNumRows() << ":" << x->getNumCols() << ":"<<x->getNumEles() <<endl;
 }
 
 
@@ -78,6 +71,7 @@ void InnerProductLayer<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 	this->_dE_dy->sumRow(this->_dE_db);
 
 //this->_dE_dw->showValue("dedwinner");
+//this->_dE_dy->showValue("innerdedy");
 	delete data_T;
 }
 

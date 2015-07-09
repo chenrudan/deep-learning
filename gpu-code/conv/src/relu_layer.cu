@@ -45,10 +45,11 @@ void ReluLayer<Dtype>::initCuda() {
 
 template <typename Dtype>
 void ReluLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
-//	x->reValue(28);
+//	x->reValue(96);
 //	x->showValue("data");
-//	this->_y->showValue("yj1");
+	
 	x->applyRelu(this->_y, _record);
+	
 //	this->_y->showValue("yj1");
 }
 

@@ -208,6 +208,7 @@ __global__ void kDumbSumCols(Dtype* mat, Dtype* vec, const int width, \
 		ori[i] = mat[blockIdx.x * width + i];
 		i += blockDim.x;
 	}
+	__syncthreads();
 	int reduce_len = pow2Length > blockDim.x ? blockDim.x : pow2Length;
 
 	//需要执行reduce的次数，一次性只能执行最多32*32
@@ -215,14 +216,14 @@ __global__ void kDumbSumCols(Dtype* mat, Dtype* vec, const int width, \
 
 	//把最后无法整除的地方先处理
 	int idxX = threadIdx.x + reduce_len * times;
-	if(idxX > pow2Length && idxX < width)
-		ori[idxX - pow2Length] += ori[idxX];
+	if(idxX > (reduce_len * times) && idxX < width)
+		ori[idxX - reduce_len] += ori[idxX];
 	__syncthreads();
 
 
 	for(int j = times - 1; j >= 0; j--){
 		idxX = threadIdx.x + j * reduce_len;
-		if(threadIdx.x == 0)
+		if(threadIdx.x == 0 && ((j + 1) * reduce_len) < width)
 			ori[0] += ori[(j + 1) * reduce_len];
 		__syncthreads();
 		for(int activeThreads = (reduce_len >> 1); activeThreads; activeThreads >>= 1){ 
@@ -236,6 +237,7 @@ __global__ void kDumbSumCols(Dtype* mat, Dtype* vec, const int width, \
 	if(threadIdx.x == 0){
 		vec[blockIdx.x] = ori[0];
 	}
+	__syncthreads();
 
 }
 
