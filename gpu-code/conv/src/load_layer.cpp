@@ -15,9 +15,9 @@ LoadParticle<Dtype>::LoadParticle(){
 
 	this->_is_base_alloc = false;
 
-	ifstream fin1("../data/particle/manual-tutorial-positive.bin", \
+	ifstream fin1("../data/particle/manual-tutorial-positive-s60-t4-b.bin", \
 			ifstream::binary);
-	ifstream fin2("../data/particle/manual-tutorial-negative.bin", \
+	ifstream fin2("../data/particle/manual-tutorial-negative-s60-t4-b.bin", \
 			ifstream::binary);
 	int num_pos, num_neg;
 	fin1.read((char*)&num_pos, sizeof(int));
@@ -33,6 +33,8 @@ LoadParticle<Dtype>::LoadParticle(){
 	this->_num_valid = num_neg + num_pos - this->_num_train;
 	this->_img_sqrt = this->_img_size * this->_img_size;
 
+	cout << this->_num_train << ":" << this->_num_valid << endl;
+
 	/// 将全部的数据都读进来，然后再处理
 	_all_pixel = new Dtype[(num_neg + num_pos) * this->_img_sqrt \
 				* this->_img_channel];
@@ -44,12 +46,12 @@ LoadParticle<Dtype>::LoadParticle(){
 	fin1.close();
 	fin2.close();
 
-	loadBinary("../data/particle/manual-tutorial-positive.bin", \
+	loadBinary("../data/particle/manual-tutorial-positive-s60-t4-b.bin", \
 				_all_pixel_ptr, _all_label_ptr, 1);
-	loadBinary("../data/particle/manual-tutorial-negative.bin", \
+	loadBinary("../data/particle/manual-tutorial-negative-s60-t4-b.bin", \
 				_all_pixel_ptr, _all_label_ptr, 0);
 
-	shuffleComb();
+//	shuffleComb();
 	
 	this->_train_pixel = _all_comb[0].getPixel();
 	this->_train_label = _all_comb[0].getLabel();
@@ -101,7 +103,7 @@ void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 				tmp = buf;
 				pixel_ptr[k] = (int)tmp;
 			}
-			processOneImg(pixel_ptr);
+//			processOneImg(pixel_ptr);
 			if(i != num - 1 || j != this->_img_channel - 1){
 				pixel_ptr += this->_img_sqrt;
 			}

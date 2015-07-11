@@ -69,18 +69,14 @@ double Logistic<Dtype>::computeError(Matrix<Dtype>* labels, int& num_error){
 		int predict_label = h_max_pos_of_out[c];
 		correct_probs[c] = log(y_CPU[c * this->_y->getNumCols() + true_label]);
 
-//cout << predict_label << ":" << true_label << " ";
 		if(predict_label != true_label)
 			num_error++;
 		_h_record[predict_label * this->_y->getNumCols() + true_label]++ ;
 	}
-//cout << endl;
 	double result = 0;
 	for(int i = 0; i < labels->getNumEles(); i++){
 		result -= correct_probs[i];
-//		cout << correct_probs[i] << " ";
 	}
-//cout << endl;
 
 	return result;
 }

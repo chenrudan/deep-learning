@@ -110,7 +110,11 @@ cout << "done8\n";
 	train_label->copyFromHost(particle->getTrainLabel(), num_train);
 	valid_data->copyFromHost(particle->getValidPixel(), num_valid * cnn1_in_len);
 	valid_label->copyFromHost(particle->getValidLabel(), num_valid);
-//	savePars(train_data, "./snapshot/input_snap/train_data.bin");
+
+	delete particle;
+
+//	train_data->showValue("train_data");
+	savePars(train_data, "./snapshot/input_snap/train_data.bin");
 //	savePars(train_label, "./snapshot/input_snap/train_label.bin");
 
 cout << "done6\n";
@@ -142,7 +146,7 @@ cout << "done6\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.01);
+	gaussRand(cnn1_w, 0.001);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);

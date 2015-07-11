@@ -305,7 +305,7 @@ void Matrix<Dtype>::showValue(string name){
 	cout << this->_shape[0] << ":" << this->_shape[1] << endl;
 	for(int i = 0; i < this->_shape[0]; i++){
 		for(int j = 0; j < this->_shape[1]; j++){
-			cout << tmp_yh[i * this->_shape[1] + j] << "  ";
+			cout << tmp_yh[i * this->_shape[1] + j] << " ";
 			if(j != 0 && j % (this->_shape[1]) == this->_shape[1]  - 1)
 				cout << endl;
 			if(this->_shape[1] == 1)

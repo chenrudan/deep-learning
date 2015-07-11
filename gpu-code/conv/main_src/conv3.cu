@@ -36,19 +36,17 @@ enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 int num_process;
 int rank;
 
-int num_train = 1979;
-int num_valid = 219;
+int num_train = 50000;
+int num_valid = 10000;
 int num_minibatch;
 int num_validbatch;
 int num_train_per_process;
 int num_valid_per_process;
-int num_epoch = 50;
+int num_epoch = 500;
 
 void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 		ConvParam* conv3_cp, InnerParam* inner1_ip, \
 		InnerParam* inner2_ip){
-	
-
 
 	int cnn1_in_len = conv1_cp->getInSize() * conv1_cp->getInSize() * conv1_cp->getInChannel();
 	int cnn1_w_len = conv1_cp->getOutChannel() * conv1_cp->getFilterSize() \
@@ -86,6 +84,7 @@ cout << "done8\n";
     readData(train_label, "../data/input/mnist_label_train.bin", false);
     readData(valid_label, "../data/input/mnist_label_valid.bin", false);
 
+*/
 
 	LoadCifar10<float>* cifar10 = new LoadCifar10<float>(50000, 10000, 0, 32, 3);
 
@@ -94,19 +93,16 @@ cout << "done8\n";
 	valid_data->copyFromHost(cifar10->getValidPixel(), num_valid * cnn1_in_len);
 	valid_label->copyFromHost(cifar10->getValidLabel(), num_valid);
 
-	savePars(train_data, "./snapshot/input_snap/train_data.bin");
-	savePars(train_label, "./snapshot/input_snap/train_label.bin");
-
 	delete cifar10;
-*/
 
+/*
 	LoadParticle<float>* particle = new LoadParticle<float>;
 
 	train_data->copyFromHost(particle->getTrainPixel(), num_train * cnn1_in_len);
 	train_label->copyFromHost(particle->getTrainLabel(), num_train);
 	valid_data->copyFromHost(particle->getValidPixel(), num_valid * cnn1_in_len);
 	valid_label->copyFromHost(particle->getValidLabel(), num_valid);
-	
+*/	
 //	savePars(train_data, "./snapshot/input_snap/train_data.bin");
 //	savePars(train_label, "./snapshot/input_snap/train_label.bin");
 
@@ -134,11 +130,11 @@ cout << "done6\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.001);
+	gaussRand(cnn1_w, 0.1);
 //	initW(cnn1_w);
-	gaussRand(cnn2_w, 0.01);
+	gaussRand(cnn2_w, 0.1);
 //	initW(cnn2_w);
-	gaussRand(cnn3_w, 0.01);
+	gaussRand(cnn3_w, 0.1);
 //	initW(cnn3_w);
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
@@ -481,6 +477,7 @@ cout << "done9\n";
 
 	for(int epoch_idx = 0; epoch_idx < num_epoch; epoch_idx++){
 		int error = 0;
+		softmax.setRecordToZero();	
 
 		for(int batch_idx = 0; batch_idx < num_minibatch; batch_idx++){
 
@@ -583,6 +580,8 @@ cout << "done9\n";
 				}
 			}
 
+			Matrix<int>* process_record = softmax.getResultRecord();
+
 			if(batch_idx == num_minibatch - 1){
 			   	softmax.setRecordToZero();	
 				int errorValid = 0;
@@ -615,7 +614,6 @@ cout << "done9\n";
 
 				}
 				int totalValid = errorValid;
-				Matrix<int>* process_record = softmax.getResultRecord();
 				total_record->copyFromDevice(process_record);
 				//0号进程不能参与传递参数，故没有使用reduce
 				if(num_process > 2){
@@ -653,31 +651,31 @@ cout << "done9\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-		/*
-		if((epoch_idx + 1) % 5 == 0){
-			conv1_cp->lrMultiScale(0.9);
-			conv2_cp->lrMultiScale(0.9);
-			conv3_cp->lrMultiScale(0.9);
-			inner1_ip->lrMultiScale(0.9);
-			inner2_ip->lrMultiScale(0.9);
-		}*/
+		
+		if((epoch_idx + 1) % 10 == 0 && epoch_idx < 100 ){
+			conv1_cp->lrMultiScale(0.5);
+			conv2_cp->lrMultiScale(0.5);
+			conv3_cp->lrMultiScale(0.5);
+			inner1_ip->lrMultiScale(0.5);
+			inner2_ip->lrMultiScale(0.5);
+		}
 	
-		if((epoch_idx + 1)% 100 == 0){
+		if((epoch_idx + 1)% 50 == 0){
         	string s;
         	stringstream ss;
         	ss << epoch_idx;
         	ss >> s;    
-			savePars(cnn1_w, "/snapshot/w_snap/cnn1_w_" + s + "_t1.bin");
+			savePars(cnn1_w, "./snapshot/w_snap/cnn1_w_" + s + "_t1.bin");
 			cout << s << endl;
-			savePars(cnn1_bias, "/snapshot/w_snap/cnn1_bias_" + s + "_t1.bin");
-			savePars(cnn2_w, "/snapshot/w_snap/cnn2_w_" + s + "_t1.bin");
-			savePars(cnn2_bias, "/snapshot/w_snap/cnn2_bias_" + s + "_t1.bin");
-			savePars(cnn3_w, "/snapshot/w_snap/cnn3_w_" + s + "_t1.bin");
-			savePars(cnn3_bias, "/snapshot/w_snap/cnn3_bias_" + s + "_t1.bin");
-			savePars(inner1_w, "/snapshot/w_snap/inner1_w_" + s + "_t1.bin");
-			savePars(inner1_bias, "/snapshot/w_snap/inner1_bias_" + s + "_t1.bin");
-			savePars(softmax_w, "/snapshot/w_snap/softmax1_w_" + s + "_t1.bin");
-			savePars(softmax_bias, "/snapshot/w_snap/softmax1_bias_" + s + "_t1.bin");
+			savePars(cnn1_bias, "./snapshot/w_snap/cnn1_bias_" + s + "_t1.bin");
+			savePars(cnn2_w, "./snapshot/w_snap/cnn2_w_" + s + "_t1.bin");
+			savePars(cnn2_bias, "./snapshot/w_snap/cnn2_bias_" + s + "_t1.bin");
+			savePars(cnn3_w, "./snapshot/w_snap/cnn3_w_" + s + "_t1.bin");
+			savePars(cnn3_bias, "./snapshot/w_snap/cnn3_bias_" + s + "_t1.bin");
+			savePars(inner1_w, "./snapshot/w_snap/inner1_w_" + s + "_t1.bin");
+			savePars(inner1_bias, "./snapshot/w_snap/inner1_bias_" + s + "_t1.bin");
+			savePars(softmax_w, "./snapshot/w_snap/softmax1_w_" + s + "_t1.bin");
+			savePars(softmax_bias, "./snapshot/w_snap/softmax1_bias_" + s + "_t1.bin");
 		}
 	}
 	if(rank == 1){
@@ -718,17 +716,17 @@ int main(int argc, char** argv){
 	cudaGetDeviceCount(&numGpus);
 	cudaSetDevice(rank%numGpus);
 
-	int minibatch_size = 10;
-	int conv1_in_size = 100;
-	int conv1_in_channel = 1;
+	int minibatch_size = 100;
+	int conv1_in_size = 32;
+	int conv1_in_channel = 3;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
-	int conv1_out_channel = 16;
-	float conv1_w_lr = 0.001;
-	float conv1_b_lr = 0.002;
+	int conv1_out_channel = 8;
+	float conv1_w_lr = 0.1;
+	float conv1_b_lr = 0.2;
 	float conv1_momentum = 0.9;
-	float conv1_weight_decay = 0;
+	float conv1_weight_decay = 0.004;
 	int n_push = 49;
 	int n_fetch = 50;
 
@@ -741,30 +739,30 @@ int main(int argc, char** argv){
 	int conv2_pad = 2;
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
-	int conv2_out_channel = 32;
-	float conv2_w_lr = 0.001;
-	float conv2_b_lr = 0.002;
+	int conv2_out_channel = 16;
+	float conv2_w_lr = 0.01;
+	float conv2_b_lr = 0.02;
 	float conv2_momentum = 0.9;
-	float conv2_weight_decay = 0;
+	float conv2_weight_decay = 0.004;
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
-	int pool2_filter_size = 2;
+	int pool2_filter_size = 3;
 	PoolingType pool2_type = MAX_POOLING;
 
 	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
-	int conv3_out_channel = 64;
-	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.002;
+	int conv3_out_channel = 32;
+	float conv3_w_lr = 0.01;
+	float conv3_b_lr = 0.02;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0.004;
 
 	int pool3_pad = 0;
 	int pool3_stride = 2;
-	int pool3_filter_size = 2;
-	PoolingType pool3_type = MAX_POOLING;
+	int pool3_filter_size = 3;
+	PoolingType pool3_type = AVG_POOLING;
 
 	int inner1_num_out = 64;
 	float inner1_w_lr = 0.001;
@@ -772,11 +770,11 @@ int main(int argc, char** argv){
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0.004;
 
-	int inner2_num_out = 2;
-	float inner2_w_lr = 0.0001;
-	float inner2_b_lr = 0.0002;
+	int inner2_num_out = 10;
+	float inner2_w_lr = 0.001;
+	float inner2_b_lr = 0.001;
 	float inner2_momentum = 0.9;
-	float inner2_weight_decay = 0.01;
+	float inner2_weight_decay = 0.004;
 
 	ConvParam* conv1_cp = new ConvParam("conv1_layer", minibatch_size, \
 			conv1_w_lr, conv1_b_lr, conv1_momentum, conv1_weight_decay, \
