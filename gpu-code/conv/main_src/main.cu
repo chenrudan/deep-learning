@@ -78,7 +78,6 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	int valid_data_len_part = num_valid * cnn1_in_len / (num_process - 1);
 	int valid_label_len_part = num_valid / (num_process - 1);
 
-cout << "done8\n";
 	Matrix<float>* train_data = new Matrix<float>(num_train, cnn1_in_len);
 	Matrix<float>* valid_data = new Matrix<float>(num_valid, cnn1_in_len);
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
@@ -104,6 +103,7 @@ cout << "done8\n";
 	delete cifar10;
 */
 
+cout << "done8\n";
 	LoadParticle<float>* particle = new LoadParticle<float>;
 
 	train_data->copyFromHost(particle->getTrainPixel(), num_train * cnn1_in_len);
@@ -114,7 +114,7 @@ cout << "done8\n";
 	delete particle;
 
 //	train_data->showValue("train_data");
-	savePars(train_data, "./snapshot/input_snap/train_data.bin");
+//	savePars(train_data, "./snapshot/input_snap/train_data.bin");
 //	savePars(train_label, "./snapshot/input_snap/train_label.bin");
 
 cout << "done6\n";
@@ -146,7 +146,7 @@ cout << "done6\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.001);
+	gaussRand(cnn1_w, 0.01);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
@@ -719,7 +719,7 @@ cout << "done9\n";
 					}       
 				}       
 				if(rank == 1){
-					cout << "      valid: epoch_idx: " << epoch_idx << ", error: " \
+					cout << "      valid: epoch_idx: " << epoch_idx << ", accuracy: " \
 						<<  1 - (float)totalValid/num_valid_per_process \
 						<< ",likelihood: "<< loglihoodValid<< endl;
 					total_record->showValue("Confusion matrix");
@@ -727,7 +727,7 @@ cout << "done9\n";
 			}
 		}
 		if(rank == 1)
-			cout << "train: epoch_idx: " << epoch_idx << ", error: " \
+			cout << "train: epoch_idx: " << epoch_idx << ", accuracy: " \
 				<<  1 - (float)error/num_train_per_process  << endl;
 		
 		if(rank == 1){
@@ -741,14 +741,14 @@ cout << "done9\n";
 //		cnn3_w->showValue("cnn3_w");
 //		inner1_w->showValue("inner1_w");
 //		softmax_w->showValue("softmax_w");
-		/*
-		if((epoch_idx + 1) % 5 == 0){
-			conv1_cp->lrMultiScale(0.9);
-			conv2_cp->lrMultiScale(0.9);
-			conv3_cp->lrMultiScale(0.9);
-			inner1_ip->lrMultiScale(0.9);
-			inner2_ip->lrMultiScale(0.9);
-		}*/
+		
+		if((epoch_idx + 1) % 10 == 0){
+			conv1_cp->lrMultiScale(0.5);
+			conv2_cp->lrMultiScale(0.5);
+			conv3_cp->lrMultiScale(0.5);
+			inner1_ip->lrMultiScale(0.5);
+			inner2_ip->lrMultiScale(0.5);
+		}
 
 /*	
 		if((epoch_idx + 1)% 100 == 0){
@@ -809,7 +809,7 @@ int main(int argc, char** argv){
 	cudaSetDevice(rank%numGpus);
 
 	int minibatch_size = 10;
-	int conv1_in_size = 100;
+	int conv1_in_size = 60;
 	int conv1_in_channel = 1;
 	int conv1_pad = 0;
 	int conv1_stride = 1;
@@ -844,8 +844,8 @@ int main(int argc, char** argv){
 
 	int conv3_pad = 0;
 	int conv3_stride = 1;
-	int conv3_filter_size = 5;
-	int conv3_out_channel = 16;
+	int conv3_filter_size = 3;
+	int conv3_out_channel = 32;
 	float conv3_w_lr = 0.01;
 	float conv3_b_lr = 0.02;
 	float conv3_momentum = 0.9;
@@ -858,8 +858,8 @@ int main(int argc, char** argv){
 
 	int conv4_pad = 0;
 	int conv4_stride = 1;
-	int conv4_filter_size = 5;
-	int conv4_out_channel = 32;
+	int conv4_filter_size = 2;
+	int conv4_out_channel = 64;
 	float conv4_w_lr = 0.01;
 	float conv4_b_lr = 0.02;
 	float conv4_momentum = 0.9;
@@ -880,7 +880,7 @@ int main(int argc, char** argv){
 	float inner2_w_lr = 0.01;
 	float inner2_b_lr = 0.02;
 	float inner2_momentum = 0.9;
-	float inner2_weight_decay = 0.01;
+	float inner2_weight_decay = 0;
 
 	ConvParam* conv1_cp = new ConvParam("conv1_layer", minibatch_size, \
 			conv1_w_lr, conv1_b_lr, conv1_momentum, conv1_weight_decay, \

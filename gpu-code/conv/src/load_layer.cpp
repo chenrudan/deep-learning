@@ -22,6 +22,7 @@ LoadParticle<Dtype>::LoadParticle(){
 	int num_pos, num_neg;
 	fin1.read((char*)&num_pos, sizeof(int));
 	fin2.read((char*)&num_neg, sizeof(int));
+	num_neg = 1099;
 	fin1.read((char*)&this->_img_size, sizeof(int));
 	
 	this->_img_channel = 1;
@@ -51,7 +52,7 @@ LoadParticle<Dtype>::LoadParticle(){
 	loadBinary("../data/particle/manual-tutorial-negative-s60-t4-b.bin", \
 				_all_pixel_ptr, _all_label_ptr, 0);
 
-//	shuffleComb();
+	shuffleComb();
 	
 	this->_train_pixel = _all_comb[0].getPixel();
 	this->_train_label = _all_comb[0].getLabel();
@@ -86,8 +87,8 @@ void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 	}
 	unsigned char tmp;
 	char buf;
-	int num;
-	fin.read((char*)&num, 4);
+	int num = 1099;
+//	fin.read((char*)&num, 4);
 	fin.seekg(2*sizeof(int), fin.cur);
 	
 	for(int i = 0; i < num; i++){
@@ -103,7 +104,7 @@ void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 				tmp = buf;
 				pixel_ptr[k] = (int)tmp;
 			}
-//			processOneImg(pixel_ptr);
+			processOneImg(pixel_ptr);
 			if(i != num - 1 || j != this->_img_channel - 1){
 				pixel_ptr += this->_img_sqrt;
 			}

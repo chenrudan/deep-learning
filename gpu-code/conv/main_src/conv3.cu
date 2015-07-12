@@ -130,11 +130,11 @@ cout << "done6\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.1);
+	gaussRand(cnn1_w, 0.001);
 //	initW(cnn1_w);
-	gaussRand(cnn2_w, 0.1);
+	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
-	gaussRand(cnn3_w, 0.1);
+	gaussRand(cnn3_w, 0.01);
 //	initW(cnn3_w);
 	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
@@ -651,14 +651,16 @@ cout << "done9\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-		
-		if((epoch_idx + 1) % 10 == 0 && epoch_idx < 100 ){
-			conv1_cp->lrMultiScale(0.5);
-			conv2_cp->lrMultiScale(0.5);
-			conv3_cp->lrMultiScale(0.5);
-			inner1_ip->lrMultiScale(0.5);
-			inner2_ip->lrMultiScale(0.5);
+	/*	
+		if((epoch_idx + 1) % 10 == 0){
+			conv1_cp->lrMultiScale(0.1);
+			conv2_cp->lrMultiScale(0.1);
+			conv3_cp->lrMultiScale(0.1);
+			inner1_ip->lrMultiScale(0.1);
+			inner2_ip->lrMultiScale(0.1);
 		}
+*/
+	//	softmax_w->showValue("softmax_w");
 	
 		if((epoch_idx + 1)% 50 == 0){
         	string s;
@@ -684,7 +686,7 @@ cout << "done9\n";
 		t = clock();
 	}
 
-	savePars(relu4_y, "./snapshot/output_snap/relu4_y.bin");
+//	savePars(relu4_y, "./snapshot/output_snap/relu4_y.bin");
 
 	delete mini_data;
 	delete mini_label;
@@ -723,8 +725,8 @@ int main(int argc, char** argv){
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 8;
-	float conv1_w_lr = 0.1;
-	float conv1_b_lr = 0.2;
+	float conv1_w_lr = 0.01;
+	float conv1_b_lr = 0.02;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0.004;
 	int n_push = 49;
@@ -754,8 +756,8 @@ int main(int argc, char** argv){
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
 	int conv3_out_channel = 32;
-	float conv3_w_lr = 0.01;
-	float conv3_b_lr = 0.02;
+	float conv3_w_lr = 0.001;
+	float conv3_b_lr = 0.002;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0.004;
 
@@ -772,7 +774,7 @@ int main(int argc, char** argv){
 
 	int inner2_num_out = 10;
 	float inner2_w_lr = 0.001;
-	float inner2_b_lr = 0.001;
+	float inner2_b_lr = 0.002;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0.004;
 
