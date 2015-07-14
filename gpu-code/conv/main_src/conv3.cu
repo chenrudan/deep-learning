@@ -103,8 +103,8 @@ cout << "done8\n";
 	valid_data->copyFromHost(particle->getValidPixel(), num_valid * cnn1_in_len);
 	valid_label->copyFromHost(particle->getValidLabel(), num_valid);
 */	
-//	savePars(train_data, "./snapshot/input_snap/train_data.bin");
-//	savePars(train_label, "./snapshot/input_snap/train_label.bin");
+	savePars(valid_data, "./snapshot/input_snap/valid_data.bin");
+//	savePars(valid_label, "./snapshot/input_snap/valid_label.bin");
 
 cout << "done6\n";
 	Matrix<float>* cnn1_w = new Matrix<float>(conv1_cp->getFilterSize() * \
@@ -130,7 +130,7 @@ cout << "done6\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "done5\n";
-	gaussRand(cnn1_w, 0.001);
+	gaussRand(cnn1_w, 0.0001);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
@@ -651,15 +651,15 @@ cout << "done9\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-	/*	
+		
 		if((epoch_idx + 1) % 10 == 0){
-			conv1_cp->lrMultiScale(0.1);
-			conv2_cp->lrMultiScale(0.1);
-			conv3_cp->lrMultiScale(0.1);
-			inner1_ip->lrMultiScale(0.1);
-			inner2_ip->lrMultiScale(0.1);
+			conv1_cp->lrMultiScale(0.9);
+			conv2_cp->lrMultiScale(0.9);
+			conv3_cp->lrMultiScale(0.9);
+			inner1_ip->lrMultiScale(0.9);
+			inner2_ip->lrMultiScale(0.9);
 		}
-*/
+
 	//	softmax_w->showValue("softmax_w");
 	
 		if((epoch_idx + 1)% 50 == 0){
@@ -724,9 +724,9 @@ int main(int argc, char** argv){
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
-	int conv1_out_channel = 8;
-	float conv1_w_lr = 0.01;
-	float conv1_b_lr = 0.02;
+	int conv1_out_channel = 16;
+	float conv1_w_lr = 0.0001;
+	float conv1_b_lr = 0.0002;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0.004;
 	int n_push = 49;
@@ -741,21 +741,21 @@ int main(int argc, char** argv){
 	int conv2_pad = 2;
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
-	int conv2_out_channel = 16;
-	float conv2_w_lr = 0.01;
-	float conv2_b_lr = 0.02;
+	int conv2_out_channel = 32;
+	float conv2_w_lr = 0.001;
+	float conv2_b_lr = 0.002;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0.004;
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
 	int pool2_filter_size = 3;
-	PoolingType pool2_type = MAX_POOLING;
+	PoolingType pool2_type = AVG_POOLING;
 
 	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
-	int conv3_out_channel = 32;
+	int conv3_out_channel = 64;
 	float conv3_w_lr = 0.001;
 	float conv3_b_lr = 0.002;
 	float conv3_momentum = 0.9;

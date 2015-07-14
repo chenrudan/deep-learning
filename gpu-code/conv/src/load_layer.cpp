@@ -104,7 +104,8 @@ void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 				tmp = buf;
 				pixel_ptr[k] = (int)tmp;
 			}
-			processOneImg(pixel_ptr);
+			meanOneImg(pixel_ptr, this->_img_sqrt);
+			stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != num - 1 || j != this->_img_channel - 1){
 				pixel_ptr += this->_img_sqrt;
 			}
@@ -118,24 +119,39 @@ void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 }
 
 template <typename Dtype>
-void LoadLayer<Dtype>::processOneImg(Dtype* pixel_ptr){
+void LoadLayer<Dtype>::meanOneImg(Dtype* pixel_ptr, int process_len){
 	Dtype avg = 0;
-	Dtype std = 0;
-	for(int i = 0; i < this->_img_sqrt; i++){
+	for(int i = 0; i < process_len; i++){
 		avg += pixel_ptr[i];
 	}
-	avg /= this->_img_sqrt;
+	avg /= process_len;
 
-	for(int i = 0; i < this->_img_sqrt; i++){
+	for(int i = 0; i < process_len; i++){
 		pixel_ptr[i] = pixel_ptr[i] - avg;
+	}
+}
+
+template <typename Dtype>
+void LoadLayer<Dtype>::stdOneImg(Dtype* pixel_ptr, int process_len){
+	Dtype std = 0;
+	for(int i = 0; i < process_len; i++){
 		std += pixel_ptr[i] * pixel_ptr[i];
 	}
-	std /= this->_img_sqrt;
+
+	std /= process_len;
 	std = sqrt(std);
-	for(int i = 0; i < this->_img_sqrt; i++){
+	for(int i = 0; i < process_len; i++){
 		pixel_ptr[i] /= std;
 	}
 }
+
+/*template <typename Dtype>
+void LoadLayer<Dtype>::PCAOneImg(Dtype* pixel_ptr, int process_len){
+	
+
+}
+*/
+
 
 template <typename Dtype>
 void ImgData<Dtype>::swap(const ImgData<Dtype>& new_img){
@@ -245,10 +261,10 @@ void LoadCifar10<Dtype>::loadBinary(string filename, \
 				tmp = buf;
 				pixel_ptr[k] = (int)tmp;
 			}
-			processOneImg(pixel_ptr);
-			if(i != num - 1 || j != this->_img_channel - 1){
+			meanOneImg(pixel_ptr, this->_img_sqrt);
+			if(i != num - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
-			}
+		
 		}
 		if(i != num - 1){
 			label_ptr++;

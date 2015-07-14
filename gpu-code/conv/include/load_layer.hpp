@@ -55,7 +55,9 @@ public:
 
 	virtual void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr) {}
 
-	void processOneImg(Dtype* pixel_ptr);
+	void meanOneImg(Dtype* pixel_ptr, int process_len);
+	void stdOneImg(Dtype* pixel_ptr, int process_len);
+
 
 	int getNumTrain(){
 		return _num_train;
@@ -149,7 +151,6 @@ public:
 	~LoadCifar10() {}
 
 	void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr);
-
 
 };
 
