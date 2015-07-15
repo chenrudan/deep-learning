@@ -385,6 +385,13 @@ void Matrix<Dtype>::subedByUnitMat(){
 }
 
 
+template <typename Dtype>
+void Matrix<Dtype>::setValueAt(const int height_idx, \
+		const int width_idx, const Dtype value){
+	int pos = height_idx*_shape[1] + width_idx;
+	cudaMemcpy(this->_data_value + pos, &value, sizeof(Dtype), \
+			cudaMemcpyHostToDevice);
+}
 
 
 

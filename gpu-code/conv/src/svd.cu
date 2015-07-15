@@ -53,29 +53,30 @@ SVD<Dtype>::~SVD(){
 
 template <typename Dtype>
 void SVD<Dtype>::computeHouseHolderVecU(const int vec_start_idx){
-    const int vec_u_len = _height - vec_start_idx;
+   	_vec_start_idx = vec_start_idx;
+	_vec_u_len = _height - vec_start_idx;
+    _vec_v_len = _width - vec_start_idx - 1;
 
-    _A->cropMatToNew(_cropped_A_for_u_v, vec_start_idx, vec_u_len, \
-          vec_start_idx, 1);
+    _A->cropMatToNew(_cropped_A_for_u_v, _vec_start_idx, \
+			_vec_u_len, _vec_start_idx, 1);
 
-    computeHouseHolderVecAndAlpha(vec_u_len, \
+    computeHouseHolderVecAndAlpha(_vec_u_len, \
          _householder_vec_u, _alpha, _sigma_u);
 
-    cout << vec_u_len << ":" << _alpha << ":" << _sigma_u << endl;
+    cout << _vec_u_len << ":" << _alpha << ":" << _sigma_u << endl;
 //    _cropped_A_for_u_v->showValue("cropped_a");
     _householder_vec_u->showValue("u");
 
 }
 
 template <typename Dtype>
-void SVD<Dtype>::computeHouseHolderVecV(const int vec_start_idx){
-    const int vec_v_len = _width - vec_start_idx - 1;
-    if (vec_v_len <= 0) {
+void SVD<Dtype>::computeHouseHolderVecV(){
+    if (_vec_v_len <= 0) {
         return;
     }
-    _A->cropMatToNew(_cropped_A_for_u_v, vec_start_idx, 1, \
-          vec_start_idx+1, vec_v_len);
-    computeHouseHolderVecAndAlpha(vec_v_len, \
+    _A->cropMatToNew(_cropped_A_for_u_v, _vec_start_idx, 1, \
+          _vec_start_idx+1, _vec_v_len);
+    computeHouseHolderVecAndAlpha(_vec_v_len, \
          _householder_vec_v, _beta, _sigma_v);
 }
 
@@ -95,18 +96,47 @@ void SVD<Dtype>::computeHouseHolderVecAndAlpha(const int vec_len, \
 }
 
 template <typename Dtype>
-void SVD<Dtype>::computeH(const int vec_len) {
-    cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, vec_len, vec_len,
-                1, &_scale_one, _householder_vec_u->getDevData(), vec_len, \
+void SVD<Dtype>::computeH() {
+    cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, _vec_u_len, \
+				_vec_u_len, 1, &_scale_one, \
+				_householder_vec_u->getDevData(), _vec_u_len, \
 		        _householder_vec_u->getDevData(), 1, &_scale_zero, \
-                _h->getDevData(), vec_len);
-
+                _h->getDevData(), _vec_u_len);
     // Hi = I - sigma_u * u * u'
     _h->subedByUnitMat();
 }
 
+//更新A(i:m, i)
 template <typename Dtype>
-void SVD<Dtype>::eliminateA() {
-
+void SVD<Dtype>::eliminateAForV() {
+	A->setValueAt(_vec_start_idx, _vec_start_idx, _alpha);
+	for(int i = _vec_start_idx+1; i < _height; i++) {
+		A->setValueAt(i, _vec_start_idx, 0);
+	}
 }
+
+//更新A(i, i+1:n)
+template <typename Dtype>
+void SVD<Dtype>::eliminateAForU() {
+	A->setValueAt(_vec_start_idx, _vec_start_idx+1, _beta);
+	for(int i = _vec_start_idx+2; i < _width; i++) {
+		A->setValueAt(_vec_start_idx, i, 0);
+	}
+}
+
+//更新Q(1:m, i)
+template <typename Dtype>
+void SVD<Dtype>::updateQ() {
+	
+/*	
+    cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, vec_len, vec_len,
+                1, &_scale_one, _householder_vec_u->getDevData(), \
+				vec_len, _householder_vec_u->getDevData(), 1, \
+				&_scale_zero, _delta_q->getDevData(), vec_len);
+*/	
+}
+
+
+
+
 

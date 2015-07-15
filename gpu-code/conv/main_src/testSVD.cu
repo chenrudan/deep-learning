@@ -31,7 +31,7 @@ int main(){
 		vec_v_len = img_size - i - 1;
 		// Hi = I - sigma_u * u * u'
 		svd->computeH(vec_u_len);
-
+		svd->eliminateAForV(i);
 
 	}
 
