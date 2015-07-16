@@ -725,10 +725,10 @@ int main(int argc, char** argv){
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 16;
-	float conv1_w_lr = 0.0001;
-	float conv1_b_lr = 0.0002;
+	float conv1_w_lr = 0.001;
+	float conv1_b_lr = 0.002;
 	float conv1_momentum = 0.9;
-	float conv1_weight_decay = 0.004;
+	float conv1_weight_decay = 0;
 	int n_push = 49;
 	int n_fetch = 50;
 
@@ -745,7 +745,7 @@ int main(int argc, char** argv){
 	float conv2_w_lr = 0.001;
 	float conv2_b_lr = 0.002;
 	float conv2_momentum = 0.9;
-	float conv2_weight_decay = 0.004;
+	float conv2_weight_decay = 0;
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
@@ -759,7 +759,7 @@ int main(int argc, char** argv){
 	float conv3_w_lr = 0.001;
 	float conv3_b_lr = 0.002;
 	float conv3_momentum = 0.9;
-	float conv3_weight_decay = 0.004;
+	float conv3_weight_decay = 0;
 
 	int pool3_pad = 0;
 	int pool3_stride = 2;
@@ -770,13 +770,13 @@ int main(int argc, char** argv){
 	float inner1_w_lr = 0.001;
 	float inner1_b_lr = 0.002;
 	float inner1_momentum = 0.9;
-	float inner1_weight_decay = 0.004;
+	float inner1_weight_decay = 0;
 
 	int inner2_num_out = 10;
 	float inner2_w_lr = 0.001;
 	float inner2_b_lr = 0.002;
 	float inner2_momentum = 0.9;
-	float inner2_weight_decay = 0.004;
+	float inner2_weight_decay = 0;
 
 	ConvParam* conv1_cp = new ConvParam("conv1_layer", minibatch_size, \
 			conv1_w_lr, conv1_b_lr, conv1_momentum, conv1_weight_decay, \

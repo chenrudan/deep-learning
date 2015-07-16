@@ -147,6 +147,15 @@ public:
 
     void reValue(int value);
 
+    Dtype computeNorm(int len);
+
+    void cropMatToNew(Matrix<Dtype> *tar, const int row_start, const int cropped_height, \
+            const int col_start, const int cropped_width);
+
+    Dtype getPosValue(int pos);
+    Dtype getFirstPosValue();
+
+    void subedByUnitMat();
 };
 
 #include "../src/matrix.cu"

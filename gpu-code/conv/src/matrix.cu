@@ -337,11 +337,52 @@ void Matrix<Dtype>::reValue(int value){
 	delete[] tmp_yh;
 }
 
+template <typename Dtype>
+Dtype Matrix<Dtype>::computeNorm(int len){
+	Dtype norm_cpu;
+	Matrix<Dtype>* norm_gpu = new Matrix<Dtype>(1, 1);
+	kComputeNorm<<<1, 1024, sizeof(Dtype)*len>>>(this->_data_value, \
+			norm_gpu->getDevData(), len);
+	norm_gpu->copyToHost(&norm_cpu, 1);
+	delete norm_gpu;
+	return norm_cpu;
+}
 
+template <typename Dtype>
+void Matrix<Dtype>::cropMatToNew(Matrix<Dtype> *tar, const int row_start, \
+		const int cropped_height, const int col_start, const int cropped_width){
+	kCropImg<<<1, 1024>>>(this->_data_value, tar->getDevData(), row_start, \
+			cropped_height, col_start, cropped_width, this->_shape[1]);
+}
 
+template <typename Dtype>
+Dtype Matrix<Dtype>::getPosValue(int pos){
+	Dtype tmp;
+	cudaMemcpy(&tmp, this->_data_value + pos, sizeof(Dtype), cudaMemcpyDeviceToHost);
+	return tmp;
+}
 
+template <typename Dtype>
+Dtype Matrix<Dtype>::getFirstPosValue(){
+	return getPosValue(0);
+}
 
+template <typename Dtype>
+void Matrix<Dtype>::subedByUnitMat(){
 
+	const int width = this->_shape[1];
+	const int height = this->_shape[0];
+	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
+	assert(num_blocks_x < NUM_BLOCKS_MAX);
+	const int num_blocks_y = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), \
+				NUM_BLOCKS_MAX));
+	dim3 grid_size(num_blocks_x, num_blocks_y, 1);
+	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1);
+
+	kSubedByUnitMat<Dtype><<<grid_size, block_size>>>(this->getDevData(), \
+			this->getDevData(), width, height);
+	cudaThreadSynchronize();
+}
 
 
 

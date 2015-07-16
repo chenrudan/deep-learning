@@ -341,6 +341,96 @@ __global__ void kTranspose(Dtype* srcData, Dtype* dstData, \
 
 }
 
+template <typename Dtype>
+__global__ void kComputeNorm(const Dtype* vec, Dtype* norm, const int len){
+	//每一个block计算一个模
+	extern __shared__ Dtype sh_norm[];
 
+	int pow2_len = len;
+	if (pow2_len & (pow2_len - 1)) {
+		while (pow2_len & (pow2_len - 1)){
+			pow2_len &= pow2_len - 1;
+		}
+	}
 
+	int i = threadIdx.x;
+	while (i < len) {
+		sh_norm[i] = vec[i]*vec[i];
+		i += blockDim.x;
+	}
 
+	int reduce_len = pow2_len > blockDim.x ? blockDim.x : pow2_len;
+	int times = len / reduce_len;
+
+	int vec_pos = threadIdx.x + reduce_len * times;
+	if (vec_pos > (reduce_len * times) && vec_pos < len) {
+		sh_norm[vec_pos - reduce_len] += sh_norm[vec_pos];
+	}
+	__syncthreads();
+
+	for (int j = times-1; j >= 0; j--) {
+		vec_pos = threadIdx.x + j*reduce_len;
+		if (threadIdx.x == 0 && (j + 1) * reduce_len < len) {
+			sh_norm[0] += sh_norm[(j + 1) * reduce_len];
+		}
+		__syncthreads();
+		for (int active_thread = (reduce_len >> 1); active_thread; active_thread >>= 1) {
+			if (threadIdx.x < active_thread) {
+				sh_norm[vec_pos] += sh_norm[vec_pos + active_thread];
+			}
+			__syncthreads();
+		}
+	}
+
+	if (threadIdx.x == 0) {
+		norm[0] = sqrt(sh_norm[0]);
+	}
+
+	__syncthreads();
+}
+
+template <typename Dtype>
+__global__ void kCropImg(const Dtype* ori_img, Dtype* dst_img, \
+		const int row_start, const int cropped_height, \
+		const int col_start, const int cropped_width, \
+		const int ori_width){
+
+	int idx = threadIdx.x;
+
+	while (idx < cropped_height*cropped_width) {
+		int ori_row_idx = idx / cropped_width + row_start;
+		int ori_col_idx = idx % cropped_width + col_start;
+		dst_img[idx] = ori_img[ori_row_idx*ori_width + ori_col_idx];
+		idx += blockDim.x;
+	}
+	__syncthreads();
+}
+
+template <typename Dtype>
+__global__ void kComputeHouseholderVec(const Dtype* src, Dtype* dst, \
+		Dtype added_value, Dtype scale, const int len) {
+	int idx = threadIdx.x;
+	while (idx < len) {
+		if (idx == 0) {
+			dst[idx] = scale * (src[idx] + added_value);
+		} else
+			dst[idx] = scale * src[idx];
+		idx += blockDim.x;
+	}
+}
+
+template <typename Dtype>
+__global__ void kSubedByUnitMat(Dtype* matA, Dtype* tgtMat, \
+		const int width, const int height) {
+	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const int idx = idxY * width + idxX;
+
+	if(idxY < height && idxX < width ){
+		if ( idxX == idxY)
+			tgtMat[idx] = 1 - matA[idx];
+		else
+			tgtMat[idx] = - matA[idx];
+	}
+
+}
