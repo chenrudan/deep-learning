@@ -156,6 +156,10 @@ public:
     Dtype getFirstPosValue();
 
     void subedByUnitMat();
+    void subPortion(Matrix<Dtype>* b, const int b_row, \
+			const int b_col);
+    void setValueAt(const int height_idx, \
+		const int width_idx, const Dtype value);
 };
 
 #include "../src/matrix.cu"

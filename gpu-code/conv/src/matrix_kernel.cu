@@ -434,3 +434,43 @@ __global__ void kSubedByUnitMat(Dtype* matA, Dtype* tgtMat, \
 	}
 
 }
+
+template <typename Dtype>
+__global__ void kSubPortion(Dtype* matA, Dtype* matB, Dtype* tgtMat, \
+		const int a_width, const int a_height, \
+		const int b_width, const int b_height){
+
+	const int row_dist = a_height - b_height;
+	const int col_dist = a_width - b_width;
+	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const int idx = idxY * b_width + idxX;
+
+	const int a_idx = (idxY+row_dist)*a_width + idxX+col_dist;
+
+	if(idxY < b_height && idxX < b_width ){
+		tgtMat[a_idx] = matA[a_idx] - matB[idx];
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

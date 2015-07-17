@@ -19,9 +19,34 @@ public:
           Dtype& alpha_cpu, Dtype& sigma_cpu);
 
     void computeHouseHolderVecU(const int vec_start_idx);
-    void computeHouseHolderVecV(const int vec_start_idx);
+    void computeHouseHolderVecV();
 
-    void computeH(const int vec_len);
+    void computeH();
+    void computeG();
+
+    /// v代表了计算第二维，u代表了计算第一维
+    void eliminateAForV();
+    void eliminateAForU();
+
+    void computeW();
+    void computeZ();
+
+
+    void updateA();
+
+    void computeHAndUpdateQ();
+    void computeGAndUpdateP();
+
+    inline void showB(){
+        _A->showValue("B");
+    }
+    inline void showP(){
+        _householder_mat_p->showValue("P");
+    }
+    inline void showQ(){
+        _householder_mat_q->showValue("Q");
+    }
+    Matrix<Dtype>* getPAQ(Matrix<Dtype> *A);
 
 
 private:
@@ -46,12 +71,6 @@ private:
     Matrix<Dtype>   *_z;
     Matrix<Dtype>   *_x;
 
-    /// 用来更新P,Q
-    /// Q(1:m, i:m) = Q(1:m, i:m) - k*u'
-    /// P'(i:n, 1:n) = P'(i:n, 1:n) - v*l'
-    Matrix<Dtype>   *_k;
-    Matrix<Dtype>   *_l;
-
     /// 用来更新A(i, i+1:n)和A(i:m, i)
     Matrix<Dtype>   *_h;
     Matrix<Dtype>   *_g;
@@ -71,16 +90,17 @@ private:
     int _block_size_l;
     int _height;
     int _width;
+    int _vec_u_len;
+    int _vec_v_len;
+    int _vec_start_idx;
 
     Matrix<Dtype> *_A;
-    Matrix<Dtype> *_B;
     Matrix<Dtype> *_cropped_A_for_u_v;
     Matrix<Dtype> *_cropped_A_for_z_w;
-    Matrix<Dtype> *_cropped_Q_for_k;
-    Matrix<Dtype> *_cropped_P_for_l;
+
+    Matrix<Dtype> *_delta_A_for_A;
 
     cublasHandle_t handle;
-
 };
 
 #include "../src/svd.cu"

@@ -76,6 +76,12 @@ template <typename Dtype>
 __global__ void kSubedByUnitMat(Dtype* matA, Dtype* tgtMat, \
 		const int width, const int height);
 
+//B只占A的一个部分，减去这个部分
+template <typename Dtype>
+__global__ void kSubPortion(Dtype* matA, Dtype* matB, Dtype* tgtMat, \
+		const int a_width, const int a_height, \
+		const int b_width, const int b_height);
+
 #include "../src/matrix_kernel.cu"
 
 

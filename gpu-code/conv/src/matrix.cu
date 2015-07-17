@@ -384,16 +384,32 @@ void Matrix<Dtype>::subedByUnitMat(){
 	cudaThreadSynchronize();
 }
 
-
 template <typename Dtype>
 void Matrix<Dtype>::setValueAt(const int height_idx, \
 		const int width_idx, const Dtype value){
-	int pos = height_idx*_shape[1] + width_idx;
+	int pos = height_idx*this->_shape[1] + width_idx;
 	cudaMemcpy(this->_data_value + pos, &value, sizeof(Dtype), \
 			cudaMemcpyHostToDevice);
 }
 
+template <typename Dtype>
+void Matrix<Dtype>::subPortion(Matrix<Dtype>* b, const int b_row, \
+			const int b_col){
 
+	const int width = b_col;
+	const int height = b_row;
+	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
+	assert(num_blocks_x < NUM_BLOCKS_MAX);
+	const int num_blocks_y = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), \
+				NUM_BLOCKS_MAX));
+	dim3 grid_size(num_blocks_x, num_blocks_y, 1);
+	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1);
+
+	kSubPortion<Dtype><<<grid_size, block_size>>>(this->getDevData(), \
+			b->getDevData()+b_col, this->getDevData(), this->_shape[1], \
+			this->_shape[0], width, height);
+	cudaThreadSynchronize();
+}
 
 
 
