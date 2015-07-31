@@ -1,5 +1,5 @@
 /*
- * filename:main.cu
+ * filename:conv3.cu
  */
 
 #include <iostream>
@@ -42,7 +42,7 @@ int num_minibatch;
 int num_validbatch;
 int num_train_per_process;
 int num_valid_per_process;
-int num_epoch = 500;
+int num_epoch = 100;
 
 void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 		ConvParam* conv3_cp, InnerParam* inner1_ip, \
@@ -72,12 +72,12 @@ void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 	int valid_data_len_part = num_valid * cnn1_in_len / (num_process - 1);
 	int valid_label_len_part = num_valid / (num_process - 1);
 
-cout << "done8\n";
 	Matrix<float>* train_data = new Matrix<float>(num_train, cnn1_in_len);
 	Matrix<float>* valid_data = new Matrix<float>(num_valid, cnn1_in_len);
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
 
+cout << "Loading data...\n";
 /*
     readData(train_data, "../data/input/mnist_train.bin", true);
     readData(valid_data, "../data/input/mnist_valid.bin", true);
@@ -86,7 +86,7 @@ cout << "done8\n";
 
 */
 
-	LoadCifar10<float>* cifar10 = new LoadCifar10<float>(50000, 10000, 0, 32, 3);
+	LoadCifar10<float>* cifar10 = new LoadCifar10<float>(50000, 10000, 0, 32, 1);
 
 	train_data->copyFromHost(cifar10->getTrainPixel(), num_train * cnn1_in_len);
 	train_label->copyFromHost(cifar10->getTrainLabel(), num_train);
@@ -103,10 +103,10 @@ cout << "done8\n";
 	valid_data->copyFromHost(particle->getValidPixel(), num_valid * cnn1_in_len);
 	valid_label->copyFromHost(particle->getValidLabel(), num_valid);
 */	
-	savePars(valid_data, "./snapshot/input_snap/valid_data.bin");
+//	savePars(valid_data, "./snapshot/input_snap/valid_data.bin");
 //	savePars(valid_label, "./snapshot/input_snap/valid_label.bin");
 
-cout << "done6\n";
+cout << "Loading data is done.\n";
 	Matrix<float>* cnn1_w = new Matrix<float>(conv1_cp->getFilterSize() * \
 			conv1_cp->getFilterSize() * conv1_cp->getInChannel(), \
 			conv1_cp->getOutChannel());
@@ -129,7 +129,7 @@ cout << "done6\n";
 	Matrix<float>* softmax_w = new Matrix<float>(softmax_w_len / inner2_ip->getNumOut(), inner2_ip->getNumOut());
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
-cout << "done5\n";
+cout << "Initialize weight and bias...\n";
 	gaussRand(cnn1_w, 0.0001);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
@@ -348,20 +348,18 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 	int valid_data_len_part = num_valid_per_process * cnn1_in_len;
 	int valid_label_len_part = num_valid_per_process;
 
+cout << "Initialize layers...\n";
 	ConvNet<float> cnn1(conv1_cp);
 	cnn1.initCuda();
 
 	ReluLayer<float> relu1(relu1_fcp);
 	relu1.initCuda();
-cout << "done11\n";
 
 	PoolingLayer<float> pool1(pool1_pp);
 	pool1.initCuda();
 
-cout << "done13\n";
 	ConvNet<float> cnn2(conv2_cp);
 	cnn2.initCuda();
-cout << "done10\n";
 
 	ReluLayer<float> relu2(relu2_fcp);
 	relu2.initCuda();
@@ -384,13 +382,13 @@ cout << "done10\n";
 	ReluLayer<float> relu4(relu4_fcp);
 	relu4.initCuda();
 
-cout << "done12\n";
 	InnerProductLayer<float> inner2(inner2_ip);
 	inner2.initCuda();
 
 	Logistic<float> softmax(softmax_fcp);
 	softmax.initCuda();
 
+cout << "Initialize layers is done.\n";
 	Matrix<float>* cnn1_w = cnn1.getW();
 	Matrix<float>* cnn1_bias = cnn1.getBias();
 	Matrix<float>* cnn2_w = cnn2.getW();
@@ -431,7 +429,7 @@ cout << "done12\n";
 	MPI_Recv(valid_label->getDevData(), valid_label_len_part, \
 			MPI_FLOAT, 0, rank, MPI_COMM_WORLD, &status);
 
-cout << "done9\n";
+cout << "Each process reciving their data...\n";
 	int passMsg = 0;
 
 	Matrix<float>* cnn1_y = cnn1.getY();
@@ -474,6 +472,7 @@ cout << "done9\n";
 	clock_t t1;
 	t1 = clock();
 	Matrix<int>* total_record = new Matrix<int>(softmax_fcp->getNumIn(), softmax_fcp->getNumIn());
+cout << "Start training...\n";
 
 	for(int epoch_idx = 0; epoch_idx < num_epoch; epoch_idx++){
 		int error = 0;
@@ -580,7 +579,6 @@ cout << "done9\n";
 				}
 			}
 
-			Matrix<int>* process_record = softmax.getResultRecord();
 
 			if(batch_idx == num_minibatch - 1){
 			   	softmax.setRecordToZero();	
@@ -613,6 +611,7 @@ cout << "done9\n";
 					loglihoodValid += softmax.computeError(mini_label, errorValid);
 
 				}
+				Matrix<int>* process_record = softmax.getResultRecord();
 				int totalValid = errorValid;
 				total_record->copyFromDevice(process_record);
 				//0号进程不能参与传递参数，故没有使用reduce
@@ -635,7 +634,7 @@ cout << "done9\n";
 					}       
 				}       
 				if(rank == 1){
-					cout << "      valid: epoch_idx: " << epoch_idx << ", error: " \
+					cout << "      valid: epoch_idx: " << epoch_idx << ", accuracy: " \
 						<<  1 - (float)totalValid/num_valid_per_process \
 						<< ",likelihood: "<< loglihoodValid<< endl;
 					total_record->showValue("Confusion matrix");
@@ -643,7 +642,7 @@ cout << "done9\n";
 			}
 		}
 		if(rank == 1)
-			cout << "train: epoch_idx: " << epoch_idx << ", error: " \
+			cout << "train: epoch_idx: " << epoch_idx << ", accuracy: " \
 				<<  1 - (float)error/num_train_per_process  << endl;
 		
 		if(rank == 1){
@@ -651,16 +650,15 @@ cout << "done9\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-		
+/*		
 		if((epoch_idx + 1) % 10 == 0){
-			conv1_cp->lrMultiScale(0.9);
-			conv2_cp->lrMultiScale(0.9);
-			conv3_cp->lrMultiScale(0.9);
-			inner1_ip->lrMultiScale(0.9);
-			inner2_ip->lrMultiScale(0.9);
+			conv1_cp->lrMultiScale(0.8);
+			conv2_cp->lrMultiScale(0.8);
+			conv3_cp->lrMultiScale(0.8);
+			inner1_ip->lrMultiScale(0.8);
+			inner2_ip->lrMultiScale(0.8);
 		}
-
-	//	softmax_w->showValue("softmax_w");
+*/
 	
 		if((epoch_idx + 1)% 50 == 0){
         	string s;
@@ -685,8 +683,6 @@ cout << "done9\n";
 		cout << " " << ((float)t/CLOCKS_PER_SEC) / num_epoch << " seconds.\n";
 		t = clock();
 	}
-
-//	savePars(relu4_y, "./snapshot/output_snap/relu4_y.bin");
 
 	delete mini_data;
 	delete mini_label;
@@ -720,13 +716,13 @@ int main(int argc, char** argv){
 
 	int minibatch_size = 100;
 	int conv1_in_size = 32;
-	int conv1_in_channel = 3;
+	int conv1_in_channel = 1;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
-	int conv1_out_channel = 16;
-	float conv1_w_lr = 0.001;
-	float conv1_b_lr = 0.002;
+	int conv1_out_channel = 8;
+	float conv1_w_lr = 0.1;
+	float conv1_b_lr = 0.2;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -741,9 +737,9 @@ int main(int argc, char** argv){
 	int conv2_pad = 2;
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
-	int conv2_out_channel = 32;
-	float conv2_w_lr = 0.001;
-	float conv2_b_lr = 0.002;
+	int conv2_out_channel = 16;
+	float conv2_w_lr = 0.01;
+	float conv2_b_lr = 0.02;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
@@ -755,9 +751,9 @@ int main(int argc, char** argv){
 	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
-	int conv3_out_channel = 64;
-	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.002;
+	int conv3_out_channel = 32;
+	float conv3_w_lr = 0.01;
+	float conv3_b_lr = 0.02;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0;
 
@@ -766,9 +762,9 @@ int main(int argc, char** argv){
 	int pool3_filter_size = 3;
 	PoolingType pool3_type = AVG_POOLING;
 
-	int inner1_num_out = 64;
-	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.002;
+	int inner1_num_out = 32;
+	float inner1_w_lr = 0.01;
+	float inner1_b_lr = 0.02;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 

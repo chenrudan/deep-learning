@@ -225,11 +225,11 @@ LoadCifar10<Dtype>::LoadCifar10(const int num_train, const int num_valid, \
 		stringstream ss;
 		ss << i;
 		ss >> s;
-		string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
+		string filename = "../data/cifar-10-batches-bin/gray/data_batch_"+s+"_gray.bin";
 		loadBinary(filename, this->_train_pixel_ptr, \
 				this->_train_label_ptr);
 	}
-	loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
+	loadBinary("../data/cifar-10-batches-bin/gray/test_batch_gray.bin", \
             this->_valid_pixel_ptr, this->_valid_label_ptr);
 		
 }
