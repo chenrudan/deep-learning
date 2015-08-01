@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-
 #include "matrix.hpp"
+#include "matrix_kernel.hpp"
 
 using namespace std;
 
@@ -204,6 +204,28 @@ void Matrix<Dtype>::applyRelu(Matrix<Dtype> *target, int* record, bool direction
 	else
 		kReluBack<Dtype><<<grid_size, block_size>>>(this->_data_value, \
 				target->getDevData(), record, width, height);	
+}
+
+template <typename Dtype>
+void Matrix<Dtype>::applyDropout(Matrix<Dtype> *target, Matrix<int>* record, \
+		Matrix<curandState>* rand_probs, bool is_set_up){
+
+	const int width = this->_shape[1];
+	const int height = this->_shape[0];
+	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
+	assert(num_blocks_x < NUM_BLOCKS_MAX);
+	const int num_blocks_y = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), \
+				NUM_BLOCKS_MAX));
+	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
+	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1);
+
+	if(is_set_up == false)
+		kSetUpCurand<Dtype><<<grid_size, block_size>>>(rand_probs->getDevData(), \
+				width, height);	
+
+	kDropout<Dtype><<<grid_size, block_size>>>(this->_data_value, \
+			target->getDevData(), record->getDevData(), \
+			rand_probs->getDevData(), width, height);	
 }
 
 template <typename Dtype>

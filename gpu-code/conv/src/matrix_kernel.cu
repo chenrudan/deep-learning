@@ -3,6 +3,7 @@
  */
 
 #include <cuda_runtime.h>
+#include <curand_kernel.h>
 #include "matrix_kernel.hpp"
 
 template <typename Dtype>
@@ -99,6 +100,39 @@ __global__ void kSoftmax(Dtype* gData, Dtype* target, const int width, \
 }
 
 template <typename Dtype>
+__global__ void kSetUpCurand(curandState *state, const int width, const int height) {
+	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const int idx = idxY * width + idxX;
+
+	if(idxY < height && idxX < width){
+		curand_init(0, idx, 0, &state[idx]);
+	}
+}
+
+template <typename Dtype>
+__global__ void kDropout(Dtype* gData, Dtype* target, int* record, \
+		curandState *state, const int width, const int height) {
+	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
+	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+	const int idx = idxY * width + idxX;
+
+	if(idxY < height && idxX < width){
+		curandState local_state = state[idx];
+		Dtype local_prob = curand_uniform(&local_state);
+		
+		if(local_prob > 0.5){
+			target[idx] = gData[idx];
+			record[idx] = 1;
+		}else{
+			target[idx] = 0;
+			record[idx] = 0;
+		}
+		state[idx] = local_state;
+	}
+}
+
+template <typename Dtype>
 __global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int width, \
 		const int height) {
 	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
@@ -141,7 +175,6 @@ __global__ void kSigmoid(Dtype* gData, Dtype* target, const int width, \
 	if(idxY < height && idxX < width)
 		target[idx] = mySigmoid(gData[idx]);
 }
-
 
 template <typename Dtype>
 __global__ void kReciprocal(Dtype* gData, Dtype* target, const int width, \

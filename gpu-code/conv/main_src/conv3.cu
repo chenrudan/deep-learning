@@ -18,6 +18,7 @@
 #include "convnet.hpp"
 #include "pooling_layer.hpp"
 #include "matrix.hpp"
+#include "dropout_layer.hpp"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ int num_minibatch;
 int num_validbatch;
 int num_train_per_process;
 int num_valid_per_process;
-int num_epoch = 100;
+int num_epoch = 500;
 
 void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 		ConvParam* conv3_cp, InnerParam* inner1_ip, \
@@ -130,7 +131,7 @@ cout << "Loading data is done.\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "Initialize weight and bias...\n";
-	gaussRand(cnn1_w, 0.0001);
+	gaussRand(cnn1_w, 0.01);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
@@ -229,6 +230,7 @@ void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
 		PoolParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* relu2_fcp, \
 		PoolParam* pool2_pp, ConvParam* conv3_cp, FullConnectParam* relu3_fcp, \
 		PoolParam* pool3_pp, InnerParam* inner1_ip, FullConnectParam* relu4_fcp, \
+		FullConnectParam* drop1_fcp, \
 		InnerParam* inner2_ip, FullConnectParam* softmax_fcp){
 
 	if(rank == 1){
@@ -382,6 +384,9 @@ cout << "Initialize layers...\n";
 	ReluLayer<float> relu4(relu4_fcp);
 	relu4.initCuda();
 
+	DropoutLayer<float> drop1(drop1_fcp);
+	drop1.initCuda();
+
 	InnerProductLayer<float> inner2(inner2_ip);
 	inner2.initCuda();
 
@@ -454,6 +459,8 @@ cout << "Each process reciving their data...\n";
 	Matrix<float>* inner1_dE_dy = inner1.getDEDY();
 	Matrix<float>* relu4_y = relu4.getY();
 	Matrix<float>* relu4_dE_dy = relu4.getDEDY();
+	Matrix<float>* drop1_y = drop1.getY();
+	Matrix<float>* drop1_dE_dy = drop1.getDEDY();
 	Matrix<float>* inner2_y = inner2.getY();
 	Matrix<float>* inner2_dE_dy = inner2.getDEDY();
 
@@ -499,15 +506,18 @@ cout << "Start training...\n";
 
 			inner1.computeOutputs(pool3_y);
 			relu4.computeOutputs(inner1_y);
-			inner2.computeOutputs(relu4_y);
+			drop1.computeOutputs(relu4_y);
+
+			inner2.computeOutputs(drop1_y);
 			softmax.computeOutputs(inner2_y);
 
 			softmax.computeError(mini_label, error);
 
 			softmax.computeDerivsOfInput(inner2_dE_dy, mini_label);
-			inner2.computeDerivsOfPars(relu4_y);
-			inner2.computeDerivsOfInput(relu4_dE_dy);
+			inner2.computeDerivsOfPars(drop1_y);
+			inner2.computeDerivsOfInput(drop1_dE_dy);
 
+			drop1.computeDerivsOfInput(relu4_dE_dy);
 			relu4.computeDerivsOfInput(inner1_dE_dy);
 			inner1.computeDerivsOfPars(pool3_y);
 			inner1.computeDerivsOfInput(pool3_dE_dy);
@@ -579,7 +589,6 @@ cout << "Start training...\n";
 				}
 			}
 
-
 			if(batch_idx == num_minibatch - 1){
 			   	softmax.setRecordToZero();	
 				int errorValid = 0;
@@ -650,8 +659,8 @@ cout << "Start training...\n";
 			cout << " " << ((float)t1/CLOCKS_PER_SEC) << " seconds.\n";
 			t1 = clock();
 		}
-/*		
-		if((epoch_idx + 1) % 10 == 0){
+		
+/*		if((epoch_idx + 1) % 10 == 0){
 			conv1_cp->lrMultiScale(0.8);
 			conv2_cp->lrMultiScale(0.8);
 			conv3_cp->lrMultiScale(0.8);
@@ -720,9 +729,9 @@ int main(int argc, char** argv){
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
-	int conv1_out_channel = 8;
-	float conv1_w_lr = 0.1;
-	float conv1_b_lr = 0.2;
+	int conv1_out_channel = 16;
+	float conv1_w_lr = 0.01;
+	float conv1_b_lr = 0.02;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -737,7 +746,7 @@ int main(int argc, char** argv){
 	int conv2_pad = 2;
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
-	int conv2_out_channel = 16;
+	int conv2_out_channel = 32;
 	float conv2_w_lr = 0.01;
 	float conv2_b_lr = 0.02;
 	float conv2_momentum = 0.9;
@@ -751,7 +760,7 @@ int main(int argc, char** argv){
 	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
-	int conv3_out_channel = 32;
+	int conv3_out_channel = 64;
 	float conv3_w_lr = 0.01;
 	float conv3_b_lr = 0.02;
 	float conv3_momentum = 0.9;
@@ -760,11 +769,11 @@ int main(int argc, char** argv){
 	int pool3_pad = 0;
 	int pool3_stride = 2;
 	int pool3_filter_size = 3;
-	PoolingType pool3_type = AVG_POOLING;
+	PoolingType pool3_type = MAX_POOLING;
 
-	int inner1_num_out = 32;
-	float inner1_w_lr = 0.01;
-	float inner1_b_lr = 0.02;
+	int inner1_num_out = 64;
+	float inner1_w_lr = 0.001;
+	float inner1_b_lr = 0.002;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 
@@ -814,6 +823,9 @@ int main(int argc, char** argv){
 	FullConnectParam* relu4_y = new FullConnectParam("relu4_layer", \
 			0, inner1_ip);
 
+	FullConnectParam* drop1_fcp = new FullConnectParam("drop1_layer", \
+			0, inner1_ip);
+
 	InnerParam* inner2_ip = new InnerParam("inner2_layer", inner2_w_lr, \
 			inner2_b_lr, inner2_momentum, inner2_weight_decay, \
 			n_push, n_fetch, inner2_num_out, relu4_y);
@@ -834,7 +846,7 @@ int main(int argc, char** argv){
 		workerNode(conv1_cp, relu1_fcp, pool1_pp, \
 				conv2_cp, relu2_fcp, pool2_pp, \
 				conv3_cp, relu3_fcp, pool3_pp, \
-				inner1_ip, relu4_y, \
+				inner1_ip, relu4_y, drop1_fcp,  \
 				inner2_ip, softmax_fcp);
 	} 	
 

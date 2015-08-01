@@ -8,8 +8,8 @@
 
 #include <iostream>
 #include <string>
+#include <curand_kernel.h>
 #include "cublas_v2.h"
-#include "matrix_kernel.hpp"
 #include "data.hpp"
 
 using namespace std;
@@ -27,7 +27,7 @@ public:
     ///
     ///	该枚举定义了对类中成员执行何种运算
     enum FUNCTIONS {
-        LOG, EXP, RECIPROCAL, SOFTMAX, SIGMOID
+        LOG, EXP, RECIPROCAL, SOFTMAX, SIGMOID, DROPOUT
     };
 
     Matrix(int numRows, int numCols);
@@ -120,6 +120,9 @@ public:
     void apply(FUNCTIONS f);
 
 	void applyRelu(Matrix<Dtype>* target, int* record, bool direction = true);
+
+	void applyDropout(Matrix<Dtype> *target, Matrix<int>* record, \
+		Matrix<curandState>* rand_probs, bool is_set_up);
 
     /// \brief 矩阵间点加
     ///

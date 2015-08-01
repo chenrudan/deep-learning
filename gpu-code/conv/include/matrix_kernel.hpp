@@ -5,6 +5,8 @@
 #ifndef MATRIX_KERNEL_H_
 #define MATRIX_KERNEL_H_
 
+#include <curand_kernel.h>
+
 #define NUM_BLOCKS_MAX                      65535
 
 #define ADD_BLOCK_SIZE						16
@@ -42,6 +44,13 @@ __global__ void kLog(Dtype* gData, Dtype* target, const int width, \
 template <typename Dtype>
 __global__ void kSigmoid(Dtype* gData, Dtype* target, const int width, \
 		const int height);
+
+template <typename Dtype>
+__global__ void kSetUpCurand(curandState *state, const int width, const int height);
+
+template <typename Dtype>
+__global__ void kDropout(Dtype* gData, Dtype* target, int* record, \
+		curandState *state, const int width, const int height);
 
 template <typename Dtype>
 __global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int width, \
