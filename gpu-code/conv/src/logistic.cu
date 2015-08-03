@@ -43,6 +43,7 @@ void Logistic<Dtype>::initCuda() {
 template <typename Dtype>
 void Logistic<Dtype>::computeOutputs(Matrix<Dtype>* x){
 //x->showValue("data");
+	this->_y->zeros();
 	x->apply(Matrix<Dtype>::SOFTMAX, this->_y);
 //this->_y->showValue("yj1");
 }
@@ -84,6 +85,7 @@ double Logistic<Dtype>::computeError(Matrix<Dtype>* labels, int& num_error){
 template <typename Dtype>
 void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<Dtype>* labels){
 	assert(labels->getNumRows() == dE_dx->getNumRows());
+	dE_dx->zeros();
 
 //this->_y->reValue(1.0f);
 //labels->reValue(1.0f);
@@ -91,6 +93,8 @@ void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<Dtype>* 
 	const int num_thread = DIVUP(this->_fcp->getNumOut(), ADD_BLOCK_SIZE) * ADD_BLOCK_SIZE;
 	compute_dE_dy<<<this->_fcp->getMinibatchSize(), num_thread>>>(this->_y->getDevData(), \
 			labels->getDevData(), dE_dx->getDevData(), this->_fcp->getNumOut());
+	cudaThreadSynchronize();
+	cudaCheckError();
 
 
 }

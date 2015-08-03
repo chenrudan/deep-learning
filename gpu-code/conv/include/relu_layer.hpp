@@ -22,7 +22,7 @@ public:
 
 private:
 	Param* _p;
-	int* _record;
+	Matrix<int> *_record;
 };
 
 

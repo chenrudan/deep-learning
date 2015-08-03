@@ -58,7 +58,7 @@ void DropoutLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 //this->_dE_dy->reValue(1.0f);
 	
-	this->_dE_dy->applyRelu(dE_dx, _drop_record->getDevData(), false);
+	this->_dE_dy->applyRelu(dE_dx, _drop_record, false);
 
 //dE_dx->showValue("dropout_dedx");
 }

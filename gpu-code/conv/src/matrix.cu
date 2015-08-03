@@ -74,6 +74,7 @@ void Matrix<Dtype>::getTranspose(Matrix<Dtype>* target){
 	kTranspose<Dtype><<<grid_size, block_size>>>(this->_data_value, \
 				target->getDevData(), width, height);
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -131,6 +132,7 @@ void Matrix<Dtype>::addRowVector(Matrix<Dtype>* vec, float scaleVec, Matrix<Dtyp
 	kAddRowVector<Dtype><<<grid_size, block_size>>>(this->_data_value, vec->getDevData(), \
 			target->getDevData(), width, height, scaleVec);
 	cudaThreadSynchronize();
+	cudaCheckError();
 	
 }
 
@@ -149,6 +151,7 @@ void Matrix<Dtype>::subtractFromScalar(float scalar, Matrix<Dtype>* target) {
 	kSubtractFromScalar<Dtype><<<grid_size, block_size>>>(this->_data_value, scalar, \
 			target->getDevData(), width, height);
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -185,10 +188,12 @@ void Matrix<Dtype>::apply(Matrix<Dtype>::FUNCTIONS f, Matrix<Dtype> *target){
 				width, height);
 	}
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
-void Matrix<Dtype>::applyRelu(Matrix<Dtype> *target, int* record, bool direction){
+void Matrix<Dtype>::applyRelu(Matrix<Dtype> *target, Matrix<int>* record, \
+		bool direction){
 	const int width = this->_shape[1];
 	const int height = this->_shape[0];
 	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
@@ -200,10 +205,12 @@ void Matrix<Dtype>::applyRelu(Matrix<Dtype> *target, int* record, bool direction
 
 	if(direction)
 		kRelu<Dtype><<<grid_size, block_size>>>(this->_data_value, \
-				target->getDevData(), record, width, height);	
+				target->getDevData(), record->getDevData(), width, height);	
 	else
 		kReluBack<Dtype><<<grid_size, block_size>>>(this->_data_value, \
-				target->getDevData(), record, width, height);	
+				target->getDevData(), record->getDevData(), width, height);	
+	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -219,13 +226,19 @@ void Matrix<Dtype>::applyDropout(Matrix<Dtype> *target, Matrix<int>* record, \
 	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
 	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1);
 
-	if(is_set_up == false)
+	if(is_set_up == false){
 		kSetUpCurand<Dtype><<<grid_size, block_size>>>(rand_probs->getDevData(), \
 				width, height);	
+		cudaThreadSynchronize();
+		cudaCheckError();
+	
+	}
 
 	kDropout<Dtype><<<grid_size, block_size>>>(this->_data_value, \
 			target->getDevData(), record->getDevData(), \
 			rand_probs->getDevData(), width, height);	
+	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -241,6 +254,7 @@ void Matrix<Dtype>::sumCol(Matrix<Dtype>* target){
 	kDumbSumCols<Dtype><<<height, 1024, sizeof(Dtype) * width>>>(this->_data_value, \
 			target->getDevData(), width, height);
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -261,12 +275,11 @@ void Matrix<Dtype>::maxPosInRow(Matrix<Dtype>* maxVec){
 	dim3 grid_size(1, height, 1); 
 	dim3 block_size(num_blocks_x * ADD_BLOCK_SIZE, 1, 1); 
 
-//	this->showValue("data");
-	kDumbMaxPosInRow<Dtype><<<grid_size, block_size, sizeof(Dtype) * width>>>(this->_data_value, \
+	kDumbMaxPosInRow<Dtype><<<grid_size, block_size, \
+			sizeof(Dtype) * width>>>(this->_data_value, \
 			maxVec->getDevData(), width, height);
-//	maxVec->showValue("max pos");
-//	this->showValue("data");
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -286,6 +299,7 @@ void Matrix<Dtype>::eltWiseMult(Matrix<Dtype>* b, Matrix<Dtype>* target) {
 	kMult<Dtype><<<grid_size, block_size>>>(this->_data_value, \
 			b->getDevData(), target->getDevData(), width, height);
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -315,6 +329,7 @@ void Matrix<Dtype>::add(Matrix<Dtype>* b, float scale_this, float scale_B){
 	kAdd<Dtype><<<grid_size, block_size>>>(this->getDevData(), b->getDevData(), \
 			this->getDevData(), scale_this, scale_B, width, height);
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 
@@ -365,6 +380,8 @@ Dtype Matrix<Dtype>::computeNorm(int len){
 	Matrix<Dtype>* norm_gpu = new Matrix<Dtype>(1, 1);
 	kComputeNorm<<<1, 1024, sizeof(Dtype)*len>>>(this->_data_value, \
 			norm_gpu->getDevData(), len);
+	cudaThreadSynchronize();
+	cudaCheckError();
 	norm_gpu->copyToHost(&norm_cpu, 1);
 	delete norm_gpu;
 	return norm_cpu;
@@ -375,6 +392,8 @@ void Matrix<Dtype>::cropMatToNew(Matrix<Dtype> *tar, const int row_start, \
 		const int cropped_height, const int col_start, const int cropped_width){
 	kCropImg<<<1, 1024>>>(this->_data_value, tar->getDevData(), row_start, \
 			cropped_height, col_start, cropped_width, this->_shape[1]);
+	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -404,6 +423,7 @@ void Matrix<Dtype>::subedByUnitMat(){
 	kSubedByUnitMat<Dtype><<<grid_size, block_size>>>(this->getDevData(), \
 			this->getDevData(), width, height);
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 template <typename Dtype>
@@ -431,6 +451,7 @@ void Matrix<Dtype>::subPortion(Matrix<Dtype>* b, const int b_row, \
 			b->getDevData()+b_col, this->getDevData(), this->_shape[1], \
 			this->_shape[0], width, height);
 	cudaThreadSynchronize();
+	cudaCheckError();
 }
 
 

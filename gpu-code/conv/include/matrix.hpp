@@ -3,6 +3,7 @@
 /// \brief 继承数据类，拥有矩阵的特性
 ///
 
+
 #ifndef Matrix_H_
 #define Matrix_H_
 
@@ -11,6 +12,21 @@
 #include <curand_kernel.h>
 #include "cublas_v2.h"
 #include "data.hpp"
+
+#define CUDA_ERROR_CHECK
+
+#define cudaCheckError()  __cudaCheckError(__FILE__, __LINE__)
+
+inline void __cudaCheckError(const char *file, const int line){
+#ifdef CUDA_ERROR_CHECK
+	cudaError err = cudaGetLastError();
+	if(cudaSuccess != err){
+		fprintf(stderr, "cudaCheckError() failed at %s:%i : %s\n", \
+			file, line, cudaGetErrorString(err));
+		exit(-1);
+	}
+#endif
+}
 
 using namespace std;
 
@@ -119,7 +135,7 @@ public:
 
     void apply(FUNCTIONS f);
 
-	void applyRelu(Matrix<Dtype>* target, int* record, bool direction = true);
+	void applyRelu(Matrix<Dtype>* target, Matrix<int>* record, bool direction = true);
 
 	void applyDropout(Matrix<Dtype> *target, Matrix<int>* record, \
 		Matrix<curandState>* rand_probs, bool is_set_up);

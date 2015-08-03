@@ -15,9 +15,7 @@ template <typename Dtype>
 ReluLayer<Dtype>::~ReluLayer() {
 	delete  this->_y; 
 	delete  this->_dE_dy;
-
-
-	cudaFree(_record);
+	delete _record;
 }
 
 template <typename Dtype>
@@ -33,34 +31,34 @@ void ReluLayer<Dtype>::initCuda() {
 	this->_y             = new Matrix<Dtype>(_p->getMinibatchSize(), \
 								col);
 	this->_dE_dy         = new Matrix<Dtype>(this->_y);
+	
+	_record				 = new Matrix<int>(_p->getMinibatchSize(), col);
 
-	cudaError_t status;
-	status = cudaMalloc((void**) &_record, \
-                this->_p->getMinibatchSize() * col * sizeof(int));
-	if (status != cudaSuccess) {
-		fprintf(stderr, "!!!! device memory allocation error\n");
-		exit(EXIT_FAILURE);
-	}
 }
 
 template <typename Dtype>
 void ReluLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
-//	x->reValue(96);
+//	x->reValue(16);
 //	x->showValue("data");
-	
+
+	this->_y->zeros();	
 	x->applyRelu(this->_y, _record);
 	
-//	this->_y->showValue("yj1");
+//	if(_p->getName() == "relu1_layer")
+//		this->_y->showValue(_p->getName() +"relu_y");
 }
 
 template <typename Dtype>
 void ReluLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
+	dE_dx->zeros();
 
 //this->_dE_dy->reValue(1.0f);
+//_record->reValue(0.0f);
 	
 	this->_dE_dy->applyRelu(dE_dx, _record, false);
 
-//dE_dx->showValue("SIGMOID_dedx");
+//	if(_p->getName() == "relu1_layer")
+//		dE_dx->showValue("dedx");
 }
 
 
