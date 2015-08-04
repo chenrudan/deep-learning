@@ -43,7 +43,7 @@ int num_minibatch;
 int num_validbatch;
 int num_train_per_process;
 int num_valid_per_process;
-int num_epoch = 200;
+int num_epoch = 500;
 
 void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 		ConvParam* conv3_cp, InnerParam* inner1_ip, \
@@ -87,7 +87,7 @@ cout << "Loading data...\n";
 
 */
 
-	LoadCifar10<float>* cifar10 = new LoadCifar10<float>(50000, 10000, 0, 32, 1);
+	LoadCifar10<float>* cifar10 = new LoadCifar10<float>(50000, 10000, 0, 32, 3);
 
 	train_data->copyFromHost(cifar10->getTrainPixel(), num_train * cnn1_in_len);
 	train_label->copyFromHost(cifar10->getTrainLabel(), num_train);
@@ -513,18 +513,18 @@ cout << "Start training...\n";
 
 			inner1.computeOutputs(pool3_y);
 			relu4.computeOutputs(inner1_y);
-//			drop2.computeOutputs(relu4_y);
+			drop2.computeOutputs(relu4_y);
 
-			inner2.computeOutputs(relu4_y);
+			inner2.computeOutputs(drop2_y);
 			softmax.computeOutputs(inner2_y);
 
 			likelihood += softmax.computeError(mini_label, error);
 
 			softmax.computeDerivsOfInput(inner2_dE_dy, mini_label);
-			inner2.computeDerivsOfPars(relu4_y);
-			inner2.computeDerivsOfInput(relu4_dE_dy);
+			inner2.computeDerivsOfPars(drop2_y);
+			inner2.computeDerivsOfInput(drop2_dE_dy);
 
-//			drop2.computeDerivsOfInput(relu4_dE_dy);
+			drop2.computeDerivsOfInput(relu4_dE_dy);
 			relu4.computeDerivsOfInput(inner1_dE_dy);
 			inner1.computeDerivsOfPars(pool3_y);
 			inner1.computeDerivsOfInput(pool3_dE_dy);
@@ -681,14 +681,15 @@ cout << "Start training...\n";
 		}
 
 
-/*		if((epoch_idx + 1) % 20 == 0){
-			conv1_cp->lrMultiScale(0.1);
-			conv2_cp->lrMultiScale(0.1);
-			conv3_cp->lrMultiScale(0.1);
-			inner1_ip->lrMultiScale(0.1);
-			inner2_ip->lrMultiScale(0.1);
-		}
-*/
+//	if(epoch_idx == 10){
+
+//			conv1_cp->lrMultiScale(0.1);
+//			conv2_cp->lrMultiScale(0.1);
+//			conv3_cp->lrMultiScale(0.1);
+//			inner1_ip->lrMultiScale(0.1);
+//			inner2_ip->lrMultiScale(0.1);
+//		}
+
 /*	
 		if((epoch_idx + 1)% 50 == 0){
         	string s;
@@ -747,13 +748,13 @@ int main(int argc, char** argv){
 
 	int minibatch_size = 100;
 	int conv1_in_size = 32;
-	int conv1_in_channel = 1;
+	int conv1_in_channel = 3;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 16;
-	float conv1_w_lr = 0.001;
-	float conv1_b_lr = 0.001;
+	float conv1_w_lr = 0.0001;
+	float conv1_b_lr = 0.0002;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -763,14 +764,14 @@ int main(int argc, char** argv){
 	int pool1_pad = 0;
 	int pool1_stride = 2;
 	int pool1_filter_size = 3;
-	PoolingType pool1_type = AVG_POOLING;
+	PoolingType pool1_type = MAX_POOLING;
 
 	int conv2_pad = 2;
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 32;
 	float conv2_w_lr = 0.001;
-	float conv2_b_lr = 0.001;
+	float conv2_b_lr = 0.002;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
@@ -784,24 +785,24 @@ int main(int argc, char** argv){
 	int conv3_filter_size = 5;
 	int conv3_out_channel = 64;
 	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.001;
+	float conv3_b_lr = 0.002;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0;
 
 	int pool3_pad = 0;
 	int pool3_stride = 2;
 	int pool3_filter_size = 3;
-	PoolingType pool3_type = AVG_POOLING;
+	PoolingType pool3_type = MAX_POOLING;
 
 	int inner1_num_out = 64;
 	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.001;
+	float inner1_b_lr = 0.002;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 
 	int inner2_num_out = 10;
 	float inner2_w_lr = 0.001;
-	float inner2_b_lr = 0.001;
+	float inner2_b_lr = 0.002;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0;
 
