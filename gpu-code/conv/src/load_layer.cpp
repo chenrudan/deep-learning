@@ -260,6 +260,8 @@ void LoadCifar10<Dtype>::loadBinary(string filename, \
 				fin.read(&buf, 1);
 				tmp = buf;
 				pixel_ptr[k] = (int)tmp;
+				pixel_ptr[k] /= 255.0;
+
 			}
 			meanOneImg(pixel_ptr, this->_img_sqrt);
 		//	stdOneImg(pixel_ptr, this->_img_sqrt);
