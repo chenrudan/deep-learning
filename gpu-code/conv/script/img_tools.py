@@ -5,11 +5,11 @@
 图像处理相关的一些函数
 '''
 
-import sys
 import os
 import Image
 import numpy as np
 import struct
+from time import clock
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -18,8 +18,9 @@ except ImportError:
 classify_dict = {'person':0, 'bird':1, 'cat':2, 'cow':3, 'dog':4, \
                  'horse':5, 'sheep':6, 'aeroplane':7, 'bicycle':8, \
                  'boat':9, 'bus':10, 'car':11, 'motorbike':12, \
-                 'train':13, 'bottle':14, 'char':15, 'dining table':16, \
-                 'potted plant':17, 'sofa':18, 'tvmonitor':19}
+                 'train':13, 'bottle':14, 'chair':15, 'diningtable':16, \
+                 'pottedplant':17, 'sofa':18, 'tvmonitor':19}
+
 
 def convertImgToArray(filename):
     img = Image.open(filename)
@@ -29,14 +30,11 @@ def convertImgToArray(filename):
     elif img.mode == "L":
         img_channel = 1
 
-    img_result = np.array(img).reshape(img_channel, img.size[1], img.size[0])
-    img_ori = np.array(img)
+    img_result = np.array(img).reshape(img.size[1]*img.size[0], img_channel).transpose()
+    img_result = img_result.reshape(img_channel, img.size[1], img.size[0])
 
-    for i in range(0, img_channel):
-        for j in range(0, img.size[0]):
-            for k in range(0, img.size[1]):
-                 img_result[i][k][j] = img_ori[k][j][i]
     return [img_result, img.size[0], img.size[1], img_channel]
+
 
 '''
 返回这个目录以及子目录下的所有图片。第一个返回值是图片的绝对路径
@@ -57,16 +55,15 @@ def getFilesOfDir(dir_name):
     return [files_absolute_path, files]
 
 
-def meanOneImg(img_array, img_length, img_channel):
-    mean_result = np.array(img_array).reshape(img_length*img_channel).astype(np.float32)
+def meanOneImg(img_array, img_width, img_height, img_channel):
+
+    img_length = img_width*img_height
+    mean_result_array = np.array(img_array).reshape(img_channel, img_length).astype(np.float32)
     for i in range(0, img_channel):
-        avg = 0.0
-        for j in range(0, img_length):
-            avg = avg + mean_result[i*img_length+j]
-        avg = avg / img_length
-        for j in range(0, img_length):
-            mean_result[i*img_length + j] = mean_result[i*img_length+j] - avg
-    return mean_result
+        mean_value = np.mean(mean_result_array[i])
+        mean_result_array[i] = mean_result_array[i] - np.ones(img_length)*mean_value
+
+    return mean_result_array.reshape(img_channel, img_height, img_width)
 
 
 def parseVOCAnnotationsOneImg(xml_name):
@@ -83,30 +80,31 @@ def parseVOCAnnotationsOneImg(xml_name):
                 coordinate_dict = {}
                 for l3_child in l2_child:
                        coordinate_dict[l3_child.tag] = l3_child.text
-
-                one_object.append(int(coordinate_dict['xmin']))
-                one_object.append(int(coordinate_dict['ymin']))
-                one_object.append(int(coordinate_dict['xmax']))
-                one_object.append(int(coordinate_dict['ymax']))
+                try:
+                    one_object.append(int(coordinate_dict['xmin']))
+                except ValueError:
+                    one_object.append(int(float(coordinate_dict['xmin'])))
+                try:
+                    one_object.append(int(coordinate_dict['ymin']))
+                except ValueError:
+                    one_object.append(int(float(coordinate_dict['ymin'])))
+                try:
+                    one_object.append(int(coordinate_dict['xmax']))
+                except ValueError:
+                    one_object.append(int(float(coordinate_dict['xmax'])))
+                try:
+                    one_object.append(int(coordinate_dict['ymax']))
+                except ValueError:
+                    one_object.append(int(float(coordinate_dict['ymax'])))
 
         objects_info.append(one_object)
     return objects_info
 
+
 def supplyOneImg(img_array, dst_width, dst_height, ori_width, ori_height, \
                  channels):
-    img_array = img_array.reshape(channels*ori_width*ori_height)
-    dst_array = np.zeros(channels*dst_width*dst_height)
-    print len(dst_array)
-    print img_array
-    for k in range(0, channels):
-        for i in range(0, dst_width):
-            for j in range(0, dst_height):
-                if i < ori_width or j < ori_height:
-                    dst_array[k*dst_width*dst_height + j*dst_width + i] \
-                        = img_array[k*ori_width*ori_height + j*ori_width + i]
-                else:
-                    dst_array[k*dst_width*dst_height + j*dst_width+ i] = 0
-    print dst_array
+    dst_array = np.zeros((channels, dst_height, dst_width))
+    dst_array[0:channels, 0:ori_height, 0:ori_width] = img_array
     return dst_array
 
 
@@ -116,8 +114,8 @@ num_img + img_channel + img_width + img_height
 + ...
 '''
 def convertVOCimgToBinary():
-    img_dir = '/home/crd/work/deeplearning/data/VOCdevkit/VOC2012/JPEGImages/'
-    annotator_dir = '/home/crd/work/deeplearning/data/VOCdevkit/VOC2012/Annotations/'
+    img_dir = '/home/crd/data/VOCdevkit/VOC2012/JPEGImages/'
+    annotator_dir = '/home/crd/data/VOCdevkit/VOC2012/Annotations/'
     [img_absolute_path, img_names] = getFilesOfDir(img_dir)
 
     img_absolute_width = 500
@@ -129,40 +127,67 @@ def convertVOCimgToBinary():
     packed_voc_data = packed_voc_data + struct.pack('iii', img_channel, \
                                     img_absolute_width, img_absolute_height)
 
-   # for i in range(0, len(img_absolute_path)):
-    for i in range(0, 1):
+    print 'image number is: ' + str(len(img_absolute_path))
+    print 'unified image width is: ' + str(img_absolute_width)
+    print 'unified image height is: ' + str(img_absolute_height)
+    print 'convert voc image to binary file.'
+    print 'start processing...'
+
+	num_object = 0
+
+    for i in range(0, len(img_absolute_path)):
+#    for i in range(0, 10):
+        start=clock()
         [img_array, img_width, img_height, img_channel] \
                 = convertImgToArray(img_absolute_path[i])
 
-        print img_absolute_path[i]
-        print img_height
-        print img_width
+        print 'this image id is: ' + str(i)
+        print 'this image width is: ' + str(img_width)
+        print 'this image height is: ' + str(img_height)
 
-        img_supply_array = supplyOneImg(img_array, img_absolute_width, \
+        img_mean_array = meanOneImg(img_array, img_width, img_height, img_channel)
+        #将图片补全成一样大小
+        img_supply_array = supplyOneImg(img_mean_array, img_absolute_width, \
                             img_absolute_height, img_width, img_height, \
                                         img_channel)
-        tmp = Image.fromarray(img_supply_array)
-        tmp.show()
-        img_mean_array = meanOneImg(img_array, img_width*img_height, img_channel)
-        #将图片补全成一样大小
-
+        if i < 10:
+            tmp = Image.fromarray(img_supply_array[0].astype(np.uint8))
+            tmp.save('./tmp/'+img_names[i])
 
         #解析图片对应的xml
         annotator_name = annotator_dir + os.path.splitext(img_names[i])[0] + '.xml'
         print annotator_name
 
-        annotator_name = annotator_dir + '2007_000323' + '.xml'
         objects_info = parseVOCAnnotationsOneImg(annotator_name)
 
+        #打包object个数
         packed_voc_data = packed_voc_data + struct.pack('i', len(objects_info))
-        print packed_voc_data
+		num_object = num_object + len(objects_info)
+        #打包每个object对应的左上和右下坐标
         for j in range(0, len(objects_info)):
             packed_voc_data = packed_voc_data + struct.pack('iiiii', \
                                 objects_info[j][0], objects_info[j][1], \
                                 objects_info[j][2], objects_info[j][3], \
                                 objects_info[j][4])
-        print packed_voc_data
+        #打包补全图片像素值
+        img_supply_array = img_supply_array.reshape(img_channel*img_absolute_height*img_absolute_width)
+        array_len = img_channel*img_absolute_width*img_absolute_height
+        packed_voc_data = packed_voc_data + struct.pack('f'*array_len, \
+                                *img_supply_array)
+		
+		if len(packed_voc_data) > 268000000:
+    		VOC_save.write(packed_voc_data)
+			packed_voc_data = ''
 
+
+        end = clock()
+        print (end-start)
+	
+	print num_object
+
+	if packed_voc_data:
+	    VOC_save.write(packed_voc_data)
+    VOC_save.close()
 
 
 
