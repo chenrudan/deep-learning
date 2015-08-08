@@ -9,6 +9,16 @@
 #include "param.h"
 #include "matrix.hpp"
 
+typedef enum LAYER_TYPE {
+	CONVOLUTION = 0,
+	POOLING = 1,
+	SIGMOID = 2,
+	RECTIFIED = 3,
+	INNERPRODUCT = 4,
+	SOFTMAX = 5,
+	DROPOUT = 6
+} LayerType;
+
 template <typename Dtype>
 class Layer {
 
@@ -27,11 +37,16 @@ public:
 	inline Matrix<Dtype>* getDEDY() {
 		return _dE_dy;
 	}
+	LayerType getLayertype(){
+		return _layer_type;
+	}
 
 protected:
 	cublasHandle_t handle;
 	Matrix<Dtype>* _y;    ///>每一层的输出
 	Matrix<Dtype>* _dE_dy;   ///>每层输出的导数
+	LayerType _layer_type;
+
 };
 
 template <typename Dtype>

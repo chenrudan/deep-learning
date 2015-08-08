@@ -24,6 +24,11 @@ typedef enum POOLING_TYPE {
 	AVG_POOLING = 1
 } PoolingType;
 
+typedef enum PARAM_TRAIN_TYPE {
+    NEED = 0,
+    DONTNEED = 1
+} ParamTrainType;
+
 /// \brief 实现了每一层的参数
 ///
 class Param {
@@ -50,11 +55,16 @@ public:
     inline ConnectType getConnectType() {
         return type;
     }
+    ParamTrainType getParamTrainType(){
+        return _param_train_type;
+    }
+
 
 protected:
     string _name;  ///> 实例化每一层的名字，用来区分不同的层
     int _minibatch_size;
     ConnectType type;
+    ParamTrainType _param_train_type;
 };
 
 /// \brief 实现了需要训练的层参数，主要为了改变权重和调节学习率
@@ -69,7 +79,7 @@ public:
 			const int n_push, const int n_fetch) \
 		: _w_lr(w_lr), _b_lr(b_lr), _momentum(momentum), \
 		_weight_decay(w_lr*weight_decay), _n_push(n_push), \
-		_n_fetch(n_fetch){}
+		_n_fetch(n_fetch), _param_train_type(NEED){}
 
     inline void lrMultiScale(float lr_scale) {
         _w_lr *= lr_scale;
@@ -256,7 +266,7 @@ public:
             const int filter_size, const int filter_channel) \
             : TrainParam(w_lr, b_lr, momentum, weight_decay, n_push, n_fetch), \
               LocalConnectParam(name, minibatch_size, in_size, \
-		            pad, stride, in_channel, filter_size, filter_channel) {}
+		            pad, stride, in_channel, filter_size, filter_channel){}
 
     ConvParam(const string name, const float w_lr, \
             const float b_lr, const float momentum, \
@@ -343,7 +353,6 @@ public:
         : TrainParam(w_lr, b_lr, momentum, weight_decay, \
 				n_push, n_fetch),  \
           FullConnectParam(name, num_out, par) {}
-
 };
 
 #endif

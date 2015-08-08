@@ -260,8 +260,6 @@ void LoadCifar10<Dtype>::loadBinary(string filename, \
 				fin.read(&buf, 1);
 				tmp = buf;
 				pixel_ptr[k] = (int)tmp;
-				pixel_ptr[k] /= 255.0;
-
 			}
 			meanOneImg(pixel_ptr, this->_img_sqrt);
 		//	stdOneImg(pixel_ptr, this->_img_sqrt);
@@ -274,6 +272,29 @@ void LoadCifar10<Dtype>::loadBinary(string filename, \
 		}
 	}
 	fin.close();
+}
+
+template <typename Dtype>
+LoadVOC<Dtype>::LoadVOC(){
+
+	this->_is_base_alloc = false;
+
+	ifstream fin1("../data/VOCdevkit/VOC2012/VOC_train_data.bin", \
+			ifstream::binary);
+	ifstream fin2("../data/VOCdevkit/VOC2012/VOC_valid_data.bin", \
+			ifstream::binary);
+	fin1.read((char*)&this->_num_train, sizeof(int));
+	fin2.read((char*)&this->_num_valid, sizeof(int));
+
+	fin1.read((char*)&this->_img_channel, sizeof(int));
+	fin1.read((char*)&this->_img_size, sizeof(int));
+	fin1.read((char*)&this->_img_size, sizeof(int));
+	
+	this->_img_sqrt = this->_img_size * this->_img_size;
+
+	cout << this->_num_train << ":" << this->_num_valid \
+			<< ":" << this->_img_channel \
+		<< ":" << this->_img_size << ":" << this->_img_size << endl; \
 }
 
 

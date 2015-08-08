@@ -9,6 +9,7 @@ template <typename Dtype>
 DropoutLayer<Dtype>::DropoutLayer(Param* p){
 
 	this->_p           = p;
+	this->_layer_type			= DROPOUT;
 }
 
 template <typename Dtype>

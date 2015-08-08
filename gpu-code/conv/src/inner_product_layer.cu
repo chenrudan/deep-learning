@@ -10,6 +10,7 @@ template <typename Dtype>
 InnerProductLayer<Dtype>::InnerProductLayer<Dtype>(InnerParam* fcp) : \
  	TrainLayer<Dtype>((TrainParam*)fcp){
 	this->_fcp = fcp;
+	this->_layer_type			= INNERPRODUCT;
 	cublasCreate(&this->handle);
 }
 

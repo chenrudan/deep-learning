@@ -19,6 +19,7 @@
 #include "pooling_layer.hpp"
 #include "matrix.hpp"
 #include "dropout_layer.hpp"
+#include "model_component.hpp"
 
 using namespace std;
 
@@ -37,13 +38,8 @@ enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 int num_process;
 int rank;
 
-int num_train = 50000;
-int num_valid = 10000;
-int num_minibatch;
-int num_validbatch;
 int num_train_per_process;
 int num_valid_per_process;
-int num_epoch = 500;
 
 void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 		ConvParam* conv3_cp, InnerParam* inner1_ip, \
@@ -131,7 +127,7 @@ cout << "Loading data is done.\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "Initialize weight and bias...\n";
-	gaussRand(cnn1_w, 0.01);
+	gaussRand(cnn1_w, 0.001);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
@@ -758,7 +754,7 @@ int main(int argc, char** argv){
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 8;
 	float conv1_w_lr = 0.001;
-	float conv1_b_lr = 0.0001;
+	float conv1_b_lr = 0.001;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -775,7 +771,7 @@ int main(int argc, char** argv){
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 16;
 	float conv2_w_lr = 0.001;
-	float conv2_b_lr = 0.0001;
+	float conv2_b_lr = 0.001;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
@@ -789,7 +785,7 @@ int main(int argc, char** argv){
 	int conv3_filter_size = 5;
 	int conv3_out_channel = 32;
 	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.0001;
+	float conv3_b_lr = 0.001;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0;
 
@@ -800,13 +796,13 @@ int main(int argc, char** argv){
 
 	int inner1_num_out = 64;
 	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.0001;
+	float inner1_b_lr = 0.001;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 
 	int inner2_num_out = 10;
 	float inner2_w_lr = 0.001;
-	float inner2_b_lr = 0.0001;
+	float inner2_b_lr = 0.001;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0;
 
@@ -866,6 +862,9 @@ int main(int argc, char** argv){
 
 	num_minibatch = num_train / (minibatch_size * (num_process - 1));
 	num_validbatch = num_valid / (minibatch_size * (num_process - 1));
+
+	ModelComponent voc_model;
+
 
 
 	if(rank == 0){ 

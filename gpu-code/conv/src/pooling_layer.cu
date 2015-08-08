@@ -9,7 +9,7 @@ using namespace std;
 template <typename Dtype>
 PoolingLayer<Dtype>::PoolingLayer(PoolParam *lcp){
 	this->_lcp = lcp;
-
+	this->_layer_type			= POOLING;
 	cublasCreate(&this->handle);
 }
 

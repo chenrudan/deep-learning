@@ -154,6 +154,20 @@ public:
 
 };
 
+template <typename Dtype>
+class LoadVOC : public LoadLayer<Dtype> {
+
+public: 
+	LoadVOC();
+
+	~LoadVOC() {}
+
+	using LoadLayer<Dtype>::loadBinary;
+	void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr);
+
+};
+
+
 #include "../src/load_layer.cpp"
 
 #endif

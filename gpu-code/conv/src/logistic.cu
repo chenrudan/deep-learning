@@ -9,7 +9,7 @@ using namespace std;
 template <typename Dtype>
 Logistic<Dtype>::Logistic<Dtype>(FullConnectParam* fcp) {
 	this->_fcp = fcp;
-	
+	this->_layer_type			= SOFTMAX;
 }
 
 template <typename Dtype>
