@@ -17,7 +17,6 @@ ConvNet<Dtype>::ConvNet(ConvParam* cp) : TrainLayer<Dtype>(cp){
 	this->_filt_pixs			= pow(this->_cp->getFilterSize(), 2);
 	this->_conv_pixs			= pow(this->_cp->getOutSize(), 2);
 	this->_padded_in_pixs		= pow(this->_cp->getPaddedInSize(), 2);
-	this->_layer_type			= CONVOLUTION;
 	cublasCreate(&this->handle);
 }
 

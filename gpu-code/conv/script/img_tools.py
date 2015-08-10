@@ -107,6 +107,27 @@ def supplyOneImg(img_array, dst_width, dst_height, ori_width, ori_height, \
     dst_array[0:channels, 0:ori_height, 0:ori_width] = img_array
     return dst_array
 
+def packVOCOneImg(packed_voc, objects_info, num_object, img_supply_array, \
+			array_len, VOC_save):
+	#打包object个数
+	packed_voc = packed_voc + struct.pack('i', len(objects_info))
+	num_object = num_object + len(objects_info)
+    #打包每个object对应的左上和右下坐标
+	for j in range(0, len(objects_info)):
+		packed_voc = packed_voc + struct.pack('iiiii', \
+		                        objects_info[j][0], objects_info[j][1], \
+                                objects_info[j][2], objects_info[j][3], \
+                                objects_info[j][4])
+    #打包补全图片像素值
+	packed_voc = packed_voc + struct.pack('f'*array_len, \
+                           *img_supply_array)
+		
+	if len(packed_voc) > 268000000:
+		VOC_save.write(packed_voc)
+		packed_voc = ''
+	
+	return [packed_voc, num_object]
+	
 
 '''
 num_img + img_channel + img_width + img_height
@@ -114,80 +135,90 @@ num_img + img_channel + img_width + img_height
 + ...
 '''
 def convertVOCimgToBinary():
-    img_dir = '/home/crd/data/VOCdevkit/VOC2012/JPEGImages/'
-    annotator_dir = '/home/crd/data/VOCdevkit/VOC2012/Annotations/'
-    [img_absolute_path, img_names] = getFilesOfDir(img_dir)
+	img_dir = '/home/crd/data/VOCdevkit/VOC2012/JPEGImages/'
+	annotator_dir = '/home/crd/data/VOCdevkit/VOC2012/Annotations/'
+	[img_absolute_path, img_names] = getFilesOfDir(img_dir)
 
-    img_absolute_width = 500
-    img_absolute_height = 500
-    img_channel = 3
+	img_absolute_width = 500
+	img_absolute_height = 500
+	img_channel = 3
 
-    VOC_save = open('VOCdata.bin', 'w')
-    packed_voc_data = struct.pack('i', len(img_absolute_path))
-    packed_voc_data = packed_voc_data + struct.pack('iii', img_channel, \
+	VOC_train_save = open('/home/crd/data/VOCdevkit/VOC2012/VOC_train_data.bin', 'w')
+	VOC_valid_save = open('/home/crd/data/VOCdevkit/VOC2012/VOC_valid_data.bin', 'w')
+
+	num_train = len(img_absolute_path) * 9 / 10;
+	num_valid = len(img_absolute_path) - num_train;
+
+	packed_voc_train = struct.pack('i', num_train)
+	packed_voc_train = packed_voc_train + struct.pack('iii', img_channel, \
                                     img_absolute_width, img_absolute_height)
 
-    print 'image number is: ' + str(len(img_absolute_path))
-    print 'unified image width is: ' + str(img_absolute_width)
-    print 'unified image height is: ' + str(img_absolute_height)
-    print 'convert voc image to binary file.'
-    print 'start processing...'
+	packed_voc_valid = struct.pack('i', num_valid)
+	packed_voc_valid = packed_voc_valid + struct.pack('iii', img_channel, \
+                                    img_absolute_width, img_absolute_height)
 
-	num_object = 0
+	print 'image number is: ' + str(len(img_absolute_path))
+	print 'train number is: ' + str(num_train)
+	print 'valid number is: ' + str(num_valid)
+	print 'unified image width is: ' + str(img_absolute_width)
+	print 'unified image height is: ' + str(img_absolute_height)
+	print 'convert voc image to binary file.'
+	print 'start processing...'
 
-    for i in range(0, len(img_absolute_path)):
-#    for i in range(0, 10):
-        start=clock()
-        [img_array, img_width, img_height, img_channel] \
+	num_train_object = 0
+	num_valid_object = 0
+
+	packed_array_len = img_channel*img_absolute_width*img_absolute_height
+
+	for i in range(0, len(img_absolute_path)):
+#	for i in range(0, 10):
+		start=clock()
+		[img_array, img_width, img_height, img_channel] \
                 = convertImgToArray(img_absolute_path[i])
 
-        print 'this image id is: ' + str(i)
-        print 'this image width is: ' + str(img_width)
-        print 'this image height is: ' + str(img_height)
+		print 'this image id is: ' + str(i)	
+		print 'this image width is: ' + str(img_width)
+		print 'this image height is: ' + str(img_height)
 
-        img_mean_array = meanOneImg(img_array, img_width, img_height, img_channel)
+		img_mean_array = meanOneImg(img_array, img_width, img_height, img_channel)
         #将图片补全成一样大小
-        img_supply_array = supplyOneImg(img_mean_array, img_absolute_width, \
+		img_supply_array = supplyOneImg(img_mean_array, img_absolute_width, \
                             img_absolute_height, img_width, img_height, \
                                         img_channel)
-        if i < 10:
-            tmp = Image.fromarray(img_supply_array[0].astype(np.uint8))
-            tmp.save('./tmp/'+img_names[i])
+		if i < 10:
+			tmp = Image.fromarray(img_supply_array[0].astype(np.uint8))
+			tmp.save('./tmp/'+img_names[i])
 
         #解析图片对应的xml
-        annotator_name = annotator_dir + os.path.splitext(img_names[i])[0] + '.xml'
-        print annotator_name
+		annotator_name = annotator_dir + os.path.splitext(img_names[i])[0] + '.xml'
+		print annotator_name
 
-        objects_info = parseVOCAnnotationsOneImg(annotator_name)
-
-        #打包object个数
-        packed_voc_data = packed_voc_data + struct.pack('i', len(objects_info))
-		num_object = num_object + len(objects_info)
-        #打包每个object对应的左上和右下坐标
-        for j in range(0, len(objects_info)):
-            packed_voc_data = packed_voc_data + struct.pack('iiiii', \
-                                objects_info[j][0], objects_info[j][1], \
-                                objects_info[j][2], objects_info[j][3], \
-                                objects_info[j][4])
-        #打包补全图片像素值
-        img_supply_array = img_supply_array.reshape(img_channel*img_absolute_height*img_absolute_width)
-        array_len = img_channel*img_absolute_width*img_absolute_height
-        packed_voc_data = packed_voc_data + struct.pack('f'*array_len, \
-                                *img_supply_array)
+		objects_info = parseVOCAnnotationsOneImg(annotator_name)
 		
-		if len(packed_voc_data) > 268000000:
-    		VOC_save.write(packed_voc_data)
-			packed_voc_data = ''
+		img_supply_array = img_supply_array.reshape(img_channel*img_absolute_height*img_absolute_width)
 
+		if i < num_train:
+			[packed_voc_train, num_train_object] = packVOCOneImg(packed_voc_train, \
+					objects_info, num_train_object, img_supply_array, \
+					packed_array_len, VOC_train_save)	
+		else:
+			[packed_voc_valid, num_valid_object] = packVOCOneImg(packed_voc_valid, \
+					objects_info, num_valid_object, img_supply_array, \
+					packed_array_len, VOC_valid_save)	
 
-        end = clock()
-        print (end-start)
+		end = clock()
+		print str(end-start)+' seconds'
 	
-	print num_object
+	print 'train objects num is: ' + str(num_train_object)
+	print 'valid objects num is: ' + str(num_valid_object)
 
-	if packed_voc_data:
-	    VOC_save.write(packed_voc_data)
-    VOC_save.close()
+	if packed_voc_train:
+	    VOC_train_save.write(packed_voc_train)
+	if packed_voc_valid:
+	    VOC_valid_save.write(packed_voc_valid)
+
+	VOC_train_save.close()
+	VOC_valid_save.close()
 
 
 

@@ -10,7 +10,6 @@ template <typename Dtype>
 SigmoidLayer<Dtype>::SigmoidLayer(Param* fcp){
 
 	this->_fcp           = fcp;
-	this->_layer_type			= SIGMOID;
 }
 
 template <typename Dtype>

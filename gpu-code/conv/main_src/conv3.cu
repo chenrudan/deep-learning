@@ -19,7 +19,6 @@
 #include "pooling_layer.hpp"
 #include "matrix.hpp"
 #include "dropout_layer.hpp"
-#include "model_component.hpp"
 
 using namespace std;
 
@@ -38,8 +37,13 @@ enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 int num_process;
 int rank;
 
+int num_train = 50000;
+int num_valid = 10000;
+int num_minibatch;
+int num_validbatch;
 int num_train_per_process;
 int num_valid_per_process;
+int num_epoch = 500;
 
 void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
 		ConvParam* conv3_cp, InnerParam* inner1_ip, \
@@ -127,7 +131,7 @@ cout << "Loading data is done.\n";
 	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
 
 cout << "Initialize weight and bias...\n";
-	gaussRand(cnn1_w, 0.001);
+	gaussRand(cnn1_w, 0.01);
 //	initW(cnn1_w);
 	gaussRand(cnn2_w, 0.01);
 //	initW(cnn2_w);
@@ -137,10 +141,10 @@ cout << "Initialize weight and bias...\n";
 	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
 	cudaMemset(cnn3_bias->getDevData(), 0, sizeof(float) * cnn3_b_len);
 
-	gaussRand(inner1_w, 0.1);
+	gaussRand(inner1_w, 0.01);
 //	initW(inner1_w);
 	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-	gaussRand(softmax_w, 0.1);
+	gaussRand(softmax_w, 0.01);
 //	initW(softmax_w);
 	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
 
@@ -517,26 +521,27 @@ cout << "Start training...\n";
 			likelihood += softmax.computeError(mini_label, error);
 
 			softmax.computeDerivsOfInput(inner2_dE_dy, mini_label);
-			inner2.computeDerivsOfPars(relu4_y);
 			inner2.computeDerivsOfInput(relu4_dE_dy);
 
 //			drop2.computeDerivsOfInput(relu4_dE_dy);
 			relu4.computeDerivsOfInput(inner1_dE_dy);
-			inner1.computeDerivsOfPars(pool3_y);
 			inner1.computeDerivsOfInput(pool3_dE_dy);
 
 			pool3.computeDerivsOfInput(relu3_dE_dy);
 			relu3.computeDerivsOfInput(cnn3_dE_dy);
-			cnn3.computeDerivsOfPars(cnn3_y);
 			cnn3.computeDerivsOfInput(pool2_dE_dy);
 
 			pool2.computeDerivsOfInput(relu2_dE_dy);
 			relu2.computeDerivsOfInput(cnn2_dE_dy);
-			cnn2.computeDerivsOfPars(cnn2_y);
 			cnn2.computeDerivsOfInput(pool1_dE_dy);
 
 			pool1.computeDerivsOfInput(relu1_dE_dy);
 			relu1.computeDerivsOfInput(cnn1_dE_dy);
+			
+			inner2.computeDerivsOfPars(relu4_y);
+			inner1.computeDerivsOfPars(pool3_y);
+			cnn3.computeDerivsOfPars(pool2_y);
+			cnn2.computeDerivsOfPars(pool1_y);
 			cnn1.computeDerivsOfPars(mini_data);
 
 			cnn1.updatePars();
@@ -678,6 +683,7 @@ cout << "Start training...\n";
 			inner1_bias->showValue("inner1_bias");
 			softmax_w->showValue("inner2_w");
 			softmax_bias->showValue("inner2_bias");
+
 		}
 
 
@@ -753,8 +759,8 @@ int main(int argc, char** argv){
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 8;
-	float conv1_w_lr = 0.001;
-	float conv1_b_lr = 0.001;
+	float conv1_w_lr = 0.0001;
+	float conv1_b_lr = 0.00001;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
 	int n_push = 49;
@@ -770,22 +776,22 @@ int main(int argc, char** argv){
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 16;
-	float conv2_w_lr = 0.001;
-	float conv2_b_lr = 0.001;
+	float conv2_w_lr = 0.0001;
+	float conv2_b_lr = 0.00001;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
 	int pool2_filter_size = 3;
-	PoolingType pool2_type = AVG_POOLING;
+	PoolingType pool2_type = MAX_POOLING;
 
 	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
 	int conv3_out_channel = 32;
 	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.001;
+	float conv3_b_lr = 0.00001;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0;
 
@@ -796,13 +802,13 @@ int main(int argc, char** argv){
 
 	int inner1_num_out = 64;
 	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.001;
+	float inner1_b_lr = 0.00001;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 
 	int inner2_num_out = 10;
-	float inner2_w_lr = 0.001;
-	float inner2_b_lr = 0.001;
+	float inner2_w_lr = 0.0001;
+	float inner2_b_lr = 0.000001;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0;
 
@@ -862,9 +868,6 @@ int main(int argc, char** argv){
 
 	num_minibatch = num_train / (minibatch_size * (num_process - 1));
 	num_validbatch = num_valid / (minibatch_size * (num_process - 1));
-
-	ModelComponent voc_model;
-
 
 
 	if(rank == 0){ 

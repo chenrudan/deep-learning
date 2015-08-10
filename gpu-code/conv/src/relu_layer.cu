@@ -9,7 +9,6 @@ template <typename Dtype>
 ReluLayer<Dtype>::ReluLayer(Param* p){
 
 	this->_p           = p;
-	this->_layer_type			= RECTIFIED;
 }
 
 template <typename Dtype>
