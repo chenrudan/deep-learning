@@ -160,11 +160,25 @@ class LoadVOC : public LoadLayer<Dtype> {
 public: 
 	LoadVOC();
 
-	~LoadVOC() {}
+	~LoadVOC();
 
 	using LoadLayer<Dtype>::loadBinary;
-	void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr);
+	void loadBinary(string filename, Dtype* &pixel_ptr, vector<int>* &label_ptr);
+	
+	loadTrainOneBatch();
+	loadValidOneBatch();
 
+	vector<int>* getTrainLabelAndCoord(){
+		return _label_and_coord;
+	}
+
+private:
+	int _minibatch_size;
+	string _train_file;
+	string _valid_file;
+	ifstream _fin1;
+	ifstream _fin2;
+	vector<int>* _label_and_coord;
 };
 
 

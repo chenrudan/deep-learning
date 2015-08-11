@@ -275,29 +275,90 @@ void LoadCifar10<Dtype>::loadBinary(string filename, \
 }
 
 template <typename Dtype>
-LoadVOC<Dtype>::LoadVOC(){
+LoadVOC<Dtype>::LoadVOC(int minibatch_size){
 
 	this->_is_base_alloc = false;
 
-	ifstream fin1("../data/VOCdevkit/VOC2012/VOC_train_data.bin", \
-			ifstream::binary);
-	ifstream fin2("../data/VOCdevkit/VOC2012/VOC_valid_data.bin", \
-			ifstream::binary);
-	fin1.read((char*)&this->_num_train, sizeof(int));
-	fin2.read((char*)&this->_num_valid, sizeof(int));
+	_train_file = "../data/VOCdevkit/VOC2012/VOC_train_data.bin";
+	_valid_file = "../data/VOCdevkit/VOC2012/VOC_valid_data.bin";
 
-	fin1.read((char*)&this->_img_channel, sizeof(int));
-	fin1.read((char*)&this->_img_size, sizeof(int));
-	fin1.read((char*)&this->_img_size, sizeof(int));
-	
+	_fin1(_train_file.c_str(), ifstream::binary);
+	_fin2(_valid_file.c_str(), ifstream::binary);
+	if(!_fin1.is_open() || !_fin2.is_open()){
+		cout << "open original data file failed\n";
+		exit(EXIT_FAILURE);
+	}
+	_fin1.read((char*)&this->_num_train, sizeof(int));
+	_fin2.read((char*)&this->_num_valid, sizeof(int));
+
+	_fin1.read((char*)&this->_img_channel, sizeof(int));
+	_fin1.read((char*)&this->_img_size, sizeof(int));
+	_fin1.read((char*)&this->_img_size, sizeof(int));
+
+	//将valid集偏移到数据的地方统一方法处理
+	_fin2.seekg(3*sizeof(int), is.cur);
+
 	this->_img_sqrt = this->_img_size * this->_img_size;
 
 	cout << this->_num_train << ":" << this->_num_valid \
 			<< ":" << this->_img_channel \
-		<< ":" << this->_img_size << ":" << this->_img_size << endl; \
+		<< ":" << this->_img_size << ":" << this->_img_size << endl; 
+	_minibatch_size = minibatch_size;
+
+	_train_pixel = new Dtype[minibatch_size * _img_sqrt * _img_channel];
+	_label_and_coord = new vector<int>[minibatch_size];
+}
+
+template <typename Dtype>
+LoadVOC<Dtype>::~LoadVOC(){
+	_fin1.close();
+	_fin2.close();
+	delete[] _train_pixel;
+	delete[] _label_and_coord;
+}
+
+template <typename Dtype>
+LoadVOC<Dtype>::loadTrainOneBatch(){
+	loadBinary(_fin1, _train_pixel, _train_label_and_coord);
+}
+
+template <typename Dtype>
+LoadVOC<Dtype>::loadValidOneBatch(){
+	loadBinary(_fin2, _train_pixel, _train_label_and_coord);
 }
 
 
+//之前的数据集传引用是因为要读全部的数据，所以要留下读取的位置，而本次中
+//一次只读取一个minibatch的数据
+template <typename Dtype>
+void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* pixel_ptr, \
+		vector<int>* label_ptr){
+
+	for(int i = 0; i < _minibatch_size; i++){
+		if(fin.eof())
+			fin.seekg(4*sizeof(int), is.beg);
+
+		int num_object;
+		fin.read((char*)&num_object, sizeof(int));
+		for(int j = 0; j < num_object; j++){
+			int tmp;
+			//首先是label，再是这个label在原图中的坐标
+			fin.read((char*)&tmp, sizeof(int));
+			label_ptr[i].push_back(tmp);
+		}
+		//然后是像素数据
+		for(int j = 0; j < this->_img_channel; j++){
+			for(int k = 0; k < this->_img_sqrt; k++){
+				fin.read((char*)&pixel_ptr[k], sizeof(Dtype));
+			}
+			meanOneImg(pixel_ptr, this->_img_sqrt);
+		//	stdOneImg(pixel_ptr, this->_img_sqrt);
+			if(i != num - 1 || j != this->_img_channel - 1)
+				pixel_ptr += this->_img_sqrt;
+		}
+	}
+	fin.close();
+}
 
 
 

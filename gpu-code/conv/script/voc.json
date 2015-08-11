@@ -1,0 +1,112 @@
+{
+	"name": "VOCnet",
+	"minibatch_size": "100",
+	"img_size": "500",
+	"img_channel": "3",
+	"n_push": "49",
+	"n_fetch": "50",
+	"num_epoch": "100",
+	"layer":
+		[
+		{
+			"type": "CONVOLUTION",
+			"name": "conv1",
+			"pad": "2",
+			"stride": "1",
+			"filter_size": "5",
+			"filter_channel": "8",
+			"w_lr": "0.001",
+			"bias_lr": "0.001",
+			"momentum": "0.9",
+			"weight_decay": "0"
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu1"
+		},
+		{
+			"type": "POOLING",
+			"name": "pool1",
+			"pool_type": "MAX_POOLING",
+			"pad": "0",
+			"stride": "2",
+			"filter_size": "3"
+		},
+		{
+			"type": "CONVOLUTION",
+			"name": "conv2",
+			"pad": "2",
+			"stride": "1",
+			"filter_size": "5",
+			"filter_channel": "8",
+			"w_lr": "0.001",
+			"bias_lr": "0.001",
+			"momentum": "0.9",
+			"weight_decay": "0"
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu2"
+		},
+		{
+			"type": "POOLING",
+			"name": "pool2",
+			"pool_type": "MAX_POOLING",
+			"pad": "0",
+			"stride": "2",
+			"filter_size": "3"
+		},
+		{
+			"type": "CONVOLUTION",
+			"name": "conv3",
+			"pad": "2",
+			"stride": "1",
+			"filter_size": "5",
+			"filter_channel": "8",
+			"w_lr": "0.001",
+			"bias_lr": "0.001",
+			"momentum": "0.9",
+			"weight_decay": "0"
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu3"
+		},
+		{
+			"type": "POOLING",
+			"name": "pool3",
+			"pool_type": "MAX_POOLING",
+			"pad": "0",
+			"stride": "2",
+			"filter_size": "3"
+		},
+		{
+			"type": "INNERPRODUCT",
+			"name": "inner1",
+			"num_out": "64",
+			"w_lr": "0.001",
+			"bias_lr": "0.001",
+			"momentum": "0.9",
+			"weight_decay": "0"
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu4"
+		},
+		{
+			"type": "INNERPRODUCT",
+			"name": "inner2",
+			"num_out": "10",
+			"w_lr": "0.001",
+			"bias_lr": "0.001",
+			"momentum": "0.9",
+			"weight_decay": "0"
+		},
+		{
+			"type": "SOFTMAX",
+			"name": "softmax"
+		}
+
+		]
+}
+

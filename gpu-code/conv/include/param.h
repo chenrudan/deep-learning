@@ -24,6 +24,21 @@ typedef enum POOLING_TYPE {
 	AVG_POOLING = 1
 } PoolingType;
 
+typedef enum PARAM_TRAIN_TYPE {
+    NEED = 0,
+    NOTNEED = 1
+} ParamTrainType;
+
+typedef enum LAYER_TYPE {
+    CONVOLUTION = 0,
+    POOLING = 1,
+    SIGMOID = 2,
+    RECTIFIED = 3,
+    INNERPRODUCT = 4,
+    SOFTMAX = 5,
+    DROPOUT = 6
+} LayerType;
+
 /// \brief 实现了每一层的参数
 ///
 class Param {
@@ -33,13 +48,12 @@ public:
 
     virtual ~Param() { }
 
-    Param(string name, const int minibatch_size) : _name(name), \
-							_minibatch_size(minibatch_size){}
+    Param(string name, LayerType layer_type) : \
+                _name(name), _layer_type(layer_type) {}
 
 	inline virtual int getNumOut() {return 0;}
 	inline virtual int getOutChannel() {return 0;}
-	inline virtual int getOutSize() {return 0;}
-	
+	inline virtual int getOutSize() {return 0;}	
 
     inline int getMinibatchSize() {
         return _minibatch_size;
@@ -50,11 +64,19 @@ public:
     inline ConnectType getConnectType() {
         return type;
     }
+    ParamTrainType getParamTrainType(){
+        return _param_train_type;
+    }
+    LayerType getLayerType(){
+        return _layer_type;
+    }
 
 protected:
     string _name;  ///> 实例化每一层的名字，用来区分不同的层
-    int _minibatch_size;
+    static int _minibatch_size;
     ConnectType type;
+    ParamTrainType _param_train_type;
+    LayerType _layer_type;
 };
 
 /// \brief 实现了需要训练的层参数，主要为了改变权重和调节学习率
@@ -65,11 +87,9 @@ public:
     virtual ~TrainParam() { }
 
     TrainParam(const float w_lr, const float b_lr, \
-            const float momentum, const float weight_decay, \
-			const int n_push, const int n_fetch) \
+            const float momentum, const float weight_decay) \
 		: _w_lr(w_lr), _b_lr(b_lr), _momentum(momentum), \
-		_weight_decay(w_lr*weight_decay), _n_push(n_push), \
-		_n_fetch(n_fetch){}
+		_weight_decay(w_lr*weight_decay), _param_train_type(NEED){}
 
     inline void lrMultiScale(float lr_scale) {
         _w_lr *= lr_scale;
@@ -105,8 +125,8 @@ protected:
     float _momentum;
 	float _weight_decay;
 
-    int _n_push;
-    int _n_fetch;
+    static int _n_push;
+    static int _n_fetch;
 };
 
 /// \brief 局部连接层的参数，以图片形式保存数据
@@ -117,31 +137,29 @@ public:
 
     virtual ~LocalConnectParam() { }
 
-    LocalConnectParam(string name, \
-		const int minibatch_size, const int in_size, \
+    LocalConnectParam(LayerType layer_type, string name, const int in_size, \
 		const int pad, const int stride, const int in_channel, \
 		const int filter_size, const int out_channel) \
 		: _in_size(in_size), _stride(stride), _in_channel(in_channel), \
 		_pad(pad), _filter_size(filter_size), _out_channel(out_channel){
 
+            this->_layer_type = layer_type;
 			this->_name = name;
-			this->_minibatch_size = minibatch_size;
 			this->type = PARAM_CONNECT_TYPE_LOCAL;
 			_padded_in_size = in_size + 2 * pad;
 			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
 		}
 
-    LocalConnectParam(string name, \
+    LocalConnectParam(LayerType layer_type, string name, \
 		const int pad, const int stride, \
 		const int filter_size, const int filter_channel, \
 		LocalConnectParam* lc_par) \
 		: _in_size(lc_par->getOutSize()), _stride(stride), \
 		_in_channel(lc_par->getOutChannel()), _pad(pad), \
 		_filter_size(filter_size) {
-			
+
+            this->_layer_type = layer_type;
 			this->_name = name;
-			this->_minibatch_size = lc_par->getMinibatchSize();
-		
 			if(filter_channel != 0)
 				_out_channel = filter_channel;
 			else
@@ -152,8 +170,6 @@ public:
 			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
 
 		}
-
-
 
     inline int getInSize() {
         return _in_size;
@@ -201,18 +217,17 @@ class FullConnectParam : public virtual Param {
 public:
     FullConnectParam() { }
     virtual ~FullConnectParam() { }
-    FullConnectParam(string name, \
-		const int minibatch_size, const int num_in, \
-		const int num_out) \
+    FullConnectParam(LayerType layer_type, string name, \
+        const int num_in, const int num_out) \
 		: _num_in(num_in), _num_out(num_out) {
+            this->_layer_type = layer_type;
 			this->_name = name;
-			this->_minibatch_size = minibatch_size;
 			this->type = PARAM_CONNECT_TYPE_FULL;
 		}
-    FullConnectParam(string name, \
+    FullConnectParam(LayerType layer_type, string name, \
 		const int num_out, Param* par){
+            this->_layer_type = layer_type;
 			this->_name = name;
-			this->_minibatch_size = par->getMinibatchSize();
 			this->type = PARAM_CONNECT_TYPE_FULL;
 			
 			///由传递进来的层类型决定计算方式
@@ -248,25 +263,24 @@ public:
 
     ~ConvParam(){}
 
-    ConvParam(const string name, const int minibatch_size, \
-            const float w_lr, const float b_lr, const float momentum, \
+    ConvParam(const LayerType layer_type, const string name, \
+            const float w_lr, \
+			const float b_lr, const float momentum, \
 			const float weight_decay, \
-            const int n_push, const int n_fetch, const int in_size, \
+            const int in_size, \
             const int pad, const int stride, const int in_channel, \
             const int filter_size, const int filter_channel) \
-            : TrainParam(w_lr, b_lr, momentum, weight_decay, n_push, n_fetch), \
-              LocalConnectParam(name, minibatch_size, in_size, \
+            : TrainParam(w_lr, b_lr, momentum, weight_decay), \
+              LocalConnectParam(layer_type, name, in_size, \
 		            pad, stride, in_channel, filter_size, filter_channel) {}
 
-    ConvParam(const string name, const float w_lr, \
+    ConvParam(const LayerType layer_type, const string name, const float w_lr, \
             const float b_lr, const float momentum, \
-			const float weight_decay, \
-            const int n_push, const int n_fetch, const int pad, \
+			const float weight_decay, const int pad, \
             const int stride, const int filter_size, \
             const int filter_channel, LocalConnectParam *lc_par) \
-            : TrainParam(w_lr, b_lr, momentum, weight_decay, \
-				   	n_push, n_fetch), \
-              LocalConnectParam(name, pad, stride, \
+            : TrainParam(w_lr, b_lr, momentum, weight_decay), \
+              LocalConnectParam(layer_type, name, pad, stride, \
 		            filter_size, filter_channel, lc_par)  {}
 };
 
@@ -275,11 +289,11 @@ public:
 		PoolParam() {}
 		~PoolParam() {}
 
-    	PoolParam(const string name, const int minibatch_size, \
+    	PoolParam(const LayerType layer_type, const string name, \
             const int in_size, const int pad, const int stride, \
 			const int in_channel, const int filter_size, \
 			const int filter_channel, PoolingType p_type) 
-            :  LocalConnectParam(name, minibatch_size, in_size, \
+            :  LocalConnectParam(layer_type, name, in_size, \
 					pad, stride, in_channel, filter_size, filter_channel) , \
 			_p_type(p_type){
 				_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
@@ -289,10 +303,11 @@ public:
 			
 
 
-    	PoolParam(const string name, const int pad, const int stride, \
+    	PoolParam(const LayerType layer_type, const string name, \
+            const int pad, const int stride, \
 			const int filter_size, const int filter_channel, \
 			LocalConnectParam* lc_par, PoolingType p_type) 
-            :  LocalConnectParam(name, pad, stride, filter_size, \
+            :  LocalConnectParam(layer_type, name, pad, stride, filter_size, \
 					filter_channel, lc_par), \
 			_p_type(p_type){
 				_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
@@ -327,22 +342,19 @@ public:
 
     ~InnerParam() {}
 
-    InnerParam(const string name, const int minibatch_size, \
+    InnerParam(const LayerType layer_type, const string name, \
 		const float w_lr, const float b_lr, const float momentum, \
 		const float weight_decay, \
-		const int n_push, const int n_fetch, const int num_in, \
-		const int num_out) \
-        : TrainParam(w_lr, b_lr, momentum, weight_decay, \
-				n_push, n_fetch),
-          FullConnectParam(name, minibatch_size, num_in, num_out){}
+		const int num_in, const int num_out) \
+        : TrainParam(w_lr, b_lr, momentum, weight_decay),
+          FullConnectParam(layer_type, name, num_in, num_out){}
 
-    InnerParam(const string name, const float w_lr, const float b_lr, \
+    InnerParam(const LayerType layer_type, const string name, \
+        const float w_lr, const float b_lr, \
         const float momentum, const float weight_decay, \
-		const int n_push, const int n_fetch, \
         const int num_out, Param* par) \
-        : TrainParam(w_lr, b_lr, momentum, weight_decay, \
-				n_push, n_fetch),  \
-          FullConnectParam(name, num_out, par) {}
+        : TrainParam(w_lr, b_lr, momentum, weight_decay),  \
+          FullConnectParam(layer_type, name, num_out, par) {}
 
 };
 

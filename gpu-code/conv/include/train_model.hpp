@@ -8,20 +8,22 @@
 #define TRAINMODEL_H_
 
 #include <iostream>
-#include <string>
-
+#include "model_component.hpp"
 
 using namespace std;
 
 /// \brief 实现了网络在训练过程中会执行的一些操作
 ///
 template<typename Dtype>
-class Matrix : public Data<Dtype> {
+class TrainModel {
 private:
 
 
 public:
+    TrainModel();
+    ~TrainModel();
 
+    void parseNetJson(string json_file);
 
 };
 
