@@ -70,6 +70,10 @@ public:
     LayerType getLayerType(){
         return _layer_type;
     }
+    void printParam(){
+        cout << "\n============"<< _name << "============" \
+                << "\nlayer_type: " << _layer_type;
+    }
 
 protected:
     string _name;  ///> 实例化每一层的名字，用来区分不同的层
@@ -117,6 +121,12 @@ public:
     }
     inline int getNFetch() {
         return _n_fetch;
+    }
+    void printParam(){
+        cout << "\nw_lr: " << _w_lr \
+				<< "\nb_lr: " << _b_lr \
+				<< "\nmomentum: " << _momentum \
+				<< "\nweight_decay: " << _weight_decay;
     }
 
 protected:
@@ -197,6 +207,15 @@ public:
     inline int getPad(){
         return _pad;
     }
+    void printParam(){
+        Param::printParam();
+        cout << "\nin_size: " << _in_size \
+				<< "\nin_channel: " << _in_channel \
+                << "\nfilter_size: " << _filter_size \
+				<< "\nfilter_channel: " << _out_channel \
+				<< "\npad: " << _pad \
+				<< "\nstride: " << _stride;
+    }
 
 private:
     int _in_size;
@@ -251,6 +270,11 @@ public:
     inline int getNumOut() {
         return _num_out;
     }
+    void printParam(){
+        Param::printParam();
+        cout << "\nnum_in: " << _num_in \
+				<< "\nnum_out: " << _num_out;
+    }
 
 private:
     int _num_in;
@@ -282,6 +306,10 @@ public:
             : TrainParam(w_lr, b_lr, momentum, weight_decay), \
               LocalConnectParam(layer_type, name, pad, stride, \
 		            filter_size, filter_channel, lc_par)  {}
+    void printParam(){
+        LocalConnectParam::printParam();
+        TrainParam::printParam();
+    }
 };
 
 class PoolParam : public LocalConnectParam {
@@ -300,8 +328,6 @@ public:
 							* 1.0f / MAX_THREAD_SIZE) + 1;
 				_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
 			}
-			
-
 
     	PoolParam(const LayerType layer_type, const string name, \
             const int pad, const int stride, \
@@ -325,7 +351,9 @@ public:
 		inline int getBoxInSize(){
 			return _box_in_size;
 		}
-		
+        void printParam(){
+            LocalConnectParam::printParam();
+        }
 
 
 private:
@@ -355,7 +383,10 @@ public:
         const int num_out, Param* par) \
         : TrainParam(w_lr, b_lr, momentum, weight_decay),  \
           FullConnectParam(layer_type, name, num_out, par) {}
-
+    void printParam(){
+        FullConnectParam::printParam();
+        TrainParam::printParam();
+    }
 };
 
 #endif

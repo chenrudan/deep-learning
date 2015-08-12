@@ -29,29 +29,51 @@ private:
     int _num_valid_batch;
     int _num_epoch;
     int _num_layers;
-    int _num_local_layers;
     int _num_need_train_layers;
-    int _num_need_train_local_layers;
+    int _img_size;
+    int _img_channel;
     int _one_img_len;  ///>输入的一张图片的长度
 	int _in_len_each_process;
-    vector<Layer*> _layers_ptr;    ///>保存每个层的指针
-    vector<Layer*> _layers_needed_train_ptr;
-    vector<Param*> _layers_param_ptr;  ///>保存每一层的参数
-    vector<Param*> _layers_need_train_param_ptr;
+    int _rank;  ///>进程id
+    vector<Layer*> _layers;    ///>保存每个层的指针
+    vector<Layer*> _layers_needed_train;
+    vector<Param*> _layers_param;  ///>保存每一层的参数
+    vector<Param*> _layers_need_train_param;
     vector<int> _w_len;   ///>需要训练的层的权重长度，用来进程间传递数据
     vector<int> _bias_len;
-    vector< Matrix<Dtype>* > _w_ptr; ///>保存需要训练层的权重指针
-    vector< Matrix<Dtype>* > _bias_ptr;
-    vector< Matrix<Dtype>* > _y_ptr;
+    vector<float> _w_init_gauss;
+    vector< Matrix<Dtype>* > _w_for_manager; ///>保存需要训练层的权重指针
+    vector< Matrix<Dtype>* > _bias_for_manager;
 
-    vector< Matrix<Dtype>* > _dE_dy_ptr;
-friend class ModelTrain;
+    vector< Matrix<Dtype>* > _y_for_worker;
+    vector< Matrix<Dtype>* > _dE_dy_for_worker;
+    vector< Matrix<Dtype>* > _y_for_compute_par;
+
+    Matrix<Dtype>* _mini_train_data;  ///> 需要保存两组数据，一组当前作为运算，一组在运算的时候交换，下一次再计算
+    Matrix<Dtype>* _mini_valid_data;
+    Matrix< vector<int> > *_mini_train_label_for_voc;
+    Matrix< vector<int> > *_mini_valid_label_for_voc;
+    Matrix<Dtype>* _mini_data;
+    Matrix< vector<int> > *_mini_label_for_voc;
+
+    map<string, LayerType> _string_map_layertype;
 
 public:
 
-    ModelComponent() {}
-    ~ModelComponent() {}
+    ModelComponent();
+    ~ModelComponent();
 
+    friend class ModelTrain;
+
+    void setImgSize(const int img_size){
+        _img_size = img_size;
+    }
+    void setRank(const int rank){
+        _rank = rank;
+    }
+    void setImgChannel(const int img_channel){
+        _img_channel = img_channel;
+    }
     void setOneImgLen(const int one_img_len){
         _one_img_len = one_img_len;
     }
@@ -61,14 +83,8 @@ public:
     void setNumLayers(const int num_layers){
         _num_layers = num_layers;
     }
-    void setNumLocalLayers(const int num_local_layers){
-        _num_local_layers = num_local_layers;
-    }
     void setNumNeedTrainLayers(const int num_need_train_layers){
         _num_need_train_layers= num_need_train_layers;
-    }
-    void setNumNeedTrainLocalLayers(const int num_need_train_local_layers){
-        _num_need_train_local_layers= num_need_train_local_layers;
     }
     void setNumProcess(const int num_process){
         _num_process = num_process;
@@ -89,25 +105,25 @@ public:
         _minibatch_size = minibatch_size;
     }
     void setNumTrainbatch(){
-        _num_batch = _num_train / (_minibatch_size * (_num_process - 1));
+        _num_train_batch = _num_train / (_minibatch_size * (_num_process - 1));
     }
     void setNumValidbatch(){
-        _num_batch = _num_valid / (_minibatch_size * (_num_process - 1));
+        _num_valide_batch = _num_valid / (_minibatch_size * (_num_process - 1));
     }
     void setEpoch(const int num_epoch){
         _num_epoch = num_epoch;
     }
-    void setLayers(Layer* layer){
-        _layers_ptr.push_back(layer);
+    void setLayers(Layer<Dtype>* layer){
+        _layers.push_back(layer);
     }
-    void setNeedTrainLayers(Layer* need_train_layer){
-        _layers_ptr.push_back(need_train_layer);
+    void setNeedTrainLayers(Layer<Dtype>* need_train_layer){
+        _layers.push_back(need_train_layer);
     }
     void setLayersParam(Param* param){
-        _layers_param_ptr.push_back(param);
+        _layers_param.push_back(param);
     }
     void setNeedTrainLayersParam(Param* param){
-        _layers_need_train_param_ptr.push_back(param);
+        _layers_need_train_param.push_back(param);
     }
     void setWLen(int w_len){
         _w_len.push_back(w_len);
@@ -115,19 +131,28 @@ public:
     void setBiasLen(int bias_len){
         _bias_len.push_back(bias_len);
     }
-    void setWPtr(Matrix<Dtype> *w){
-        _w_ptr.push_back(w);
+    void setW(Matrix<Dtype> *w){
+        _w.push_back(w);
     }
-    void setBiasPtr(Matrix<Dtype> *bias){
-        _bias_ptr.push_back(bias);
+    void setBias(Matrix<Dtype> *bias){
+        _bias.push_back(bias);
     }
-    void setYPtr(Matrix<Dtype> *y){
-        _y_ptr.push_back(y);
+    void setY(Matrix<Dtype> *y){
+        _y.push_back(y);
     }
-    void setDEDYPtr(Matrix<Dtype> *dE_dy){
-        _dE_dy_ptr.push_back(dE_dy);
+    void setDEDY(Matrix<Dtype> *dE_dy) {
+        _dE_dy.push_back(dE_dy);
     }
 
+    int getRank(){
+        return _rank;
+    }
+    int getImgSize(){
+        return _img_size;
+    }
+    int getImgChannel(){
+        return _img_channel;
+    }
     int getOneImgLen(){
         return _one_img_len;
     }
@@ -137,14 +162,8 @@ public:
     int getNumLayers(){
         return _num_layers;
     }
-    int getNumLocalLayers(){
-        return _num_local_layers;
-    }
     int getNumNeedTrainLayers(){
         return _num_need_train_layers;
-    }
-    int getNumNeedTrainLocalLayers(){
-        return _num_need_train_local_layers;
     }
     int getNumProcess(){
         return _num_process;
@@ -173,17 +192,17 @@ public:
     int getNumEpoch(){
         return _num_epoch;
     }
-    vector<Layer*> getLayersPtr(){
-        return _layers_ptr;
+    vector< Layer<Dtype>* > getLayers(){
+        return _layers;
     }
-    vector<Layer*> getNeedTrainLayersPtr(){
-        return _layers_needed_train_ptr;
+    vector< Layer<Dtype>* > getNeedTrainLayers(){
+        return _layers_needed_train;
     }
-    vector<Param*> getLayersParamPtr(){
-        return _layers_param_ptr;
+    vector<Param*> getLayersParam(){
+        return _layers_param;
     }
     vector<Param*> getNeedTrainLayersParam(){
-        return _layers_need_train_param_ptr;
+        return _layers_need_train_param;
     }
     vector<int> getWLen(){
         return _w_len;
@@ -191,17 +210,17 @@ public:
     vector<int> getBiasLen(){
         return _bias_len;
     }
-    vector< Matrix<Dtype>* > getWPtr(){
-        return _w_ptr;
+    vector< Matrix<Dtype>* > getW(){
+        return _w;
     }
-    vector< Matrix<Dtype>* > getBiasPtr(){
-        return _bias_ptr;
+    vector< Matrix<Dtype>* > getBias(){
+        return _bias;
     }
-    vector< Matrix<Dtype>* > getYPtr(){
-        return _y_ptr;
+    vector< Matrix<Dtype>* > getY(){
+        return _y;
     }
-    vector< Matrix<Dtype>* > getDEDYPtr(){
-        return _dE_dy_ptr;
+    vector< Matrix<Dtype>* > getDEDY(){
+        return _dE_dy;
     }
 
 };
