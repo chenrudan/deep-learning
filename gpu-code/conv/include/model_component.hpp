@@ -53,6 +53,8 @@ private:
     Matrix<Dtype>* _mini_valid_data;
     Matrix< vector<int> > *_mini_train_label_for_voc;
     Matrix< vector<int> > *_mini_valid_label_for_voc;
+
+
     Matrix<Dtype>* _mini_data;
     Matrix< vector<int> > *_mini_label_for_voc;
 

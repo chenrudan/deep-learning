@@ -19,6 +19,8 @@
 #include "pooling_layer.hpp"
 #include "dropout_layer.hpp"
 
+#define PROCESS_END 100000;
+
 using namespace std;
 
 /// \brief 实现了网络在训练过程中会执行的一些操作
@@ -28,6 +30,10 @@ class TrainModel {
 private:
     ModelComponent<Dtype> *_model_component;
     LoadVOC<Dtype> *_voc;
+    float _likelihood;
+    int _cur_batch_idx; ///>接收当前执行到的batch值
+    map<string, int> transmit_data_id;
+
 
 public:
     TrainModel();
