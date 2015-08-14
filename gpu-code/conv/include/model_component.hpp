@@ -8,8 +8,11 @@
 #define MODELCOMPONENT_H_
 
 #include <vector>
+#include <map>
 #include "matrix.hpp"
 #include "param.h"
+#include "layer.hpp"
+#include "train_model.hpp"
 
 using namespace std;
 
@@ -17,6 +20,9 @@ using namespace std;
 ///
 template<typename Dtype>
 class ModelComponent {
+
+friend class TrainModel;
+
 private:
 
     int _num_process;
@@ -34,9 +40,12 @@ private:
     int _img_channel;
     int _one_img_len;  ///>输入的一张图片的长度
 	int _in_len_each_process;
-    int _rank;  ///>进程id
-    vector<Layer*> _layers;    ///>保存每个层的指针
-    vector<Layer*> _layers_needed_train;
+    int _pid;  ///>进程id
+	int _n_push;
+	int _n_fetch;
+
+    vector< Layer<Dtype>* > _layers;    ///>保存每个层的指针
+    vector< Layer<Dtype>* > _layers_needed_train;
     vector<Param*> _layers_param;  ///>保存每一层的参数
     vector<Param*> _layers_need_train_param;
     vector<int> _w_len;   ///>需要训练的层的权重长度，用来进程间传递数据
@@ -56,22 +65,28 @@ private:
 
 
     Matrix<Dtype>* _mini_data;
-    Matrix< vector<int> > *_mini_label_for_voc;
+    Matrix<int> *_mini_label_for_voc;
 
     map<string, LayerType> _string_map_layertype;
+
 
 public:
 
     ModelComponent();
     ~ModelComponent();
 
-    friend class ModelTrain;
 
     void setImgSize(const int img_size){
         _img_size = img_size;
     }
-    void setRank(const int rank){
-        _rank = rank;
+    void setPid(const int pid){
+        _pid = pid;
+    }
+    void setNPush(const int n_push){
+        _n_push = n_push;
+    }
+    void setNFetch(const int n_fetch){
+        _n_fetch = n_fetch;
     }
     void setImgChannel(const int img_channel){
         _img_channel = img_channel;
@@ -100,7 +115,7 @@ public:
     void setNumTrainEachProcess(const int num_train_each_process){
         _num_train_each_process = num_train_each_process;
     }
-    void setNumValid(const int num_valid_each_process){
+    void setNumValidEachProcess(const int num_valid_each_process){
         _num_valid_each_process = num_valid_each_process;
     }
     void setMinibatchSize(const int minibatch_size){
@@ -146,8 +161,14 @@ public:
         _dE_dy.push_back(dE_dy);
     }
 
-    int getRank(){
-        return _rank;
+    int getPid(){
+        return _pid;
+    }
+    int getNPush(){
+        return _n_push;
+    }
+    int getNFetch(){
+        return _n_fetch;
     }
     int getImgSize(){
         return _img_size;

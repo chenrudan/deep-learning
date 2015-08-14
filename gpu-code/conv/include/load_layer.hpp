@@ -158,17 +158,18 @@ template <typename Dtype>
 class LoadVOC : public LoadLayer<Dtype> {
 
 public: 
-	LoadVOC();
+	LoadVOC(int minibatch);
 
 	~LoadVOC();
 
 	using LoadLayer<Dtype>::loadBinary;
-	void loadBinary(string filename, Dtype* &pixel_ptr, vector<int>* &label_ptr);
+	void loadBinary(ifstream fin, Dtype* &pixel_ptr, int* &label_ptr, \
+				int* &label_num);
 	
-	loadTrainOneBatch();
-	loadValidOneBatch();
+	void loadTrainOneBatch();
+	void loadValidOneBatch();
 
-	vector<int>* getTrainLabelAndCoord(){
+	int* getTrainLabelAndCoord(){
 		return _label_and_coord;
 	}
 
@@ -178,7 +179,11 @@ private:
 	string _valid_file;
 	ifstream _fin1;
 	ifstream _fin2;
-	vector<int>* _label_and_coord;
+	int *_label_and_coord; ///>先用vector保存，然后再转化为int数组
+								///这个数据里面保存的是label和坐标
+	int *_label_num; ///>这个数组保存的minibatch大小数组每一张图中有几个物体label
+	vector<int> _label_and_coord_vec;
+
 };
 
 

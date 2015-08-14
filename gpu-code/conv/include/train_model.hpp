@@ -1,6 +1,6 @@
 ///
 /// \file train_model.hpp
-/// \brief 继承数据类，拥有矩阵的特性
+/// \brief 
 ///
 
 
@@ -11,19 +11,15 @@
 #include "load_layer.hpp"
 #include "inner_product_layer.hpp"
 #include "logistic.hpp"
-#include "param.h"
-#include "matrix.hpp"
 #include "sigmoid_layer.hpp"
 #include "relu_layer.hpp"
 #include "convnet.hpp"
 #include "pooling_layer.hpp"
 #include "dropout_layer.hpp"
 
-#define PROCESS_END 100000;
-
 using namespace std;
 
-/// \brief 实现了网络在训练过程中会执行的一些操作
+/// \brief
 ///
 template<typename Dtype>
 class TrainModel {
@@ -31,7 +27,7 @@ private:
     ModelComponent<Dtype> *_model_component;
     LoadVOC<Dtype> *_voc;
     float _likelihood;
-    int _cur_batch_idx; ///>接收当前执行到的batch值
+    int _cur_batch_idx; 
     map<string, int> transmit_data_id;
 
 
@@ -56,12 +52,8 @@ public:
     void train();
     void valid();
 
-
-
-
-
 };
 
-#include "../src/matrix.cu"
+#include "../src/train_model.cpp"
 
 #endif

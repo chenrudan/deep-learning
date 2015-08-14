@@ -10,7 +10,8 @@ using namespace std;
 
 template <typename Dtype>
 TrainModel<Dtype>::TrainModel(){
-	_model_component = new  ModelComponent<Dtype>();
+	_model_component = new ModelComponent<Dtype>();
+	_voc = new LoadVOC<Dtype>();
 	_likelihood = 0;
 }
 
@@ -32,10 +33,11 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 	_model_component->setNumTrainBatch();
 	_model_component->setNumValidBatch();
 
-	_model_component->_one_img_len = _model_component->_img_size*_model_component->_img_size \
-						*_model_component->_img_channel;
-	_model_component->_in_len_each_process = _model_component->_one_img_len\
- 						*_model_component->_minibatch_size;
+	_model_component->_one_img_len = _model_component->_img_size\
+										*_model_component->_img_size \
+										*_model_component->_img_channel;
+	_model_component->_in_len_each_process = _model_component->_one_img_len \
+ 										*_model_component->_minibatch_size;
 }
 
 template <typename Dtype>
@@ -45,6 +47,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 	ifstream fin(json_file.c_str());
 	if (reader.parse(fin, root)) {
 		_model_component->_minibatch_size = root["minibatch_size"].asInt();
+		Param::_minibatch_size = _model_component->_minibatch_size;
 		_model_component->_n_push = root["n_push"].asInt();
 		_model_component->_n_fetch = root["n_fetch"].asInt();
 		_model_component->_num_epoch = root["num_epoch"].asInt();
@@ -57,7 +60,6 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 			<< "\nn_fetch: " << _model_component->_n_fetch \
 			<< "\nn_push: " << _model_component->_n_push;
 
-
 		_model_component->_num_layers = root["layer"].size();
 
 		string layer_type, name;
@@ -65,7 +67,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 		float w_lr, bias_lr, momentum, weight_decay;
 		Param* param;
 
-		for (int i = 0; i < _num_layers; ++i) {
+		for (int i = 0; i < _model_component->_num_layers; ++i) {
 			layer_type = root["layer"][i]["type"].asString();
 			name = root["layer"][i]["name"].asString();
 			if (!root["layer"][i]["pad"].isNull()) {
@@ -88,46 +90,54 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 				filter_channel = 0;
 			}
 			if (!root["layer"][i]["w_gauss"].isNull()) {
-				_model_component->_w_init_gauss.push_back(root["layer"][i]["w_gauss"].asFloat());
+				_model_component->_w_init_gauss.push_back( \
+						root["layer"][i]["w_gauss"].asFloat());
 			}
-
 			if (root["layer"][i]["type"] == "CONVOLUTION") {
 				if (_model_component->_layers_param.size() == 0) {
-					param = new ConvParam(_model_component->_string_map_layertype["CONVOLUTION"], \
+					param = new ConvParam( \
+							_model_component->_string_map_layertype["CONVOLUTION"], \
 							name, w_lr, bias_lr, momentum, weight_decay, \
 							_model_component->_img_size, pad, stride, \
 							_model_component->_img_channel, filter_size, \
 							filter_channel);
 				} else{
-					param = new ConvParam(_model_component->_string_map_layertype["CONVOLUTION"], \
+					param = new ConvParam( \
+							_model_component->_string_map_layertype["CONVOLUTION"], \
 							name, w_lr, bias_lr, momentum, weight_decay, \
 							pad, stride, filter_size, filter_channel, \
 							_model_component->_layers_param.back());
 				}
 				(ConvParam*)param->printParam();
 			} else if (root["layer"][i]["type"] == "POOLING") {
-				param = new PoolParam(_model_component->_string_map_layertype["POOLING"], \
+				param = new PoolParam( \
+							_model_component->_string_map_layertype["POOLING"], \
 							name, pad, stride, filter_size, 0, \
 							_model_component->_layers_param.back());
 				(PoolParam*)param->printParam();
 			} else if (root["layer"][i]["type"] == "SIGMOID") {
-				param = new FullConnectParam(_model_component->_string_map_layertype["SIGMOID"], \
+				param = new FullConnectParam( \
+							_model_component->_string_map_layertype["SIGMOID"], \
 							name, 0, _model_component->_layers_param.back());
 				(FullConnectParam*)param->printParam();
 			} else if (root["layer"][i]["type"] == "RECTIFIED") {
-				param = new FullConnectParam(_model_component->_string_map_layertype["RECTIFIED"], \
+				param = new FullConnectParam( \
+							_model_component->_string_map_layertype["RECTIFIED"], \
 							name, 0, _model_component->_layers_param.back());
 				(FullConnectParam*)param->printParam();
 			} else if (root["layer"][i]["type"] == "SOFTMAX") {
-				param = new FullConnectParam(_model_component->_string_map_layertype["SOFTMAX"], \
+				param = new FullConnectParam( \
+							_model_component->_string_map_layertype["SOFTMAX"], \
 							name, 0, _model_component->_layers_param.back());
 				(FullConnectParam*)param->printParam();
 			} else if (root["layer"][i]["type"] == "DROPOUT") {
-				param = new FullConnectParam(_model_component->_string_map_layertype["DROPOUT"], \
+				param = new FullConnectParam( \
+							_model_component->_string_map_layertype["DROPOUT"], \
 							name, 0, _model_component->_layers_param.back());
 				(FullConnectParam*)param->printParam();
 			} else if (root["layer"][i]["type"] == "INNERPRODUCT" ) {
-				param = new InnerParam(_model_component->_string_map_layertype["INNERPRODUCT"], \
+				param = new InnerParam( \
+							_model_component->_string_map_layertype["INNERPRODUCT"], \
                             name, w_lr, bias_lr, momentum, weight_decay, \
                             num_out, _model_component->_layers_param.back());
 				(FullConnectParam*)param->printParam();
@@ -142,25 +152,34 @@ void TrainModel<Dtype>::createLayerForWorker(){
 	for (int i = 0; i < _num_layers; ++i){
 		Layer *layer;
 		if (_model_component->_layers_param[i]->getLayerType() == CONVOLUTION) {
-			layer = new ConvNet<Dtype>((ConvParam*)_model_component->_layers_param[i]);
+			layer = new ConvNet<Dtype>( \
+						(ConvParam*)_model_component->_layers_param[i]);
 		} else if (_model_component->_layers_param[i]->getLayerType() == POOLING) {
-			layer = new PoolingLayer<Dtype>((PoolParam*)_model_component->_layers_param[i]);
+			layer = new PoolingLayer<Dtype>( \
+						(PoolParam*)_model_component->_layers_param[i]);
 		} else if (_model_component->_layers_param[i]->getLayerType() == SIGMOID) {
-			layer = new SigmoidLayer<Dtype>((FullConnectParam*)_model_component->_layers_param[i]);
+			layer = new SigmoidLayer<Dtype>( \
+						(FullConnectParam*)_model_component->_layers_param[i]);
 		} else if (_model_component->_layers_param[i]->getLayerType() == RECTIFIED) {
-			layer = new ReluLayer<Dtype>((FullConnectParam*)_model_component->_layers_param[i]);
+			layer = new ReluLayer<Dtype>( \
+						(FullConnectParam*)_model_component->_layers_param[i]);
 		} else if (_model_component->_layers_param[i]->getLayerType() == SOFTMAX) {
-			layer = new Logistic<Dtype>((FullConnectParam*)_model_component->_layers_param[i]);
+			layer = new Logistic<Dtype>( \
+						(FullConnectParam*)_model_component->_layers_param[i]);
 		} else if (_model_component->_layers_param[i]->getLayerType() == DROPOUT) {
-			layer = new DropoutLayer<Dtype>((FullConnectParam*)_model_component->_layers_param[i]);
-		} else if (_model_component->_layers_param[i]->getLayerType() == INNERPRODUCT ) {
-			layer = new InnerProductLayer<Dtype>((FullConnectParam*)_model_component->_layers_param[i]);
+			layer = new DropoutLayer<Dtype>( \
+						(FullConnectParam*)_model_component->_layers_param[i]);
+		} else if (_model_component->_layers_param[i]->getLayerType() \
+					== INNERPRODUCT ) {
+			layer = new InnerProductLayer<Dtype>( \
+						(FullConnectParam*)_model_component->_layers_param[i]);
 		}
 		layer.initCuda();
 		_model_component->_layers.push_back(layer);
 
 		if (param->getParamTrainType() == NEED) {
-			_model_component->_layers_need_train_param.push_back(_model_component->_layers_param[i]);
+			_model_component->_layers_need_train_param.push_back( \
+							_model_component->_layers_param[i]);
 			_model_component->_layers_needed_train.push_back(layer);
 			_model_component->_num_need_train_layers++;
 		}
@@ -170,23 +189,31 @@ void TrainModel<Dtype>::createLayerForWorker(){
 template <typename Dtype>
 void TrainModel<Dtype>::createWBiasForManager() {
 	for (int j = 0; j < model_component->getNumNeedTrainLayers(); ++j) {
-		Matrix<Dtype> *w = new Matrix<Dtype>(_model_component->_layers_needed_train[i]->getW());
-		Matrix<Dtype> *bias = new Matrix<Dtype>(_model_component->_layers_needed_train[i]->getBias());
+		Matrix<Dtype> *w = new Matrix<Dtype>( \
+					_model_component->_layers_needed_train[i]->getW());
+		Matrix<Dtype> *bias = new Matrix<Dtype>( \
+					_model_component->_layers_needed_train[i]->getBias());
 
 		_model_component->_w.push_back(w);
 		_model_component->_bias.push_back(bias);
-		_model_component->_w_len.push_back(_model_component->_layers_needed_train[i]->getW()->getNumEles());
-		_model_component->_bias_len.push_back(_model_component->_layers_needed_train[i]->getBias()->getNumEles());
+		_model_component->_w_len.push_back( \
+				_model_component->_layers_needed_train[i]->getW()->getNumEles());
+		_model_component->_bias_len.push_back( \
+				_model_component->_layers_needed_train[i]->getBias()->getNumEles());
 	}
 }
 
 template <typename Dtype>
 void TrainModel<Dtype>::createWBiasForWorker() {
 	for (int j = 0; j < model_component->getNumNeedTrainLayers(); ++j) {
-		_model_component->_w.push_back(_model_component->_layers_needed_train[i]->getW());
-		_model_component->_bias.push_back(_model_component->_layers_needed_train[i]->getBias());
-		_model_component->_w_len.push_back(_model_component->_layers_needed_train[i]->getW()->getNumEles());
-		_model_component->_bias_len.push_back(_model_component->_layers_needed_train[i]->getBias()->getNumEles());
+		_model_component->_w.push_back( \
+		 			_model_component->_layers_needed_train[i]->getW());
+		_model_component->_bias.push_back( \
+					_model_component->_layers_needed_train[i]->getBias());
+		_model_component->_w_len.push_back( \
+					_model_component->_layers_needed_train[i]->getW()->getNumEles());
+		_model_component->_bias_len.push_back( \
+				_model_component->_layers_needed_train[i]->getBias()->getNumEles());
 	}
 }
 
@@ -194,11 +221,15 @@ template <typename Dtype>
 void TrainModel<Dtype>::createYDEDYForWorker() {
 	_model_component->_y_for_worker.push_back(_model_component->_mini_data);
 	for (int i = 0; i < _num_layers; ++i){
-		_model_component->_y_for_worker.push_back(_model_component->_layers_needed_train[i]->getY());
-		_model_component->_dE_dy_for_worker.push_back(_model_component->_layers_needed_train[i]->getDEDY());
-		if (_model_component->_layers_param[i]->getParamTrainType() == NEED && i > 0) {
+		_model_component->_y_for_worker.push_back( \
+					_model_component->_layers_needed_train[i]->getY());
+		_model_component->_dE_dy_for_worker.push_back( \
+					_model_component->_layers_needed_train[i]->getDEDY());
+		if (_model_component->_layers_param[i]->getParamTrainType() == NEED \
+						&& i > 0) {
 			///> 为了反向对weight和bias求导时要用到
-			_model_component->_y_for_compute_par.push_back(_model_component->_layers_needed_train[i-1]->getY());
+			_model_component->_y_for_compute_par.push_back( \
+					_model_component->_layers_needed_train[i-1]->getY());
 		}
 	}
 }
@@ -216,8 +247,10 @@ void TrainModel<Dtype>::createVOCPixelAndLabel(){
 			_model_component->_one_img_len);
 	_mini_valid_data = new Matrix<float>(_model_component->_minibatch_size*times, \
 			_model_component->_one_img_len);
-	_mini_train_label_for_voc = new Matrix< vector<int> >(_model_component->_minibatch_size*times, 1);
-	_mini_valid_label_for_voc = new Matrix< vector<int> >(_model_component->_minibatch_size*times, 1);
+	_mini_train_label_for_voc = new Matrix< vector<int> >( \
+			_model_component->_minibatch_size*times, 1);
+	_mini_valid_label_for_voc = new Matrix< vector<int> >( \
+			_model_component->_minibatch_size*times, 1);
 }
 
 template <typename Dtype>
@@ -228,10 +261,10 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 			cudaMemset(_model_component->_bias[k]->getDevData(), 0, \
                    sizeof(float) * model_component->_bias_len[k]);
 		}
-		MPI_Bcast(_model_component->_w[k]->getDevData(), model_component->_w_len[k], \
-		           MPI_FLOAT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(_model_component->_bias[k]->getDevData(), model_component->_bias_len[k], \
-		           MPI_FLOAT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(_model_component->_w[k]->getDevData(), \
+					model_component->_w_len[k], MPI_FLOAT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(_model_component->_bias[k]->getDevData(),  \
+					model_component->_bias_len[k], MPI_FLOAT, 0, MPI_COMM_WORLD);
 	}
 }
 
@@ -241,14 +274,16 @@ float TrainModel<Dtype>::forwardPropagate(){
 	for (int k = 0; k < model_component->_num_layers; ++k) {
 		layers[k].computeOutputs(_model_component->_y_for_worker[k]);
 	}
-	likelihood += layers[model_component->_num_layers-1].computeError(_mini_label_for_voc, error);
+	likelihood += layers[model_component->_num_layers-1].computeError( \
+				_mini_label_for_voc, error);
 	return likelihood;
 }
 
 template <typename Dtype>
 float TrainModel<Dtype>::backwardPropagate(){
-	layers[model_component->_num_layers-1].computeDerivsOfInput(_model_component->_y_for_compute_par.back(), \
-	              _mini_label_for_voc);
+	layers[model_component->_num_layers-1].computeDerivsOfInput( \
+					_model_component->_y_for_compute_par.back(), \
+	              	_mini_label_for_voc);
 	for (int k = model_component->_num_layers-2; k >= 1; --k) {
 		layers[k].computeDerivsOfInput(_model_component->_dE_dy_for_worker[k-1]);
 	}
@@ -260,17 +295,6 @@ float TrainModel<Dtype>::updatePars(){
 		train_layers[k].computeDerivsOfPars(_model_component->_y_for_compute_par[k-1]);
 	}
 }
-
-//给控制进程传递打包后的控制信息，程序运行时传递的是[马上需要发送/接收的起始地址+类型+长度+tag+发送/接收+运行/停止]
-template <typename Dtype>
-template <typename DATAtype, typename MPItype>
-float TrainModel<Dtype>::sendToManager(string data_id, DATAtype data, \
-			MPItype mpi_type, const int len){
-	while (_cur_batch_idx != PROCESS_END) {
-		MPI_Send(&_cur_batch_idx, 1, MPI_INT, 0, , MPI_COMM_WORLD);
-	}
-}
-
 
 template <typename Dtype>
 float TrainModel<Dtype>::train() {

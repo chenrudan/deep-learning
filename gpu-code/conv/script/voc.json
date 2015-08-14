@@ -1,8 +1,6 @@
 {
 	"name": "VOCnet",
 	"minibatch_size": "100",
-	"img_size": "500",
-	"img_channel": "3",
 	"n_push": "49",
 	"n_fetch": "50",
 	"num_epoch": "100",
@@ -103,7 +101,14 @@
 			"weight_decay": "0"
 		},
 		{
-			"type": "SOFTMAX",
+			"type": "LOGISTIC",
+			"name": "softmax"
+		}
+
+		]
+}
+
+TMAX",
 			"name": "softmax"
 		}
 

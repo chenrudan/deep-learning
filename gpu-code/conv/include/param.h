@@ -49,7 +49,8 @@ public:
     virtual ~Param() { }
 
     Param(string name, LayerType layer_type) : \
-                _name(name), _layer_type(layer_type) {}
+                _name(name), _layer_type(layer_type), \
+				_param_train_type(NOTNEED){}
 
 	inline virtual int getNumOut() {return 0;}
 	inline virtual int getOutChannel() {return 0;}
@@ -93,7 +94,9 @@ public:
     TrainParam(const float w_lr, const float b_lr, \
             const float momentum, const float weight_decay) \
 		: _w_lr(w_lr), _b_lr(b_lr), _momentum(momentum), \
-		_weight_decay(w_lr*weight_decay), _param_train_type(NEED){}
+		_weight_decay(w_lr*weight_decay){	
+		this->_param_train_type = NEED;
+	}
 
     inline void lrMultiScale(float lr_scale) {
         _w_lr *= lr_scale;
@@ -116,12 +119,6 @@ public:
 	inline float getWeightDecay() {
 		return _weight_decay;
 	}
-    inline int getNPush() {
-        return _n_push;
-    }
-    inline int getNFetch() {
-        return _n_fetch;
-    }
     void printParam(){
         cout << "\nw_lr: " << _w_lr \
 				<< "\nb_lr: " << _b_lr \
@@ -135,8 +132,6 @@ protected:
     float _momentum;
 	float _weight_decay;
 
-    static int _n_push;
-    static int _n_fetch;
 };
 
 /// \brief 局部连接层的参数，以图片形式保存数据

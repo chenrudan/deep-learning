@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cmath>
 #include <omp.h>
+#include <vector>
 #include "mpi.h"
 #include "inner_product_layer.hpp"
 #include "logistic.hpp"
@@ -19,6 +20,7 @@
 #include "pooling_layer.hpp"
 #include "matrix.hpp"
 #include "dropout_layer.hpp"
+#include "model_component.hpp"
 
 using namespace std;
 
@@ -37,48 +39,28 @@ enum swapInfo{SWAP_CNN1_W_PUSH, SWAP_CNN1_BIAS_PUSH, \
 int num_process;
 int rank;
 
-int num_train = 50000;
-int num_valid = 10000;
-int num_minibatch;
-int num_validbatch;
 int num_train_per_process;
 int num_valid_per_process;
-int num_epoch = 500;
 
-void managerNode(ConvParam* conv1_cp, ConvParam* conv2_cp, \
-		ConvParam* conv3_cp, InnerParam* inner1_ip, \
-		InnerParam* inner2_ip){
+void managerNode(ModelComponent* model_component){
+	//首先处理数据
+	cout << "Loading data...\n";
+	LoadCifar10<float>* cifar10 = new LoadCifar10<float>(50000, 10000, 0, 32, 3);
+	int num_train = 50000;
+	int num_valid = 10000;
+	model_component->setNumTrain(num_train);
+	model_component->setNumValid(num_valid);
 
-	int cnn1_in_len = conv1_cp->getInSize() * conv1_cp->getInSize() * conv1_cp->getInChannel();
-	int cnn1_w_len = conv1_cp->getOutChannel() * conv1_cp->getFilterSize() \
-			* conv1_cp->getFilterSize() * conv1_cp->getInChannel();
-	int cnn1_b_len = conv1_cp->getOutChannel();
-
-	int cnn2_w_len = conv2_cp->getOutChannel() * conv2_cp->getFilterSize() \
-			* conv2_cp->getFilterSize() * conv2_cp->getInChannel();
-	int cnn2_b_len = conv2_cp->getOutChannel();
-
-	int cnn3_w_len = conv3_cp->getOutChannel() * conv3_cp->getFilterSize() \
-			* conv3_cp->getFilterSize() * conv3_cp->getInChannel();
-	int cnn3_b_len = conv3_cp->getOutChannel();
-
-	int inner1_w_len = inner1_ip->getNumIn() * inner1_ip->getNumOut();
-	int inner1_b_len = inner1_ip->getNumOut();
-
-	int softmax_w_len = inner2_ip->getNumIn() * inner2_ip->getNumOut();
-	int softmax_b_len = inner2_ip->getNumOut();
-
-	int train_data_len_part = num_train * cnn1_in_len / (num_process - 1);
+	int train_data_len_part = num_train*model_component->getInLen()/(num_process-1);
 	int train_label_len_part = num_train / (num_process - 1);
-	int valid_data_len_part = num_valid * cnn1_in_len / (num_process - 1);
+	int valid_data_len_part = num_valid*model_component->getInLen()/(num_process-1);
 	int valid_label_len_part = num_valid / (num_process - 1);
 
-	Matrix<float>* train_data = new Matrix<float>(num_train, cnn1_in_len);
-	Matrix<float>* valid_data = new Matrix<float>(num_valid, cnn1_in_len);
+	Matrix<float>* train_data = new Matrix<float>(num_train, model_component->getInLen());
+	Matrix<float>* valid_data = new Matrix<float>(num_valid, model_component->getInLen());
 	Matrix<float>* train_label = new Matrix<float>(num_train, 1);
 	Matrix<float>* valid_label = new Matrix<float>(num_valid, 1);
 
-cout << "Loading data...\n";
 /*
     readData(train_data, "../data/input/mnist_train.bin", true);
     readData(valid_data, "../data/input/mnist_valid.bin", true);
@@ -86,79 +68,57 @@ cout << "Loading data...\n";
     readData(valid_label, "../data/input/mnist_label_valid.bin", false);
 
 */
-
-	LoadCifar10<float>* cifar10 = new LoadCifar10<float>(50000, 10000, 0, 32, 3);
-
-	train_data->copyFromHost(cifar10->getTrainPixel(), num_train * cnn1_in_len);
+	train_data->copyFromHost(cifar10->getTrainPixel(), \
+	                   num_train*model_component->getInLen());
 	train_label->copyFromHost(cifar10->getTrainLabel(), num_train);
-	valid_data->copyFromHost(cifar10->getValidPixel(), num_valid * cnn1_in_len);
+	valid_data->copyFromHost(cifar10->getValidPixel(), \
+	                   num_valid*model_component->getInLen());
 	valid_label->copyFromHost(cifar10->getValidLabel(), num_valid);
 
 	delete cifar10;
 
-/*
-	LoadParticle<float>* particle = new LoadParticle<float>;
-
-	train_data->copyFromHost(particle->getTrainPixel(), num_train * cnn1_in_len);
-	train_label->copyFromHost(particle->getTrainLabel(), num_train);
-	valid_data->copyFromHost(particle->getValidPixel(), num_valid * cnn1_in_len);
-	valid_label->copyFromHost(particle->getValidLabel(), num_valid);
-*/	
 //	savePars(valid_data, "./snapshot/input_snap/valid_data.bin");
 //	savePars(valid_label, "./snapshot/input_snap/valid_label.bin");
 
-cout << "Loading data is done.\n";
-	Matrix<float>* cnn1_w = new Matrix<float>(conv1_cp->getFilterSize() * \
-			conv1_cp->getFilterSize() * conv1_cp->getInChannel(), \
-			conv1_cp->getOutChannel());
-	Matrix<float>* cnn1_bias = new Matrix<float>(1, conv1_cp->getOutChannel());
+	cout << "Loading data is done.\n";
 
-	Matrix<float>* cnn2_w = new Matrix<float>(conv2_cp->getFilterSize() * \
-			conv2_cp->getFilterSize() * conv2_cp->getInChannel(), \
-			conv2_cp->getOutChannel());
-	Matrix<float>* cnn2_bias = new Matrix<float>(1, conv2_cp->getOutChannel());
+	Matrix<float> *w[model_component->getNumNeedTrainLayers()];
+	Matrix<float> *bias[model_component->getNumNeedTrainLayers()];
 
-	Matrix<float>* cnn3_w = new Matrix<float>(conv3_cp->getFilterSize() * \
-			conv3_cp->getFilterSize() * conv3_cp->getInChannel(), \
-			conv3_cp->getOutChannel());
-	Matrix<float>* cnn3_bias = new Matrix<float>(1, conv3_cp->getOutChannel());
+	vector<Param*> train_param = model_component->getNeedTrainLayersParam();
 
-	Matrix<float>* inner1_w = new Matrix<float>(inner1_w_len / inner1_ip->getNumOut(), inner1_ip->getNumOut());
-	Matrix<float>* inner1_bias = new Matrix<float>(1, inner1_ip->getNumOut());
+	for (int j = 0; j < model_component->getNumNeedTrainLocalLayers(); ++j) {
+		w[j] = new Matrix<float>(train_param[j]->getFilterSize() * \
+			train_param[j]->getFilterSize() * train_param[j]->getInChannel(), \
+			train_param[j]->getOutChannel());
+		bias[j] = new Matrix<float>(1, train_param[j]->getOutChannel());
+	}
+	for (int j = model_component->getNumNeedTrainLocalLayers(); \
+			j < model_component->getNumNeedTrainLayers(); ++j) {
+		w[j] = new Matrix<float>(train_param[j]->getNumIn(), \
+					train_param[j]->getNumOut());
+		bias[j] = new Matrix<float>(1, train_param[j]->getNumOut());
+	}
 
+	cout << "Initialize weight and bias...\n";
+	gaussRand(w[0], 0.001);
+	gaussRand(w[1], 0.01);
+	gaussRand(w[2], 0.01);
+	cudaMemset(bias[0]->getDevData(), 0, sizeof(float)*model_component->getBiasLen()[0]);
+	cudaMemset(bias[1]->getDevData(), 0, sizeof(float)*model_component->getBiasLen()[1]);
+	cudaMemset(bias[2]->getDevData(), 0, sizeof(float)*model_component->getBiasLen()[2]);
+	gaussRand(w[3], 0.1);
+	cudaMemset(bias[3]->getDevData(), 0, sizeof(float)*model_component->getBiasLen()[3]);
+	gaussRand(w[4], 0.1);
+	cudaMemset(bias[4]->getDevData(), 0, sizeof(float)*model_component->getBiasLen()[4]);
 
-	Matrix<float>* softmax_w = new Matrix<float>(softmax_w_len / inner2_ip->getNumOut(), inner2_ip->getNumOut());
-	Matrix<float>* softmax_bias = new Matrix<float>(1, inner2_ip->getNumOut());
+	for (int k = 0; k < model_component->getNumNeedTrainLayers(); ++k) {
+		MPI_Bcast(w[k]->getDevData(), model_component->getWLen()[k], \
+		           MPI_FLOAT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(bias[k]->getDevData(), model_component->getBiasLen()[k], \
+		           MPI_FLOAT, 0, MPI_COMM_WORLD);
+	}
 
-cout << "Initialize weight and bias...\n";
-	gaussRand(cnn1_w, 0.01);
-//	initW(cnn1_w);
-	gaussRand(cnn2_w, 0.01);
-//	initW(cnn2_w);
-	gaussRand(cnn3_w, 0.01);
-//	initW(cnn3_w);
-	cudaMemset(cnn1_bias->getDevData(), 0, sizeof(float) * cnn1_b_len);
-	cudaMemset(cnn2_bias->getDevData(), 0, sizeof(float) * cnn2_b_len);
-	cudaMemset(cnn3_bias->getDevData(), 0, sizeof(float) * cnn3_b_len);
-
-	gaussRand(inner1_w, 0.01);
-//	initW(inner1_w);
-	cudaMemset(inner1_bias->getDevData(), 0, sizeof(float) * inner1_b_len);
-	gaussRand(softmax_w, 0.01);
-//	initW(softmax_w);
-	cudaMemset(softmax_bias->getDevData(), 0, sizeof(float) * softmax_b_len);
-
-	MPI_Bcast(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_w->getDevData(), cnn3_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_bias->getDevData(), cnn3_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(softmax_bias->getDevData(), softmax_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	
 	for(int i = 1; i < num_process; i++){
 		MPI_Send(train_data->getDevData()+(i-1)*train_data_len_part, train_data_len_part, \
 				MPI_FLOAT, i, i, MPI_COMM_WORLD);
@@ -175,18 +135,10 @@ cout << "Initialize weight and bias...\n";
 	delete valid_data;
 	delete valid_label;
 
-	//pro进程，每个进程进行的数据交换次数，0123是push，4567是fetch
-	//4个数据地址，8个线程来分别实现两种操作
-	const int trans_ops = 20;
-	const int num_pars_type = 10;
-	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
-			cnn2_w->getDevData(), cnn2_bias->getDevData(), \
-			cnn3_w->getDevData(), cnn3_bias->getDevData(), \
-			inner1_w->getDevData(), inner1_bias->getDevData(), \
-			softmax_w->getDevData(), softmax_bias->getDevData()};
-	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
-				cnn3_w_len, cnn3_b_len, inner1_w_len, inner1_b_len, \
-				softmax_w_len, softmax_b_len};
+	//pro进程，每个进程进行的数据交换次数
+	const int trans_ops = 2*2*model_component->getNumNeedTrainLayers();
+
+	const int num_pars_type = 2*model_component->getNumNeedTrainLayers();
 
 	#pragma omp parallel num_threads(trans_ops * (num_process - 1)) 
 	{
@@ -204,229 +156,143 @@ cout << "Initialize weight and bias...\n";
 					swap_id, MPI_COMM_WORLD, &status);
 
 			if(swap_id < num_pars_type){
-				MPI_Recv(my_pars[pars_addr], pars_len[pars_addr], MPI_FLOAT, pid, \
-						swap_id+ par_state, MPI_COMM_WORLD, &status);
+				#pragma omp parallel num_threads(2)
+				{
+					int t_tid = omp_get_thread_num();
+					if (t_tid == 0) {
+						MPI_Recv(w[pars_addr], model_component->getWLen()[pars_addr], \
+				               MPI_FLOAT, pid, swap_id + par_state, \
+						       MPI_COMM_WORLD, &status);
+					}else {
+						MPI_Recv(bias[pars_addr], model_component->getBiasLen()[pars_addr], \
+				               MPI_FLOAT, pid, swap_id + par_state, \
+						       MPI_COMM_WORLD, &status);
+					}
+				}
 			}else{
-				MPI_Send(my_pars[pars_addr], pars_len[pars_addr], MPI_FLOAT, pid, \
-						swap_id + par_state, MPI_COMM_WORLD);
+				#pragma omp parallel num_threads(2)
+				{
+					int t_tid = omp_get_thread_num();
+					if (t_tid == 0) {
+						MPI_Send(w[pars_addr], model_component->getWLen()[pars_addr], \
+				               MPI_FLOAT, pid, swap_id + par_state, \
+						       MPI_COMM_WORLD);
+					}else {
+						MPI_Send(bias[pars_addr], model_component->getBiasLen()[pars_addr], \
+				               MPI_FLOAT, pid, swap_id + par_state, \
+						       MPI_COMM_WORLD);
+					}
+				}
 			}   
 		}
 	}
-
-	delete cnn1_w;
-	delete cnn1_bias;
-	delete cnn2_w;
-	delete cnn2_bias;
-	delete cnn3_w;
-	delete cnn3_bias;
-	delete inner1_w;
-	delete inner1_bias;
-	delete softmax_w;
-	delete softmax_bias;
 }
 
 
-void workerNode(ConvParam* conv1_cp, FullConnectParam* relu1_fcp, \
-		PoolParam* pool1_pp, ConvParam* conv2_cp, FullConnectParam* relu2_fcp, \
-		PoolParam* pool2_pp, ConvParam* conv3_cp, FullConnectParam* relu3_fcp, \
-		PoolParam* pool3_pp, FullConnectParam* drop1_fcp, \
-		InnerParam* inner1_ip, FullConnectParam* relu4_fcp, \
-		FullConnectParam* drop2_fcp, \
-		InnerParam* inner2_ip, FullConnectParam* softmax_fcp){
+void workerNode(ModelComponent* model_component){
 
 	if(rank == 1){
+		vector<Param*> layers_param = model_component->getLayersParamPtr();
+
 		cout << "\n===========overall==============" \
-			<< "\ntrain: " << num_train \
-			<< "\nvalid: " << num_valid \
-			<< "\nbatchSize: " << conv1_cp->getMinibatchSize() \
-			<< "\nn_fetch: " << conv1_cp->getNFetch() \
-			<< "\nn_push: " << conv1_cp->getNPush();
+			<< "\ntrain: " << model_component->getNumTrain() \
+			<< "\nvalid: " << model_component->getNumvalid() \
+			<< "\nbatchSize: " << layers_param->getMinibatchSize() \
+			<< "\nn_fetch: " << layers_param->getNFetch() \
+			<< "\nn_push: " << layers_param->getNPush();
 
-		cout << "\n===========cnn1==============" \
-			<< "\nin_size: " << conv1_cp->getInSize() \
-			<< "\nin_channel: " << conv1_cp->getInChannel() \
-			<< "\nfilter_size: " << conv1_cp->getFilterSize() \
-			<< "\nfilter_channel: " << conv1_cp->getOutChannel() \
-			<< "\npad: " << conv1_cp->getPad() \
-			<< "\nstride: " << conv1_cp->getStride() \
-			<< "\nw_lr: " << conv1_cp->getWLR() \
-			<< "\nb_lr: " << conv1_cp->getBiasLR() \
-			<< "\nmomentum: " << conv1_cp->getMomentum()\
-			<< "\nweight_decay: " << conv1_cp->getWeightDecay();
-
-		cout << "\n===========pool1==============" \
-			<< "\nin_size: " << pool1_pp->getInSize() \
-			<< "\nin_channel: " << pool1_pp->getInChannel() \
-			<< "\nfilter_size: " << pool1_pp->getFilterSize() \
-			<< "\nfilter_channel: " << pool1_pp->getOutChannel() \
-			<< "\npad: " << pool1_pp->getPad() \
-			<< "\nstride: " << pool1_pp->getStride();
-
-		cout << "\n===========cnn2==============" \
-			<< "\nin_size: " << conv2_cp->getInSize() \
-			<< "\nin_channel: " << conv2_cp->getInChannel() \
-			<< "\nfilter_size: " << conv2_cp->getFilterSize() \
-			<< "\nfilter_channel: " << conv2_cp->getOutChannel() \
-			<< "\nstride: " << conv2_cp->getStride() \
-			<< "\npad: " << conv2_cp->getPad() \
-			<< "\nw_lr: " << conv2_cp->getWLR() \
-			<< "\nb_lr: " << conv2_cp->getBiasLR() \
-			<< "\nmomentum: " << conv2_cp->getMomentum()\
-			<< "\nweight_decay: " << conv2_cp->getWeightDecay();
-
-		cout << "\n===========pool2==============" \
-			<< "\nin_size: " << pool2_pp->getInSize() \
-			<< "\nin_channel: " << pool2_pp->getInChannel() \
-			<< "\nfilter_size: " << pool2_pp->getFilterSize() \
-			<< "\nfilter_channel: " << pool2_pp->getOutChannel() \
-			<< "\npad: " << pool2_pp->getPad() \
-			<< "\nstride: " << pool2_pp->getStride();
-
-		cout << "\n===========cnn3==============" \
-			<< "\nin_size: " << conv3_cp->getInSize() \
-			<< "\nin_channel: " << conv3_cp->getInChannel() \
-			<< "\nfilter_size: " << conv3_cp->getFilterSize() \
-			<< "\nfilter_channel: " << conv3_cp->getOutChannel() \
-			<< "\nstride: " << conv3_cp->getStride() \
-			<< "\npad: " << conv3_cp->getPad() \
-			<< "\nw_lr: " << conv3_cp->getWLR() \
-			<< "\nb_lr: " << conv3_cp->getBiasLR() \
-			<< "\nmomentum: " << conv3_cp->getMomentum()\
-			<< "\nweight_decay: " << conv3_cp->getWeightDecay();
-
-		cout << "\n===========pool3==============" \
-			<< "\nin_size: " << pool3_pp->getInSize() \
-			<< "\nin_channel: " << pool3_pp->getInChannel() \
-			<< "\nfilter_size: " << pool3_pp->getFilterSize() \
-			<< "\nfilter_channel: " << pool3_pp->getOutChannel() \
-			<< "\npad: " << pool3_pp->getPad() \
-			<< "\nstride: " << pool3_pp->getStride();
-
-		cout << "\n===========inner_product1==============" \
-			<< "\nnum_in: " << inner1_ip->getNumIn() \
-			<< "\nnum_out: " << inner1_ip->getNumOut() \
-			<< "\nw_lr: " << inner1_ip->getWLR() \
-			<< "\nb_lr: " << inner1_ip->getBiasLR() \
-			<< "\nmomentum: " << inner1_ip->getMomentum() \
-			<< "\nweight_decay: " << inner1_ip->getWeightDecay();
-
-		cout << "\n===========softmax==============" \
-			<< "\nnum_in: " << inner2_ip->getNumIn() \
-			<< "\nnum_out: " << inner2_ip->getNumOut() \
-			<< "\nw_lr: " << inner2_ip->getWLR() \
-			<< "\nb_lr: " << inner2_ip->getBiasLR() \
-			<< "\nmomentum: " << inner2_ip->getMomentum() \
-			<< "\nweight_decay: " << inner2_ip->getWeightDecay() << endl;
+		for (int i = 0; i < model_component->getNumLocalLayers(); ++i) {
+			cout << "\n============"<< layers_param[i]->getName() << "============" \
+				<< "\nin_size: " << layers_param[i]->getInSize() \
+				<< "\nin_channel: " << layers_param[i]->getInChannel() \
+				<< "\nfilter_size: " << layers_param[i]->getFilterSize() \
+				<< "\nfilter_channel: " << layers_param[i]->getOutChannel() \
+				<< "\npad: " << layers_param[i]->getPad() \
+				<< "\nstride: " << layers_param[i]->getStride();
+		}
+		for (int i = model_component->getNumLocalLayers(); \
+					i < model_component->getNumLayers(); ++i) {
+			cout << "\n============"<< layers_param[i]->getName() << "============" \
+				<< "\nnum_in: " << layers_param[i]->getNumIn() \
+				<< "\nnum_out: " << layers_param[i]->getNumOut();
+		}
+		for (int i = 0; i < model_component->getNumNeedTrainLayers(); ++i) {
+			cout << "\n============"<< layers_param[i]->getName() << "============" \
+ 				<< "\nw_lr: " << layers_param[i]->getWLR() \
+				<< "\nb_lr: " << layers_param[i]->getBiasLR() \
+				<< "\nmomentum: " << layers_param[i]->getMomentum()\
+				<< "\nweight_decay: " << layers_param[i]->getWeightDecay();
+		}
 	}
 
+	cout << "Initialize layers...\n";
 
-	num_train_per_process = num_train / (num_process - 1);
-	num_valid_per_process = num_valid / (num_process - 1);
+	Layer<float> *layers[model_component->getNumLayers()];
 	
-	int cnn1_in_len = conv1_cp->getInSize() * conv1_cp->getInSize() * conv1_cp->getInChannel();
+	layers[0] = new ConvNet<float>(layers_param[0]);
+	layers[1] = new ReluLayer<float>(layers_param[1]);
+	layers[2] = new PoolingLayer<float>(layers_param[2]);
+	layers[3] = new ConvNet<float>(layers_param[3]);
+	layers[4] = new ReluLayer<float>(layers_param[4]);
+	layers[5] = new PoolingLayer<float>(layers_param[5]);
+	layers[6] = new ConvNet<float>(layers_param[6]);
+	layers[7] = new ReluLayer<float>(layers_param[7]);
+	layers[8] = new PoolingLayer<float>(layers_param[8]);
+	layers[9] = new DropoutLayer<float>(layers_param[9]);
+	layers[10] = new InnerProductLayer<float>(layers_param[10]);
+	layers[11] = new ReluLayer<float>(layers_param[11]);
+	layers[12] = new DropoutLayer<float>(layers_param[12]);
+	layers[13] = new InnerProductLayer<float>(layers_param[13]);
+	layers[14] = new Logistic<float>(layers_param[14]);
 
-	int cnn1_w_len = conv1_cp->getOutChannel() * conv1_cp->getFilterSize() \
-			* conv1_cp->getFilterSize() * conv1_cp->getInChannel();
-	int cnn1_b_len = conv1_cp->getOutChannel();
+	int j = 0;
+	for (int i = 0; i < model_component->getNumLayers(); ++i) {
+		voc_model->setLayers(layers[i]);
+		if (layers_param[i]->getParamTrainType() == NEED) {
+			voc_model->setNeedTrainLayers(layers[i]);
+			j++;
+		}
+	}
+	
+	cout << "Initialize layers is done.\n";
+	Matrix<float> *w[model_component->getNumNeedTrainLayers()];
+	Matrix<float> *bias[model_component->getNumNeedTrainLayers()];
 
-	int cnn2_w_len = conv2_cp->getOutChannel() * conv2_cp->getFilterSize() \
-			* conv2_cp->getFilterSize() * conv2_cp->getInChannel();
-	int cnn2_b_len = conv2_cp->getOutChannel();
+	vector<Layer*> train_layers = model_component->getNeedTrainLayers();
 
-	int cnn3_w_len = conv3_cp->getOutChannel() * conv3_cp->getFilterSize() \
-			* conv3_cp->getFilterSize() * conv3_cp->getInChannel();
-	int cnn3_b_len = conv3_cp->getOutChannel();
+	for (int j = 0; j < model_component->getNumNeedTrainLayers(); ++j) {
+		w[j] = train_layers[j]->getW();
+		bias[j] = train_layers[j]->getBias();
+	}
 
-	int inner1_w_len = inner1_ip->getNumIn() * inner1_ip->getNumOut();
-	int inner1_b_len = inner1_ip->getNumOut();
+	for (int k = 0; k < model_component->getNumNeedTrainLayers(); ++k) {
+		MPI_Bcast(w[k]->getDevData(), model_component->getWLen()[k], \
+		           MPI_FLOAT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(bias[k]->getDevData(), model_component->getBiasLen()[k], \
+		           MPI_FLOAT, 0, MPI_COMM_WORLD);
+	}
 
-	int softmax_w_len = inner2_ip->getNumIn() * inner2_ip->getNumOut();
-	int softmax_b_len = inner2_ip->getNumOut();
+	num_train_per_process = model_component->getNumTrain() / (num_process - 1);
+	num_valid_per_process = model_component->getNumvalid() / (num_process - 1);
 
-	int mini_data_len = conv1_cp->getMinibatchSize() * cnn1_in_len;
-	int mini_label_len = conv1_cp->getMinibatchSize();
+	int mini_data_len = layers_param->getMinibatchSize() * model_component->getInLen();
+	int mini_label_len = layers_param->getMinibatchSize();
 
-	int train_data_len_part = num_train_per_process * cnn1_in_len;
+	int train_data_len_part = num_train_per_process * model_component->getInLen();
 	int train_label_len_part = num_train_per_process;
-	int valid_data_len_part = num_valid_per_process * cnn1_in_len;
+	int valid_data_len_part = num_valid_per_process * model_component->getInLen();
 	int valid_label_len_part = num_valid_per_process;
 
-cout << "Initialize layers...\n";
-	ConvNet<float> cnn1(conv1_cp);
-	cnn1.initCuda();
-
-	ReluLayer<float> relu1(relu1_fcp);
-	relu1.initCuda();
-
-	PoolingLayer<float> pool1(pool1_pp);
-	pool1.initCuda();
-
-	ConvNet<float> cnn2(conv2_cp);
-	cnn2.initCuda();
-
-	ReluLayer<float> relu2(relu2_fcp);
-	relu2.initCuda();
-
-	PoolingLayer<float> pool2(pool2_pp);
-	pool2.initCuda();
-
-	ConvNet<float> cnn3(conv3_cp);
-	cnn3.initCuda();
-
-	ReluLayer<float> relu3(relu3_fcp);
-	relu3.initCuda();
-
-	PoolingLayer<float> pool3(pool3_pp);
-	pool3.initCuda();
-
-	DropoutLayer<float> drop1(drop1_fcp);
-	drop1.initCuda();
-
-	InnerProductLayer<float> inner1(inner1_ip);
-	inner1.initCuda();
-
-	ReluLayer<float> relu4(relu4_fcp);
-	relu4.initCuda();
-
-	DropoutLayer<float> drop2(drop2_fcp);
-	drop2.initCuda();
-
-	InnerProductLayer<float> inner2(inner2_ip);
-	inner2.initCuda();
-
-	Logistic<float> softmax(softmax_fcp);
-	softmax.initCuda();
-
-cout << "Initialize layers is done.\n";
-	Matrix<float>* cnn1_w = cnn1.getW();
-	Matrix<float>* cnn1_bias = cnn1.getBias();
-	Matrix<float>* cnn2_w = cnn2.getW();
-	Matrix<float>* cnn2_bias = cnn2.getBias();
-	Matrix<float>* cnn3_w = cnn3.getW();
-	Matrix<float>* cnn3_bias = cnn3.getBias();
-	Matrix<float>* inner1_w = inner1.getW();
-	Matrix<float>* inner1_bias = inner1.getBias();
-	Matrix<float>* softmax_w = inner2.getW();
-	Matrix<float>* softmax_bias = inner2.getBias();
-
-	MPI_Bcast(cnn1_w->getDevData(), cnn1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn1_bias->getDevData(), cnn1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_w->getDevData(), cnn2_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn2_bias->getDevData(), cnn2_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_w->getDevData(), cnn3_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(cnn3_bias->getDevData(), cnn3_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(inner1_w->getDevData(), inner1_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(inner1_bias->getDevData(), inner1_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(softmax_w->getDevData(), softmax_w_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(softmax_bias->getDevData(), softmax_b_len, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
-	Matrix<float>* train_data = new Matrix<float>(num_train_per_process, cnn1_in_len);
+	Matrix<float>* train_data = new Matrix<float>(num_train_per_process, \
+								model_component->getInLen());
 	Matrix<float>* train_label = new Matrix<float>(num_train_per_process, 1);
-	Matrix<float>* valid_data = new Matrix<float>(num_valid_per_process, cnn1_in_len);
+	Matrix<float>* valid_data = new Matrix<float>(num_valid_per_process, \
+								model_component->getInLen());
 	Matrix<float>* valid_label = new Matrix<float>(num_valid_per_process, 1);
 
-	Matrix<float>* mini_data = new Matrix<float>(conv1_cp->getMinibatchSize(), cnn1_in_len);
-	Matrix<float>* mini_label = new Matrix<float>(conv1_cp->getMinibatchSize(), 1);
+	Matrix<float>* mini_data = new Matrix<float>(layers_param->getMinibatchSize(), \
+									model_component->getInLen());
+	Matrix<float>* mini_label = new Matrix<float>(layers_param->getMinibatchSize(), 1);
 
 	MPI_Status status;
 	MPI_Recv(train_data->getDevData(), train_data_len_part, \
@@ -438,54 +304,27 @@ cout << "Initialize layers is done.\n";
 	MPI_Recv(valid_label->getDevData(), valid_label_len_part, \
 			MPI_FLOAT, 0, rank, MPI_COMM_WORLD, &status);
 
-cout << "Each process reciving their data...\n";
+	cout << "Each process reciving their data...\n";
+
+
+
+	Matrix<float> *y[model_component->getNumLayers()];
+	Matrix<float> *dE_dy[model_component->getNumLayers()];
+	for (int j = 0; j < model_component->getNumLayers(); ++j) {
+		y[j] = layers[j]->getY();
+		dE_dy[j] = layers[j]->getDEDY();
+	}
+
 	int passMsg = 0;
-
-	Matrix<float>* cnn1_y = cnn1.getY();
-	Matrix<float>* cnn1_dE_dy = cnn1.getDEDY();
-	Matrix<float>* relu1_y = relu1.getY();
-	Matrix<float>* relu1_dE_dy = relu1.getDEDY();
-	Matrix<float>* pool1_y = pool1.getY();
-	Matrix<float>* pool1_dE_dy = pool1.getDEDY();
-	Matrix<float>* cnn2_y = cnn2.getY();
-	Matrix<float>* cnn2_dE_dy = cnn2.getDEDY();
-	Matrix<float>* relu2_y = relu2.getY();
-	Matrix<float>* relu2_dE_dy = relu2.getDEDY();
-	Matrix<float>* pool2_y = pool2.getY();
-	Matrix<float>* pool2_dE_dy = pool2.getDEDY();
-	Matrix<float>* cnn3_y = cnn3.getY();
-	Matrix<float>* cnn3_dE_dy = cnn3.getDEDY();
-	Matrix<float>* relu3_y = relu3.getY();
-	Matrix<float>* relu3_dE_dy = relu3.getDEDY();
-	Matrix<float>* pool3_y = pool3.getY();
-	Matrix<float>* pool3_dE_dy = pool3.getDEDY();
-	Matrix<float>* drop1_y = drop1.getY();
-	Matrix<float>* drop1_dE_dy = drop1.getDEDY();
-	Matrix<float>* inner1_y = inner1.getY();
-	Matrix<float>* inner1_dE_dy = inner1.getDEDY();
-	Matrix<float>* relu4_y = relu4.getY();
-	Matrix<float>* relu4_dE_dy = relu4.getDEDY();
-	Matrix<float>* drop2_y = drop2.getY();
-	Matrix<float>* drop2_dE_dy = drop2.getDEDY();
-	Matrix<float>* inner2_y = inner2.getY();
-	Matrix<float>* inner2_dE_dy = inner2.getDEDY();
-
-	const int num_pars_type = 10;
-	float* my_pars[num_pars_type] = {cnn1_w->getDevData(), cnn1_bias->getDevData(), \
-			cnn2_w->getDevData(), cnn2_bias->getDevData(), \
-			cnn3_w->getDevData(), cnn3_bias->getDevData(), \
-			inner1_w->getDevData(), inner1_bias->getDevData(), \
-			softmax_w->getDevData(), softmax_bias->getDevData()};
-	int pars_len[num_pars_type] = {cnn1_w_len, cnn1_b_len, cnn2_w_len, cnn2_b_len, \
-				cnn3_w_len, cnn3_b_len, inner1_w_len, inner1_b_len, \
-			     softmax_w_len, softmax_b_len};
+	const int num_pars_type = 2*model_component->getNumNeedTrainLayers();
 
 	clock_t t;
 	t = clock();
 	clock_t t1;
 	t1 = clock();
 	Matrix<int>* total_record = new Matrix<int>(softmax_fcp->getNumIn(), softmax_fcp->getNumIn());
-cout << "Start training...\n";
+
+	cout << "Start training...\n";
 
 	for(int epoch_idx = 0; epoch_idx < num_epoch; epoch_idx++){
 		int error = 0;
@@ -499,49 +338,33 @@ cout << "Start training...\n";
 			mini_label->changePtrFromStart(train_label->getDevData(), \
 					mini_label_len * batch_idx);
 
-			cnn1.computeOutputs(mini_data);
-			relu1.computeOutputs(cnn1_y);
-			pool1.computeOutputs(relu1_y);
+			layers[0].computeOutputs(mini_data);
+			for (int k = 1; k < model_component->getNumLayers(); ++k) {
+				layers[k].computeOutputs(y[k-1]);
+			}
 
-			cnn2.computeOutputs(pool1_y);
-			relu2.computeOutputs(cnn2_y);
-			pool2.computeOutputs(relu2_y);
+			likelihood += layers[model_component->getNumLayers()-1].computeError(mini_label, error);
+			layers[model_component->getNumLayers()-1].computeDerivsOfInput(inner2_dE_dy, mini_label);
 
-			cnn3.computeOutputs(pool2_y);
-			relu3.computeOutputs(cnn3_y);
-			pool3.computeOutputs(relu3_y);
+			for (int k = model_component->getNumLayers()-2; \
+						k >= 1; --k) {
+				layers[k].computeDerivsOfInput(dE_dy[k-1]);
+			}
 
-			inner1.computeOutputs(pool3_y);
-			relu4.computeOutputs(inner1_y);
-//			drop2.computeOutputs(relu4_y);
+			for (int k = model_component->getNumNeedTrainLayers()-1; \
+						k >= 1; --k) {
+				train_layers[k].computeDerivsOfPars(y[k-1]);
+			}
 
-			inner2.computeOutputs(relu4_y);
-			softmax.computeOutputs(inner2_y);
 
-			likelihood += softmax.computeError(mini_label, error);
-
-			softmax.computeDerivsOfInput(inner2_dE_dy, mini_label);
-			inner2.computeDerivsOfInput(relu4_dE_dy);
-
-//			drop2.computeDerivsOfInput(relu4_dE_dy);
-			relu4.computeDerivsOfInput(inner1_dE_dy);
-			inner1.computeDerivsOfInput(pool3_dE_dy);
-
-			pool3.computeDerivsOfInput(relu3_dE_dy);
-			relu3.computeDerivsOfInput(cnn3_dE_dy);
-			cnn3.computeDerivsOfInput(pool2_dE_dy);
-
-			pool2.computeDerivsOfInput(relu2_dE_dy);
-			relu2.computeDerivsOfInput(cnn2_dE_dy);
-			cnn2.computeDerivsOfInput(pool1_dE_dy);
-
-			pool1.computeDerivsOfInput(relu1_dE_dy);
-			relu1.computeDerivsOfInput(cnn1_dE_dy);
-			
 			inner2.computeDerivsOfPars(relu4_y);
+
 			inner1.computeDerivsOfPars(pool3_y);
-			cnn3.computeDerivsOfPars(pool2_y);
-			cnn2.computeDerivsOfPars(pool1_y);
+
+			cnn3.computeDerivsOfPars(cnn3_y);
+
+			cnn2.computeDerivsOfPars(cnn2_y);
+
 			cnn1.computeDerivsOfPars(mini_data);
 
 			cnn1.updatePars();
@@ -568,8 +391,20 @@ cout << "Start training...\n";
 
 					MPI_Send(&passMsg, 1, MPI_INT, 0, \
 						swap_id, MPI_COMM_WORLD);
-					MPI_Send(my_pars[pars_addr], pars_len[pars_addr], \
-						MPI_FLOAT, 0, swap_id + passMsg, MPI_COMM_WORLD);
+
+					#pragma omp parallel num_threads(2)
+					{
+						int t_tid = omp_get_thread_num();
+						if (t_tid == 0) {
+							MPI_Send(w[pars_addr], model_component->getWLen()[pars_addr], \
+				               MPI_FLOAT, 0, swap_id+passMsg, \
+						       MPI_COMM_WORLD);
+						}else {
+							MPI_Send(bias[pars_addr], model_component->getBiasLen()[pars_addr], \
+				               MPI_FLOAT, 0, swap_id+passMsg, \
+						       MPI_COMM_WORLD);
+						}
+					}
 					
 				}
 			}
@@ -591,17 +426,23 @@ cout << "Start training...\n";
 
 					MPI_Send(&passMsg, 1, MPI_INT, 0, \
 						swap_id, MPI_COMM_WORLD);
-					MPI_Recv(my_pars[pars_addr], pars_len[pars_addr], \
-						MPI_FLOAT, 0, swap_id + passMsg, MPI_COMM_WORLD, &status);
-					
+					#pragma omp parallel num_threads(2)
+					{
+						int t_tid = omp_get_thread_num();
+						if (t_tid == 0) {
+							MPI_Recv(w[pars_addr], model_component->getWLen()[pars_addr], \
+                               MPI_FLOAT, 0, swap_id + passMsg, \
+                               MPI_COMM_WORLD, &status);
+						} else {
+							MPI_Recv(bias[pars_addr], model_component->getBiasLen()[pars_addr], \
+                               MPI_FLOAT, 0, swap_id + passMsg, \
+                               MPI_COMM_WORLD, &status);
+						}
+					}
 				}
 			}
-
-//cout << batch_idx << "??\n";
 	
 			if(batch_idx == num_minibatch - 1){
-
-				
 				
 				softmax.setRecordToZero();	
 				int errorValid = 0;
@@ -683,38 +524,8 @@ cout << "Start training...\n";
 			inner1_bias->showValue("inner1_bias");
 			softmax_w->showValue("inner2_w");
 			softmax_bias->showValue("inner2_bias");
-
 		}
 
-
-//	if(epoch_idx == 10){
-
-//			conv1_cp->lrMultiScale(0.1);
-//			conv2_cp->lrMultiScale(0.1);
-//			conv3_cp->lrMultiScale(0.1);
-//			inner1_ip->lrMultiScale(0.1);
-//			inner2_ip->lrMultiScale(0.1);
-//		}
-
-/*	
-		if((epoch_idx + 1)% 50 == 0){
-        	string s;
-        	stringstream ss;
-        	ss << epoch_idx;
-        	ss >> s;    
-			savePars(cnn1_w, "./snapshot/w_snap/cnn1_w_" + s + "_t1.bin");
-			cout << s << endl;
-			savePars(cnn1_bias, "./snapshot/w_snap/cnn1_bias_" + s + "_t1.bin");
-			savePars(cnn2_w, "./snapshot/w_snap/cnn2_w_" + s + "_t1.bin");
-			savePars(cnn2_bias, "./snapshot/w_snap/cnn2_bias_" + s + "_t1.bin");
-			savePars(cnn3_w, "./snapshot/w_snap/cnn3_w_" + s + "_t1.bin");
-			savePars(cnn3_bias, "./snapshot/w_snap/cnn3_bias_" + s + "_t1.bin");
-			savePars(inner1_w, "./snapshot/w_snap/inner1_w_" + s + "_t1.bin");
-			savePars(inner1_bias, "./snapshot/w_snap/inner1_bias_" + s + "_t1.bin");
-			savePars(softmax_w, "./snapshot/w_snap/softmax1_w_" + s + "_t1.bin");
-			savePars(softmax_bias, "./snapshot/w_snap/softmax1_bias_" + s + "_t1.bin");
-		}
-*/
 	}
 	if(rank == 1){
 		t = clock() - t;
@@ -753,18 +564,20 @@ int main(int argc, char** argv){
 	cudaSetDevice(rank%numGpus);
 
 	int minibatch_size = 100;
+	int n_push = 49;
+	int n_fetch = 50;
+
 	int conv1_in_size = 32;
 	int conv1_in_channel = 3;
 	int conv1_pad = 2;
 	int conv1_stride = 1;
 	int conv1_filter_size = 5;
 	int conv1_out_channel = 8;
-	float conv1_w_lr = 0.0001;
-	float conv1_b_lr = 0.00001;
+	float conv1_w_lr = 0.001;
+	float conv1_b_lr = 0.001;
 	float conv1_momentum = 0.9;
 	float conv1_weight_decay = 0;
-	int n_push = 49;
-	int n_fetch = 50;
+
 
 	//sigmoid层参数可以先忽略
 	int pool1_pad = 0;
@@ -776,22 +589,22 @@ int main(int argc, char** argv){
 	int conv2_stride = 1;
 	int conv2_filter_size = 5;
 	int conv2_out_channel = 16;
-	float conv2_w_lr = 0.0001;
-	float conv2_b_lr = 0.00001;
+	float conv2_w_lr = 0.001;
+	float conv2_b_lr = 0.001;
 	float conv2_momentum = 0.9;
 	float conv2_weight_decay = 0;
 
 	int pool2_pad = 0;
 	int pool2_stride = 2;
 	int pool2_filter_size = 3;
-	PoolingType pool2_type = MAX_POOLING;
+	PoolingType pool2_type = AVG_POOLING;
 
 	int conv3_pad = 2;
 	int conv3_stride = 1;
 	int conv3_filter_size = 5;
 	int conv3_out_channel = 32;
 	float conv3_w_lr = 0.001;
-	float conv3_b_lr = 0.00001;
+	float conv3_b_lr = 0.001;
 	float conv3_momentum = 0.9;
 	float conv3_weight_decay = 0;
 
@@ -802,84 +615,122 @@ int main(int argc, char** argv){
 
 	int inner1_num_out = 64;
 	float inner1_w_lr = 0.001;
-	float inner1_b_lr = 0.00001;
+	float inner1_b_lr = 0.001;
 	float inner1_momentum = 0.9;
 	float inner1_weight_decay = 0;
 
 	int inner2_num_out = 10;
-	float inner2_w_lr = 0.0001;
-	float inner2_b_lr = 0.000001;
+	float inner2_w_lr = 0.001;
+	float inner2_b_lr = 0.001;
 	float inner2_momentum = 0.9;
 	float inner2_weight_decay = 0;
 
-	ConvParam* conv1_cp = new ConvParam("conv1_layer", minibatch_size, \
+	int num_layers = 15;
+	Param* params[num_layers];
+
+	params[0] = new ConvParam("conv1_layer", minibatch_size, \
 			conv1_w_lr, conv1_b_lr, conv1_momentum, conv1_weight_decay, \
 			n_push, n_fetch, conv1_in_size, conv1_pad, conv1_stride, \
 			conv1_in_channel, conv1_filter_size, conv1_out_channel);
 
-	FullConnectParam* relu1_fcp = new FullConnectParam("relu1_layer", \
+	params[1] = new FullConnectParam("relu1_layer", \
 			0, conv1_cp);
 
-	PoolParam* pool1_pp = new PoolParam("pool1_layer", pool1_pad, \
+	params[2] = new PoolParam("pool1_layer", pool1_pad, \
 			pool1_stride, pool1_filter_size, 0, conv1_cp, pool1_type);
 
-	ConvParam* conv2_cp = new ConvParam("conv2_layer", conv2_w_lr, \
+	params[3] = new ConvParam("conv2_layer", conv2_w_lr, \
 			conv2_b_lr, conv2_momentum, conv2_weight_decay, n_push, \
 			n_fetch, conv2_pad, conv2_stride, conv2_filter_size, \
 			conv2_out_channel, pool1_pp);
 
-	FullConnectParam* relu2_fcp = new FullConnectParam("relu2_layer", \
+	params[4] = new FullConnectParam("relu2_layer", \
 			0, conv2_cp);
 
-	PoolParam* pool2_pp = new PoolParam("pool2_layer", pool2_pad, \
+	params[5] = new PoolParam("pool2_layer", pool2_pad, \
 			pool2_stride, pool2_filter_size, 0, conv2_cp, pool2_type);
 
-	ConvParam* conv3_cp = new ConvParam("conv3_layer", conv3_w_lr, \
+	params[6] = new ConvParam("conv3_layer", conv3_w_lr, \
 			conv3_b_lr, conv3_momentum, conv3_weight_decay, n_push, \
 			n_fetch, conv3_pad, conv3_stride, conv3_filter_size, \
 			conv3_out_channel, pool2_pp);
 
-	FullConnectParam* relu3_fcp = new FullConnectParam("relu3_layer", \
+	params[7] = new FullConnectParam("relu3_layer", \
 			0, conv3_cp);
 
-	PoolParam* pool3_pp = new PoolParam("pool3_layer", pool3_pad, \
+	params[8] = new PoolParam("pool3_layer", pool3_pad, \
 			pool3_stride, pool3_filter_size, 0, conv3_cp, pool3_type);
 
-	FullConnectParam* drop1_fcp = new FullConnectParam("drop1_layer", \
+	params[9] = new FullConnectParam("drop1_layer", \
 			0, pool3_pp);
 
-	InnerParam* inner1_ip = new InnerParam("inner1_layer", inner1_w_lr, \
+	params[10] = new InnerParam("inner1_layer", inner1_w_lr, \
 			inner1_b_lr, inner1_momentum, inner1_weight_decay, n_push, \
 			n_fetch, inner1_num_out, pool3_pp);
 
-	FullConnectParam* relu4_y = new FullConnectParam("relu4_layer", \
+	params[11] = new FullConnectParam("relu4_layer", \
 			0, inner1_ip);
 
-	FullConnectParam* drop2_fcp = new FullConnectParam("drop2_layer", \
+	params[12] = new FullConnectParam("drop2_layer", \
 			0, inner1_ip);
 
-	InnerParam* inner2_ip = new InnerParam("inner2_layer", inner2_w_lr, \
+	params[13] = new InnerParam("inner2_layer", inner2_w_lr, \
 			inner2_b_lr, inner2_momentum, inner2_weight_decay, \
 			n_push, n_fetch, inner2_num_out, relu4_y);
 
-	FullConnectParam* softmax_fcp = new FullConnectParam("softmax_layer", \
+	params[14] = new FullConnectParam("softmax_layer", \
 			0, inner2_ip);
 
+	params[0]->setMinibatchSize(minibatch_size);
+	params[0]->setNPush(n_push);
+	params[0]->setNFetch(n_fetch);
 
-	num_minibatch = num_train / (minibatch_size * (num_process - 1));
-	num_validbatch = num_valid / (minibatch_size * (num_process - 1));
+	int in_len = params[0]->getInSize() * params[0]->getInSize() \
+ 				* params[0]->getInChannel();
 
+	ModelComponent* voc_model = new ModelComponent;
+	voc_model->setInLen(in_len);
+	voc_model->setNumLayers(num_layers);
+
+	int j = 0;
+	for (int i = 0; i < num_layers; ++i) {
+		voc_model->setLayersParam(params[i]);
+		if (params[i]->getParamTrainType() == NEED) {
+			voc_model->setNeedTrainLayersParam(params[i]);
+			j++;
+		}
+	}
+
+	int num_need_train_layers = 5;
+	int num_need_train_local_layers = 3;
+	voc_model->setNumNeedTrainLayers(num_need_train_layers);
+	voc_model->setNumNeedTrainLocalLayers(num_need_train_local_layers);
+	vector<Param*> train_params = voc_model->getNeedTrainLayersParam();
+	int *w_len = new int[num_need_train_layers];
+	int *bias_len = new int[num_need_train_layers];
+
+	for (int k = 0; k < num_need_train_local_layers; ++k) {
+		w_len[k] = train_params[k]->getOutChannel() * train_params[k]->getFilterSize() \
+			* train_params[k]->getFilterSize() * train_params[k]->getInChannel();
+		bias_len[k] = train_params[k]->getOutChannel();
+		voc_model->setWLen(w_len[k]);
+		voc_model->setBiasLen(bias_len[k]);
+	}
+	for (int k = num_need_train_local_layers; k < num_need_train_layers; ++k) {
+		w_len[k] = train_params[k]->getNumIn() * train_params[k]->getNumOut();
+		bias_len[k] = train_params[k]->getNumOut();
+		voc_model->setWLen(w_len[k]);
+		voc_model->setBiasLen(bias_len[k]);
+	}
 
 	if(rank == 0){ 
-		managerNode(conv1_cp, conv2_cp, conv3_cp, inner1_ip, inner2_ip);
+		managerNode(voc_model);
 	}   
 	else{
-		workerNode(conv1_cp, relu1_fcp, pool1_pp, \
-				conv2_cp, relu2_fcp, pool2_pp, \
-				conv3_cp, relu3_fcp, pool3_pp, drop1_fcp, \
-				inner1_ip, relu4_y, drop2_fcp,  \
-				inner2_ip, softmax_fcp);
+		workerNode(voc_model);
 	} 	
+
+	delete voc_model;
 
 	MPI_Finalize();
 	return 0;

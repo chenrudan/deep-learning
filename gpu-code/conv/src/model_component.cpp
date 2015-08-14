@@ -1,6 +1,7 @@
 ///
 /// \file model_component.cpp
 /// @brief
+#include "model_component.hpp"
 
 using namespace std;
 
@@ -21,6 +22,7 @@ ModelComponent<Dtype>::ModelComponent() {
 
 template <typename Dtype>
 ModelComponent<Dtype>::~ModelComponent() {
+	/*
 	for (int i = 0; i < _num_layers; ++i) {
 		Param *param = _layers_param.pop_back();
 		delete param;
@@ -37,7 +39,7 @@ ModelComponent<Dtype>::~ModelComponent() {
 			tmp = _bias.pop_back();
 			delete tmp;
 		}
-	}
+	}*/
 }
 
 

@@ -24,11 +24,11 @@ LoadParticle<Dtype>::LoadParticle(){
 	fin2.read((char*)&num_neg, sizeof(int));
 	num_neg = 1099;
 	fin1.read((char*)&this->_img_size, sizeof(int));
-	
+
 	this->_img_channel = 1;
 
 	cout << num_pos << ":" << num_neg << ":" << this->_img_size \
-			<< ":" << this->_img_channel << endl;
+		<< ":" << this->_img_channel << endl;
 
 	this->_num_train = ceil(((num_neg + num_pos) * 9.0) / 10);
 	this->_num_valid = num_neg + num_pos - this->_num_train;
@@ -38,7 +38,7 @@ LoadParticle<Dtype>::LoadParticle(){
 
 	/// 将全部的数据都读进来，然后再处理
 	_all_pixel = new Dtype[(num_neg + num_pos) * this->_img_sqrt \
-				* this->_img_channel];
+				 * this->_img_channel];
 	_all_label = new Dtype[num_neg + num_pos];
 
 	_all_pixel_ptr = _all_pixel;
@@ -48,12 +48,12 @@ LoadParticle<Dtype>::LoadParticle(){
 	fin2.close();
 
 	loadBinary("../data/particle/manual-tutorial-positive-s60-t4-b.bin", \
-				_all_pixel_ptr, _all_label_ptr, 1);
+			_all_pixel_ptr, _all_label_ptr, 1);
 	loadBinary("../data/particle/manual-tutorial-negative-s60-t4-b.bin", \
-				_all_pixel_ptr, _all_label_ptr, 0);
+			_all_pixel_ptr, _all_label_ptr, 0);
 
 	shuffleComb();
-	
+
 	this->_train_pixel = _all_comb[0].getPixel();
 	this->_train_label = _all_comb[0].getLabel();
 	this->_valid_pixel = _all_comb[this->_num_train].getPixel();
@@ -88,13 +88,13 @@ void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 	unsigned char tmp;
 	char buf;
 	int num = 1099;
-//	fin.read((char*)&num, 4);
+	//	fin.read((char*)&num, 4);
 	fin.seekg(2*sizeof(int), fin.cur);
-	
+
 	for(int i = 0; i < num; i++){
 		/// 将指针加入容器内
 		ImgData<Dtype> my_img = ImgData<Dtype>(pixel_ptr, label_ptr, \
-					this->_img_channel * this->_img_sqrt);
+				this->_img_channel * this->_img_sqrt);
 		_all_comb.push_back(my_img);
 		fin.seekg(2*sizeof(int), fin.cur);
 
@@ -145,14 +145,6 @@ void LoadLayer<Dtype>::stdOneImg(Dtype* pixel_ptr, int process_len){
 	}
 }
 
-/*template <typename Dtype>
-void LoadLayer<Dtype>::PCAOneImg(Dtype* pixel_ptr, int process_len){
-	
-
-}
-*/
-
-
 template <typename Dtype>
 void ImgData<Dtype>::swap(const ImgData<Dtype>& new_img){
 	Dtype* tmp = new Dtype[_pixel_len];
@@ -170,32 +162,32 @@ void ImgData<Dtype>::swap(const ImgData<Dtype>& new_img){
 template <typename Dtype>
 LoadLayer<Dtype>::LoadLayer(const int num_train, const int num_valid, \
 		const int num_test, const int img_size, const int img_channel) \
-		: _num_train(num_train), _num_test(num_test), _num_valid(num_valid), \
-		  _img_size(img_size), _img_channel(img_channel){
-	_img_sqrt = _img_size * _img_size;
-	if (img_size > 0 && img_channel > 0) {
-		if (num_train > 0) {
-			_train_pixel = new Dtype[_num_train * _img_sqrt * _img_channel];
-			_train_label = new Dtype[_num_train];
-			_train_pixel_ptr = _train_pixel;
-			_train_label_ptr = _train_label;
+	: _num_train(num_train), _num_test(num_test), _num_valid(num_valid), \
+	_img_size(img_size), _img_channel(img_channel){
+		_img_sqrt = _img_size * _img_size;
+		if (img_size > 0 && img_channel > 0) {
+			if (num_train > 0) {
+				_train_pixel = new Dtype[_num_train * _img_sqrt * _img_channel];
+				_train_label = new Dtype[_num_train];
+				_train_pixel_ptr = _train_pixel;
+				_train_label_ptr = _train_label;
+			}
+			if (num_valid > 0) {
+				_valid_pixel = new Dtype[_num_valid * _img_sqrt * _img_channel];
+				_valid_label = new Dtype[_num_valid];
+				_valid_pixel_ptr = _valid_pixel;
+				_valid_label_ptr = _valid_label;
+			}
+			if (num_test > 0) {
+				_test_pixel = new Dtype[_num_test * _img_sqrt * _img_channel];
+				_test_label = new Dtype[_num_test];
+				_test_pixel_ptr = _test_pixel;
+				_test_label_ptr = _train_label;
+			}
 		}
-		if (num_valid > 0) {
-			_valid_pixel = new Dtype[_num_valid * _img_sqrt * _img_channel];
-			_valid_label = new Dtype[_num_valid];
-			_valid_pixel_ptr = _valid_pixel;
-			_valid_label_ptr = _valid_label;
-		}
-		if (num_test > 0) {
-			_test_pixel = new Dtype[_num_test * _img_sqrt * _img_channel];
-			_test_label = new Dtype[_num_test];
-			_test_pixel_ptr = _test_pixel;
-			_test_label_ptr = _train_label;
-		}
-	}
-	_is_base_alloc = true;
+		_is_base_alloc = true;
 
-}
+	}
 
 template <typename Dtype>
 LoadLayer<Dtype>::~LoadLayer(){
@@ -218,25 +210,25 @@ LoadLayer<Dtype>::~LoadLayer(){
 template <typename Dtype>
 LoadCifar10<Dtype>::LoadCifar10(const int num_train, const int num_valid, \
 		const int num_test, const int img_size, const int img_channel) \
-		: LoadLayer<Dtype>(num_train, num_valid, num_test, img_size, img_channel){
-		
-	for(int i = 1; i < 6; i++){
-		string s;
-		stringstream ss;
-		ss << i;
-		ss >> s;
-		string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
-		loadBinary(filename, this->_train_pixel_ptr, \
-				this->_train_label_ptr);
+	: LoadLayer<Dtype>(num_train, num_valid, num_test, img_size, img_channel){
+
+		for(int i = 1; i < 6; i++){
+			string s;
+			stringstream ss;
+			ss << i;
+			ss >> s;
+			string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
+			loadBinary(filename, this->_train_pixel_ptr, \
+					this->_train_label_ptr);
+		}
+		loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
+				this->_valid_pixel_ptr, this->_valid_label_ptr);
+
 	}
-	loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
-            this->_valid_pixel_ptr, this->_valid_label_ptr);
-		
-}
 
 template <typename Dtype>
 void LoadCifar10<Dtype>::loadBinary(string filename, \
-			Dtype* &pixel_ptr, Dtype* &label_ptr){
+		Dtype* &pixel_ptr, Dtype* &label_ptr){
 
 	ifstream fin(filename.c_str(), ifstream::binary);		
 	if(!fin.is_open()){
@@ -262,10 +254,10 @@ void LoadCifar10<Dtype>::loadBinary(string filename, \
 				pixel_ptr[k] = (int)tmp;
 			}
 			meanOneImg(pixel_ptr, this->_img_sqrt);
-		//	stdOneImg(pixel_ptr, this->_img_sqrt);
+			//	stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != num - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
-		
+
 		}
 		if(i != num - 1){
 			label_ptr++;
@@ -301,12 +293,12 @@ LoadVOC<Dtype>::LoadVOC(int minibatch_size){
 	this->_img_sqrt = this->_img_size * this->_img_size;
 
 	cout << this->_num_train << ":" << this->_num_valid \
-			<< ":" << this->_img_channel \
+		<< ":" << this->_img_channel \
 		<< ":" << this->_img_size << ":" << this->_img_size << endl; 
 	_minibatch_size = minibatch_size;
 
 	_train_pixel = new Dtype[minibatch_size * _img_sqrt * _img_channel];
-	_label_and_coord = new vector<int>[minibatch_size];
+	_label_num = new int[minibatch_size];
 }
 
 template <typename Dtype>
@@ -314,25 +306,26 @@ LoadVOC<Dtype>::~LoadVOC(){
 	_fin1.close();
 	_fin2.close();
 	delete[] _train_pixel;
-	delete[] _label_and_coord;
+	delete[] _label_num;
 }
 
 template <typename Dtype>
-LoadVOC<Dtype>::loadTrainOneBatch(){
-	loadBinary(_fin1, _train_pixel, _train_label_and_coord);
+void LoadVOC<Dtype>::loadTrainOneBatch(){
+	loadBinary(_fin1, _train_pixel, _label_and_coord, _label_num);
 }
 
 template <typename Dtype>
-LoadVOC<Dtype>::loadValidOneBatch(){
-	loadBinary(_fin2, _train_pixel, _train_label_and_coord);
+void LoadVOC<Dtype>::loadValidOneBatch(){
+	loadBinary(_fin2, _train_pixel, _label_and_coord, _label_num);
 }
 
 
 //之前的数据集传引用是因为要读全部的数据，所以要留下读取的位置，而本次中
 //一次只读取一个minibatch的数据
 template <typename Dtype>
-void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* pixel_ptr, \
-		vector<int>* label_ptr){
+void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* &pixel_ptr, \
+		int* &label_ptr, int* &label_num){
+	_label_and_coord_vec.clear();
 
 	for(int i = 0; i < _minibatch_size; i++){
 		if(fin.eof())
@@ -340,11 +333,12 @@ void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* pixel_ptr, \
 
 		int num_object;
 		fin.read((char*)&num_object, sizeof(int));
+		_label_num[i] = num_object;
 		for(int j = 0; j < num_object; j++){
 			int tmp;
 			//首先是label，再是这个label在原图中的坐标
 			fin.read((char*)&tmp, sizeof(int));
-			label_ptr[i].push_back(tmp);
+			_label_and_coord_vec.push_back(tmp);
 		}
 		//然后是像素数据
 		for(int j = 0; j < this->_img_channel; j++){
@@ -352,11 +346,12 @@ void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* pixel_ptr, \
 				fin.read((char*)&pixel_ptr[k], sizeof(Dtype));
 			}
 			meanOneImg(pixel_ptr, this->_img_sqrt);
-		//	stdOneImg(pixel_ptr, this->_img_sqrt);
+			//	stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != num - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
 		}
 	}
+	_label_ptr = &_label_and_coord_vec[0];
 	fin.close();
 }
 
