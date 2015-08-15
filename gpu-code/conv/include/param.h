@@ -71,7 +71,7 @@ public:
     LayerType getLayerType(){
         return _layer_type;
     }
-    void printParam(){
+    virtual void printParam(){
         cout << "\n============"<< _name << "============" \
                 << "\nlayer_type: " << _layer_type;
     }

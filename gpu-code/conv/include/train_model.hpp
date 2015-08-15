@@ -27,6 +27,7 @@ private:
     ModelComponent<Dtype> *_model_component;
     LoadVOC<Dtype> *_voc;
     float _likelihood;
+	int _error;
     int _cur_batch_idx; 
     map<string, int> transmit_data_id;
 
@@ -43,6 +44,7 @@ public:
     void createLayerForWorker();
     void createYDEDYForWorker();
     void createWBiasForManager();
+    void createWBiasForWorker();
 
     void initWeightAndBcast();
     float forwardPropagate();

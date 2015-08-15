@@ -16,9 +16,9 @@ using namespace std;
 	
 typedef void(*loadFun)(); 
 
-int Param::_minibatch_size;
+int Param::_minibatch_size = 0;
 
-void managerNode(TrainModel *model){
+void managerNode(TrainModel<float> *model){
 
 	cout << "Loading data...\n";
 
@@ -117,7 +117,7 @@ void managerNode(TrainModel *model){
 }
 
 
-void workerNode(ModelComponent* model_component){
+void workerNode(TrainModel<float> *model){
 
 	cout << "Initialize layers...\n";
 
@@ -221,7 +221,7 @@ int main(int argc, char** argv){
 		printf("Error: the MPI library doesn't provide the required thread level\n");
 		MPI_Abort(MPI_COMM_WORLD, 0); 
 	}   
-	MPI_Comm_pid(MPI_COMM_WORLD,&pid);
+	MPI_Comm_rank(MPI_COMM_WORLD,&pid);
 	MPI_Comm_size(MPI_COMM_WORLD,&num_process);
 
 	if(num_process <= 1){
@@ -237,7 +237,8 @@ int main(int argc, char** argv){
 	cout << num_gpu << endl;
 	cout << num_process << endl;	
 
-	TrainModel *voc_model = new TrainModel();
+	TrainModel<float> *voc_model = new TrainModel<float>();
+	voc_model->parseNetJson("script/voc.json");
 
 	if(pid == 0){ 
 		managerNode(voc_model);

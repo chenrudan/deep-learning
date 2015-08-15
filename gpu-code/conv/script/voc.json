@@ -4,8 +4,10 @@
 	"n_push": "49",
 	"n_fetch": "50",
 	"num_epoch": "100",
+	"img_size": "500",
+	"img_channel": "3",
 	"layer":
-		[
+	[
 		{
 			"type": "CONVOLUTION",
 			"name": "conv1",
@@ -105,13 +107,7 @@
 			"name": "softmax"
 		}
 
-		]
+	]
 }
 
-TMAX",
-			"name": "softmax"
-		}
-
-		]
-}
 

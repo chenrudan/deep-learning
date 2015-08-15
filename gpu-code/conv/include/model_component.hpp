@@ -12,7 +12,6 @@
 #include "matrix.hpp"
 #include "param.h"
 #include "layer.hpp"
-#include "train_model.hpp"
 
 using namespace std;
 
@@ -21,6 +20,7 @@ using namespace std;
 template<typename Dtype>
 class ModelComponent {
 
+template<typename D>
 friend class TrainModel;
 
 private:
@@ -68,6 +68,7 @@ private:
     Matrix<int> *_mini_label_for_voc;
 
     map<string, LayerType> _string_map_layertype;
+	map<string, PoolingType> _string_map_pooltype;
 
 
 public:
@@ -110,7 +111,7 @@ public:
         _num_train = num_train;
     }
     void setNumValid(const int num_valid){
-        _num_Valid = num_valid;
+        _num_valid = num_valid;
     }
     void setNumTrainEachProcess(const int num_train_each_process){
         _num_train_each_process = num_train_each_process;
@@ -125,7 +126,7 @@ public:
         _num_train_batch = _num_train / (_minibatch_size * (_num_process - 1));
     }
     void setNumValidbatch(){
-        _num_valide_batch = _num_valid / (_minibatch_size * (_num_process - 1));
+        _num_valid_batch = _num_valid / (_minibatch_size * (_num_process - 1));
     }
     void setEpoch(const int num_epoch){
         _num_epoch = num_epoch;
@@ -149,16 +150,16 @@ public:
         _bias_len.push_back(bias_len);
     }
     void setW(Matrix<Dtype> *w){
-        _w.push_back(w);
+        _w_for_manager.push_back(w);
     }
     void setBias(Matrix<Dtype> *bias){
-        _bias.push_back(bias);
+        _bias_for_manager.push_back(bias);
     }
     void setY(Matrix<Dtype> *y){
-        _y.push_back(y);
+        _y_for_worker.push_back(y);
     }
     void setDEDY(Matrix<Dtype> *dE_dy) {
-        _dE_dy.push_back(dE_dy);
+        _dE_dy_for_worker.push_back(dE_dy);
     }
 
     int getPid(){
@@ -195,7 +196,7 @@ public:
         return _num_train;
     }
     int getNumValid(){
-        return _num_Valid;
+        return _num_valid;
     }
     int getNumTrainiEachProcess(){
         return _num_train_each_process;
@@ -234,16 +235,16 @@ public:
         return _bias_len;
     }
     vector< Matrix<Dtype>* > getW(){
-        return _w;
+        return _w_for_manager;
     }
     vector< Matrix<Dtype>* > getBias(){
-        return _bias;
+        return _bias_for_manager;
     }
     vector< Matrix<Dtype>* > getY(){
-        return _y;
+        return _y_for_worker;
     }
     vector< Matrix<Dtype>* > getDEDY(){
-        return _dE_dy;
+        return _dE_dy_for_worker;
     }
 
 };

@@ -274,8 +274,8 @@ LoadVOC<Dtype>::LoadVOC(int minibatch_size){
 	_train_file = "../data/VOCdevkit/VOC2012/VOC_train_data.bin";
 	_valid_file = "../data/VOCdevkit/VOC2012/VOC_valid_data.bin";
 
-	_fin1(_train_file.c_str(), ifstream::binary);
-	_fin2(_valid_file.c_str(), ifstream::binary);
+	_fin1.open(_train_file.c_str(), ifstream::binary);
+	_fin2.open(_valid_file.c_str(), ifstream::binary);
 	if(!_fin1.is_open() || !_fin2.is_open()){
 		cout << "open original data file failed\n";
 		exit(EXIT_FAILURE);
@@ -288,7 +288,7 @@ LoadVOC<Dtype>::LoadVOC(int minibatch_size){
 	_fin1.read((char*)&this->_img_size, sizeof(int));
 
 	//将valid集偏移到数据的地方统一方法处理
-	_fin2.seekg(3*sizeof(int), is.cur);
+	_fin2.seekg(3*sizeof(int), _fin2.cur);
 
 	this->_img_sqrt = this->_img_size * this->_img_size;
 
@@ -297,7 +297,7 @@ LoadVOC<Dtype>::LoadVOC(int minibatch_size){
 		<< ":" << this->_img_size << ":" << this->_img_size << endl; 
 	_minibatch_size = minibatch_size;
 
-	_train_pixel = new Dtype[minibatch_size * _img_sqrt * _img_channel];
+	this->_train_pixel = new Dtype[minibatch_size*this->_img_sqrt*this->_img_channel];
 	_label_num = new int[minibatch_size];
 }
 
@@ -305,18 +305,18 @@ template <typename Dtype>
 LoadVOC<Dtype>::~LoadVOC(){
 	_fin1.close();
 	_fin2.close();
-	delete[] _train_pixel;
+	delete[] this->_train_pixel;
 	delete[] _label_num;
 }
 
 template <typename Dtype>
 void LoadVOC<Dtype>::loadTrainOneBatch(){
-	loadBinary(_fin1, _train_pixel, _label_and_coord, _label_num);
+	loadBinary(_fin1, this->_train_pixel, _label_and_coord, _label_num);
 }
 
 template <typename Dtype>
 void LoadVOC<Dtype>::loadValidOneBatch(){
-	loadBinary(_fin2, _train_pixel, _label_and_coord, _label_num);
+	loadBinary(_fin2, this->_train_pixel, _label_and_coord, _label_num);
 }
 
 
@@ -329,7 +329,7 @@ void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* &pixel_ptr, \
 
 	for(int i = 0; i < _minibatch_size; i++){
 		if(fin.eof())
-			fin.seekg(4*sizeof(int), is.beg);
+			fin.seekg(4*sizeof(int), fin.beg);
 
 		int num_object;
 		fin.read((char*)&num_object, sizeof(int));
@@ -347,11 +347,11 @@ void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* &pixel_ptr, \
 			}
 			meanOneImg(pixel_ptr, this->_img_sqrt);
 			//	stdOneImg(pixel_ptr, this->_img_sqrt);
-			if(i != num - 1 || j != this->_img_channel - 1)
+			if(i != _minibatch_size - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
 		}
 	}
-	_label_ptr = &_label_and_coord_vec[0];
+	label_ptr = &_label_and_coord_vec[0];
 	fin.close();
 }
 
