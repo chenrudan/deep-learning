@@ -25,23 +25,33 @@ private:
     int _flag; ///>表示是继续传递数据还是停止，这个由执行进程传递给控制进程
     int _pid; ///>跟哪个进程在交互数据
     MPI_Status _status;
-    MPI_Datatype mpi_type;
+    MPI_Datatype _mpi_type;
     int _position;
 
 public:
-    MPIDistribute(const int len, const int tag, const int pid, const MPI_Datatype mpi_type, \
-        Dtype *server_data = NULL ) : \
- 		_len(len), _tag(tag), _pid(pid), _server_data(server_data), \
-		_mpi_type(mpi_type) {}
+    MPIDistribute(const int len, const int tag, const int pid, \
+			const MPI_Datatype mpi_type, Dtype *data = NULL ) : \
+ 		_len(len), _tag(tag), _pid(pid), _data(data), \
+		_mpi_type(mpi_type), _flag(0) {}
     ~MPIDistribute() {}
 
     void receviceFlag();
-    void sendFlag();
+    void sendFlag(int flag);
     void dataTo();
     void dataFrom();
+	void bcast();
     ///>初始化时需要pack的数据MPI类型就是MPI_PACKED
-    void packAndSend(const int num, const int *len, Dtype **data);
-    void recvAndUnpack(const int num, const int *len, Dtype **data);
+    void packAndSend(const int num, const int *len, Dtype **data, \
+				const MPI_Datatype mpi_type);
+    void recvAndUnpack(const int num, const int *len, Dtype **data, \
+				const MPI_Datatype mpi_type);
+
+	int getFlag(){
+		return _flag;
+	}
+	void changeData(Dtype* data){
+		_data = data;
+	}
 };
 
 #include "../src/mpi_distribute.cpp"

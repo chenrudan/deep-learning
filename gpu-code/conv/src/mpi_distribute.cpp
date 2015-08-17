@@ -7,28 +7,33 @@
 using namespace std;
 
 template <typename Dtype>
-MPIDistribute<Dtype>::receviceFlag(){
+void MPIDistribute<Dtype>::receviceFlag(){
 	MPI_Recv(&_flag, 1, MPI_INT, _pid, _tag, MPI_COMM_WORLD, &_status);
 }
 
 template <typename Dtype>
-MPIDistribute<Dtype>::sendFlag(int flag){
+void MPIDistribute<Dtype>::sendFlag(int flag){
 	_flag = flag;
 	MPI_Send(&_flag, 1, MPI_INT, _pid, _tag, MPI_COMM_WORLD);
 }
 
 template <typename Dtype>
-MPIDistribute<Dtype>::dataTo(){
+void MPIDistribute<Dtype>::dataTo(){
 	MPI_Send(_data, _len, _mpi_type, _pid, _flag+_tag, MPI_COMM_WORLD);
 }
 
 template <typename Dtype>
-MPIDistribute<Dtype>::dataFrom(){
+void MPIDistribute<Dtype>::dataFrom(){
 	MPI_Recv(_data, _len, _mpi_type, _pid, _flag+_tag, MPI_COMM_WORLD, &_status);
 }
 
 template <typename Dtype>
-MPIDistribute<Dtype>::packAndSend(const int num, const int *len, Dtype **data, \
+void MPIDistribute<Dtype>::bcast(){
+	MPI_Bcast(_data, _len, _mpi_type, _pid, MPI_COMM_WORLD);
+}
+
+template <typename Dtype>
+void MPIDistribute<Dtype>::packAndSend(const int num, const int *len, Dtype **data, \
 			const MPI_Datatype mpi_type){
 	int buff_len = 0;
 	for (int i = 0; i < num; ++i){
@@ -41,13 +46,13 @@ MPIDistribute<Dtype>::packAndSend(const int num, const int *len, Dtype **data, \
                   MPI_COMM_WORLD);
 	}
 	_data = buff;
-	_len = position;
+	_len = _position;
 	dataTo();
 }
 
 template <typename Dtype>
-MPIDistribute<Dtype>::recvAndUnpack(const int num, const int *len, Dtype **data, \
-			const MPI_Datatype mpi_type){
+void MPIDistribute<Dtype>::recvAndUnpack(const int num, const int *len, \
+			Dtype **data, const MPI_Datatype mpi_type){
 	int buff_len = 0;
 	for (int i = 0; i < num; ++i){
 		buff_len += len[i]*sizeof(mpi_type);
@@ -59,7 +64,8 @@ MPIDistribute<Dtype>::recvAndUnpack(const int num, const int *len, Dtype **data,
 
 	dataFrom();
 	for (int i = 0; i < num; ++i) {
-		MPI_Unpack(buff, buff_len, &_position, data[i], len[i], mpi_type, MPI_COMM_WORLD);
+		MPI_Unpack(buff, buff_len, &_position, data[i], len[i], \
+				mpi_type, MPI_COMM_WORLD);
 	}
 }
 

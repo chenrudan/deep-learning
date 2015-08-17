@@ -25,8 +25,8 @@ typedef enum POOLING_TYPE {
 } PoolingType;
 
 typedef enum PARAM_TRAIN_TYPE {
-    NEED = 0,
-    NOTNEED = 1
+    NOTNEED = 0,
+    NEED = 1
 } ParamTrainType;
 
 typedef enum LAYER_TYPE {
@@ -75,6 +75,9 @@ public:
         cout << "\n============"<< _name << "============" \
                 << "\nlayer_type: " << _layer_type;
     }
+	static void setMinibatchSize(const int minibatch_size){
+		_minibatch_size = minibatch_size;
+	}
 
 protected:
     string _name;  ///> 实例化每一层的名字，用来区分不同的层

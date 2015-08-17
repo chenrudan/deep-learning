@@ -19,7 +19,7 @@ class ImgData {
 
 public:
 	ImgData() {}
-	ImgData(Dtype* pixel, Dtype* label, const int pixel_len) \
+	ImgData(Dtype* pixel, int* label, const int pixel_len) \
 		: _pixel(pixel), _label(label), _pixel_len(pixel_len) {}
 	~ImgData() {}
 
@@ -27,7 +27,7 @@ public:
 	Dtype* getPixel(){
 		return _pixel;
 	}
-	Dtype* getLabel(){
+	int* getLabel(){
 		return _label;
 	}
 
@@ -35,7 +35,7 @@ public:
 protected:
 	int _pixel_len;
 	Dtype* _pixel;
-	Dtype* _label;
+	int* _label;
 };
 
 
@@ -53,7 +53,7 @@ public:
 		const int num_test, const int img_size, const int img_channel);
 	virtual ~LoadLayer();
 
-	virtual void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr) {}
+	virtual void loadBinary(string filename, Dtype* &pixel_ptr, int* &label_ptr) {}
 
 	void meanOneImg(Dtype* pixel_ptr, int process_len);
 	void stdOneImg(Dtype* pixel_ptr, int process_len);
@@ -78,19 +78,19 @@ public:
 	Dtype* getTrainPixel(){
 		return _train_pixel;
 	}
-	Dtype* getTrainLabel(){
+	int* getTrainLabel(){
 		return _train_label;
 	}
 	Dtype* getValidPixel(){
 		return _valid_pixel;
 	}
-	Dtype* getValidLabel(){
+	int* getValidLabel(){
 		return _valid_label;
 	}
 	Dtype* getTestPixel(){
 		return _test_pixel;
 	}
-	Dtype* getTestLabel(){
+	int* getTestLabel(){
 		return _test_label;
 	}
 
@@ -103,15 +103,15 @@ protected:
 	int _img_sqrt;
 
 	///返回cpu数据
-	Dtype* _train_label;
-	Dtype* _valid_label;
-	Dtype* _test_label;
+	int* _train_label;
+	int* _valid_label;
+	int* _test_label;
 	Dtype* _train_pixel;
 	Dtype* _valid_pixel;
 	Dtype* _test_pixel;
-	Dtype* _train_label_ptr;
-	Dtype* _valid_label_ptr;
-	Dtype* _test_label_ptr;
+	int* _train_label_ptr;
+	int* _valid_label_ptr;
+	int* _test_label_ptr;
 	Dtype* _train_pixel_ptr;
 	Dtype* _valid_pixel_ptr;
 	Dtype* _test_pixel_ptr;
@@ -130,13 +130,13 @@ public:
 
 	using LoadLayer<Dtype>::loadBinary;
 	void loadBinary(string filename, Dtype* &pixel_ptr, \
-			Dtype* &label_ptr, Dtype fixed_label);
+			int* &label_ptr, int fixed_label);
 	void shuffleComb();
 
 private:
 
 	Dtype* _all_pixel, *_all_pixel_ptr;
-	Dtype* _all_label, *_all_label_ptr;
+	int* _all_label, *_all_label_ptr;
 	vector<ImgData<Dtype> > _all_comb;
 };
 
@@ -144,13 +144,17 @@ private:
 template <typename Dtype>
 class LoadCifar10 : public LoadLayer<Dtype> {
 
+	int _minibatch_size;
 public: 
-	LoadCifar10(const int num_train, const int num_valid, \
-		const int num_test, const int img_size, const int img_channel);
+	LoadCifar10(const int minibatch_size);
 
 	~LoadCifar10() {}
 
-	void loadBinary(string filename, Dtype* &pixel_ptr, Dtype* &label_ptr);
+	void loadBinary(string filename, Dtype* &pixel_ptr, int* &label_ptr);
+	void loadTrainOneBatch(int batch_idx, int num_process, int pid, \
+				Dtype *mini_pixel, int *mini_label);
+	void loadValidOneBatch(int batch_idx, int num_process, int pid, \
+				 Dtype *mini_pixel, int *mini_label);
 
 };
 
@@ -171,6 +175,9 @@ public:
 
 	int* getTrainLabelAndCoord(){
 		return _label_and_coord;
+	}
+	int* getLabelNum(){
+		return _label_num;
 	}
 
 private:

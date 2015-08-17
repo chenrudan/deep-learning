@@ -16,7 +16,7 @@ ModelComponent<Dtype>::ModelComponent() {
 	_string_map_layertype["DROPOUT"] = DROPOUT;
 
 	_string_map_pooltype["MAX_POOLING"] = MAX_POOLING;
-	_string_map_pooltyp["AVG_POOLING"] = AVG_POOLING;
+	_string_map_pooltype["AVG_POOLING"] = AVG_POOLING;
 
 
 	_num_need_train_layers = 0;

@@ -39,7 +39,7 @@ LoadParticle<Dtype>::LoadParticle(){
 	/// 将全部的数据都读进来，然后再处理
 	_all_pixel = new Dtype[(num_neg + num_pos) * this->_img_sqrt \
 				 * this->_img_channel];
-	_all_label = new Dtype[num_neg + num_pos];
+	_all_label = new int[num_neg + num_pos];
 
 	_all_pixel_ptr = _all_pixel;
 	_all_label_ptr = _all_label;
@@ -79,7 +79,7 @@ LoadParticle<Dtype>::~LoadParticle(){
 
 template <typename Dtype>
 void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
-		Dtype* &label_ptr, Dtype fixed_label){
+		int* &label_ptr, int fixed_label){
 	ifstream fin(filename.c_str(), ifstream::binary);
 	if(!fin.is_open()){
 		cout << "open file failed\n";
@@ -168,19 +168,19 @@ LoadLayer<Dtype>::LoadLayer(const int num_train, const int num_valid, \
 		if (img_size > 0 && img_channel > 0) {
 			if (num_train > 0) {
 				_train_pixel = new Dtype[_num_train * _img_sqrt * _img_channel];
-				_train_label = new Dtype[_num_train];
+				_train_label = new int[_num_train];
 				_train_pixel_ptr = _train_pixel;
 				_train_label_ptr = _train_label;
 			}
 			if (num_valid > 0) {
 				_valid_pixel = new Dtype[_num_valid * _img_sqrt * _img_channel];
-				_valid_label = new Dtype[_num_valid];
+				_valid_label = new int[_num_valid];
 				_valid_pixel_ptr = _valid_pixel;
 				_valid_label_ptr = _valid_label;
 			}
 			if (num_test > 0) {
 				_test_pixel = new Dtype[_num_test * _img_sqrt * _img_channel];
-				_test_label = new Dtype[_num_test];
+				_test_label = new int[_num_test];
 				_test_pixel_ptr = _test_pixel;
 				_test_label_ptr = _train_label;
 			}
@@ -208,9 +208,10 @@ LoadLayer<Dtype>::~LoadLayer(){
 }
 
 template <typename Dtype>
-LoadCifar10<Dtype>::LoadCifar10(const int num_train, const int num_valid, \
-		const int num_test, const int img_size, const int img_channel) \
-	: LoadLayer<Dtype>(num_train, num_valid, num_test, img_size, img_channel){
+LoadCifar10<Dtype>::LoadCifar10(const int minibatch_size) : \
+	LoadLayer<Dtype>(50000, 10000, 0, 32, 3){
+
+	_minibatch_size = minibatch_size;
 
 		for(int i = 1; i < 6; i++){
 			string s;
@@ -224,11 +225,32 @@ LoadCifar10<Dtype>::LoadCifar10(const int num_train, const int num_valid, \
 		loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
 				this->_valid_pixel_ptr, this->_valid_label_ptr);
 
-	}
+}
+
+template <typename Dtype>
+void LoadCifar10<Dtype>::loadTrainOneBatch(int batch_idx, int num_process, \
+		int pid, Dtype *mini_pixel, int *mini_label){
+	mini_pixel = this->_train_pixel + batch_idx*_minibatch_size*num_process \
+				*this->_img_channel*this->_img_sqrt \
+				+pid*_minibatch_size*this->_img_channel*this->_img_sqrt;
+	mini_label = this->_train_label + batch_idx*_minibatch_size*num_process \
+				+ pid*_minibatch_size;
+}
+
+//此处的num_process是指除了0进程外的个数
+template <typename Dtype>
+void LoadCifar10<Dtype>::loadValidOneBatch(int batch_idx, int num_process, \
+			int pid, Dtype *mini_pixel, int *mini_label){
+	mini_pixel = this->_valid_pixel + batch_idx*_minibatch_size*num_process \
+				*this->_img_channel*this->_img_sqrt\
+				+pid*_minibatch_size*this->_img_channel*this->_img_sqrt;
+	mini_label = this->_valid_label + batch_idx*_minibatch_size*num_process \
+				+ pid*_minibatch_size;
+}
 
 template <typename Dtype>
 void LoadCifar10<Dtype>::loadBinary(string filename, \
-		Dtype* &pixel_ptr, Dtype* &label_ptr){
+		Dtype* &pixel_ptr, int* &label_ptr){
 
 	ifstream fin(filename.c_str(), ifstream::binary);		
 	if(!fin.is_open()){

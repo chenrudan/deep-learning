@@ -16,6 +16,7 @@
 #include "convnet.hpp"
 #include "pooling_layer.hpp"
 #include "dropout_layer.hpp"
+#include "mpi_distribute.hpp"
 
 using namespace std;
 
@@ -25,21 +26,21 @@ template<typename Dtype>
 class TrainModel {
 private:
     ModelComponent<Dtype> *_model_component;
-    LoadVOC<Dtype> *_voc;
+    LoadCifar10<Dtype> *_voc;
     float _likelihood;
 	int _error;
     int _cur_batch_idx; 
     map<string, int> transmit_data_id;
 
-
 public:
-    TrainModel();
+    TrainModel(const int pid);
     ~TrainModel();
 
     void initModel(int num_process, string json_file);
     void parseImgBinary(int num_process);
     void parseNetJson(string json_file);
-    void createVOCPixelAndLabel();
+    void createPixelAndLabel();
+    void createLabelNum();
 
     void createLayerForWorker();
     void createYDEDYForWorker();
@@ -53,6 +54,8 @@ public:
 
     void train();
     void valid();
+
+	void sendPixelAndLabel();
 
 };
 

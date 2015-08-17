@@ -51,21 +51,16 @@ private:
     vector<int> _w_len;   ///>需要训练的层的权重长度，用来进程间传递数据
     vector<int> _bias_len;
     vector<float> _w_init_gauss;
-    vector< Matrix<Dtype>* > _w_for_manager; ///>保存需要训练层的权重指针
-    vector< Matrix<Dtype>* > _bias_for_manager;
+    vector< Matrix<Dtype>* > _w; ///>保存需要训练层的权重指针
+    vector< Matrix<Dtype>* > _bias;
 
     vector< Matrix<Dtype>* > _y_for_worker;
     vector< Matrix<Dtype>* > _dE_dy_for_worker;
     vector< Matrix<Dtype>* > _y_for_compute_par;
 
-    Matrix<Dtype>* _mini_train_data;  ///> 需要保存两组数据，一组当前作为运算，一组在运算的时候交换，下一次再计算
-    Matrix<Dtype>* _mini_valid_data;
-    Matrix< vector<int> > *_mini_train_label_for_voc;
-    Matrix< vector<int> > *_mini_valid_label_for_voc;
-
-
-    Matrix<Dtype>* _mini_data;
-    Matrix<int> *_mini_label_for_voc;
+    vector< Matrix<Dtype>* > _mini_data;  ///> 需要保存两组数据，一组当前作为运算，一组在运算的时候交换，下一次再计算
+    vector< Matrix<int>* > _mini_label;
+	vector< Matrix<int>* > _mini_label_num; ///>表示voc的每一张图对应几个label几个object
 
     map<string, LayerType> _string_map_layertype;
 	map<string, PoolingType> _string_map_pooltype;
@@ -122,10 +117,10 @@ public:
     void setMinibatchSize(const int minibatch_size){
         _minibatch_size = minibatch_size;
     }
-    void setNumTrainbatch(){
+    void setNumTrainBatch(){
         _num_train_batch = _num_train / (_minibatch_size * (_num_process - 1));
     }
-    void setNumValidbatch(){
+    void setNumValidBatch(){
         _num_valid_batch = _num_valid / (_minibatch_size * (_num_process - 1));
     }
     void setEpoch(const int num_epoch){
@@ -150,10 +145,10 @@ public:
         _bias_len.push_back(bias_len);
     }
     void setW(Matrix<Dtype> *w){
-        _w_for_manager.push_back(w);
+        _w.push_back(w);
     }
     void setBias(Matrix<Dtype> *bias){
-        _bias_for_manager.push_back(bias);
+        _bias.push_back(bias);
     }
     void setY(Matrix<Dtype> *y){
         _y_for_worker.push_back(y);
@@ -207,10 +202,10 @@ public:
     int getMinibatchSize(){
         return _minibatch_size;
     }
-    int getNumTrainbatch(){
+    int getNumTrainBatch(){
         return _num_train_batch;
     }
-    int getNumValidbatch(){
+    int getNumValidBatch(){
         return _num_valid_batch;
     }
     int getNumEpoch(){
@@ -235,10 +230,10 @@ public:
         return _bias_len;
     }
     vector< Matrix<Dtype>* > getW(){
-        return _w_for_manager;
+        return _w;
     }
     vector< Matrix<Dtype>* > getBias(){
-        return _bias_for_manager;
+        return _bias;
     }
     vector< Matrix<Dtype>* > getY(){
         return _y_for_worker;

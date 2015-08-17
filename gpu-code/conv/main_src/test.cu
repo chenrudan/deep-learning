@@ -1,96 +1,112 @@
-/*
- * filename:test.cu
- */
+///
+///  \file conv3.cu
+///
 
 #include <iostream>
-#include <time.h>
-#include "cublas_v2.h"
-
-#include "matrix.h"
-#include "nvmatrix.cuh"
-#include "convnet.cuh"
-#include "convnet_kernel.cuh"
+#include <fstream>
+#include <sstream>
+#include <cmath>
+#include <omp.h>
+#include "mpi.h"
+#include "train_model.hpp"
 
 using namespace std;
 
-__global__ void add(float *a, float *b, float *c, int length){
-	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	if(idx < length)
-		c[idx] = a[idx] + b[idx];
+#define THREAD_END 100000
+	
+typedef void(*loadFun)(); 
+
+int Param::_minibatch_size = 0;
+
+void managerNode(TrainModel<float> *model){
+
+	cout << "Loading data...\n";
+
+	model->createWBiasForManager();
+	cout << "Initialize weight and bias...\n";
+	model->createPixelAndLabel();
+	cout << "Loading data is done.\n";
+
+	model->initWeightAndBcast();
+	cout << "done4\n";
+	model->sendPixelAndLabel();
 }
 
+void workerNode(TrainModel<float> *model){
 
-int main(){
-	int m = 100;
-	int k = 784;
-	int n = 10;
-	cublasHandle_t handle;
-	cublasCreate(&handle);
-
-	NVMatrix* a = new NVMatrix(100, 784);
-	NVMatrix* b = new NVMatrix(100, 24*24*16);
-	NVMatrix* c = new NVMatrix(25, 100*24*24);
-	NVMatrix* d = new NVMatrix(25, 16);
-	NVMatrix* e = new NVMatrix(100*24*24, 16);
-	NVMatrix* f = new NVMatrix(16, 25);
-
-	a->reValue(28);
-	b->reValue(24);
-
-        int numKernels = 100*24*24*5*5*1;;
-        int numBlocks = numKernels / 1024 + 1;
-
-	//im2col_conv<<<numBlocks, 1024>>>(a->getDevData(), \
-			c->getDevData(), numKernels, 24*24, \
-			100*24*24, 25);
-
-	a->showValue("a");
-	c->showValue("c");
-
-	numKernels = 100*24*24*16;
-	numBlocks = numKernels / 1024;
-	reshape_dE_dx_h<<<numBlocks, 1024>>>(e->getDevData(), b->getDevData(), \
-				numKernels);
-
-//cout << c->getNumRows() << ":" << c->getNumCols() << endl;
-//cout << d->getNumRows() << ":" << d->getNumCols() << endl;
-	c->rightMult(e, 1, d, handle);
-	d->getTranspose(f);
-
-//	numKernels = 100*24*24*16;
-//	numBlocks = numKernels / 1024;
-//	reshape_y_h<<<numBlocks, 1024>>>(e->getDevData(), f->getDevData(), \
-			numKernels);
-
-
-	b->showValue("b");
-	e->showValue("e");
-	f->showValue("f");
-
-	//	a->showValue("a");
-
-	//	a->apply(NVMatrix::SOFTMAX, 1, 1);
-	//	a->addRowVector(b, 16 ,10);
-	//a->eltWiseMult(b, c, 16, 16);
-	//	a->rightMult(b, 1, c, handle);
-	//	a->getTranspose(b);
-	//	a->sumRow(b,1,1);
-	//	a->maxPosInRow(b);
-	//	a->eltWiseMultByColVector(b);
-	/*	a->showValue("a");
-		a->showValue("a");
-		NVMatrix* d = a->sumCol(16, 10);
-		d->showValue("d");
-	 */
-	//	a->eltWiseDivideByVector(b, 16, 10);
-	//	a->sumCol(b, 16, 10);
-	//	a->add(b, 1, 1, 16, 10);
-
+	cout << "Initialize layers...\n";
+	model->createLayerForWorker();
+	cout << "Initialize layers is done.\n";
+	model->createWBiasForWorker();
+	cout << "Each process reciving their data...\n";
+	model->createYDEDYForWorker();
 	cout << "done1\n";
+	model->createPixelAndLabel();
 	cout << "done2\n";
-	//	c->showValue("c");
+	model->initWeightAndBcast();
+	cout << "done3\n";
+	model->train();
 
-	cublasDestroy(handle);
 
+
+}
+
+int main(int argc, char** argv){
+
+	int pid; 
+	int num_process;
+	int prov;
+	MPI_Init_thread(&argc,&argv,MPI_THREAD_MULTIPLE, &prov);
+	if (prov < MPI_THREAD_MULTIPLE)
+	{   
+		printf("Error: the MPI library doesn't provide the required thread level\n");
+		MPI_Abort(MPI_COMM_WORLD, 0); 
+	}   
+	MPI_Comm_rank(MPI_COMM_WORLD,&pid);
+	MPI_Comm_size(MPI_COMM_WORLD,&num_process);
+
+	if(num_process <= 1){
+		printf("Error: process number must bigger than 1\n");
+		MPI_Abort(MPI_COMM_WORLD, 0); 
+	}
+
+	//检测有几个gpu
+	int num_gpu;
+	cudaGetDeviceCount(&num_gpu);
+	cudaSetDevice(pid % num_gpu);
+
+	cout << num_gpu << endl;
+	cout << num_process << endl;	
+
+	TrainModel<float> *voc_model = new TrainModel<float>(pid);
+	voc_model->parseNetJson("script/cifar10.json");
+	voc_model->parseImgBinary(num_process);
+
+	if(pid == 0){ 
+		managerNode(voc_model);
+	}   
+	else{
+		workerNode(voc_model);
+	} 	
+
+	delete voc_model;
+	MPI_Finalize();
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
