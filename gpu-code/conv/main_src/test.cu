@@ -9,43 +9,45 @@
 #include <omp.h>
 #include "mpi.h"
 #include "train_model.hpp"
+#include "convnet.hpp"
 
 using namespace std;
 
 #define THREAD_END 100000
-	
+
 typedef void(*loadFun)(); 
 
 int Param::_minibatch_size = 0;
 
 void managerNode(TrainModel<float> *model){
+	/*
+	   cout << "Loading data...\n";
 
-	cout << "Loading data...\n";
+	   model->createWBiasForManager();
+	   cout << "Initialize weight and bias...\n";
+	   model->createPixelAndLabel();
+	   cout << "Loading data is done.\n";
 
-	model->createWBiasForManager();
-	cout << "Initialize weight and bias...\n";
-	model->createPixelAndLabel();
-	cout << "Loading data is done.\n";
-
-	model->initWeightAndBcast();
-	cout << "done4\n";
-	model->sendPixelAndLabel();
+	   model->initWeightAndBcast();
+	   cout << "done4\n";
+	   model->sendPixelAndLabel();
+	 */
 }
 
 void workerNode(TrainModel<float> *model){
 
 	cout << "Initialize layers...\n";
-	model->createLayerForWorker();
+	//	model->createLayerForWorker();
 	cout << "Initialize layers is done.\n";
-	model->createWBiasForWorker();
+	//	model->createWBiasForWorker();
 	cout << "Each process reciving their data...\n";
-	model->createYDEDYForWorker();
+	//	model->createYDEDYForWorker();
 	cout << "done1\n";
-	model->createPixelAndLabel();
+	//	model->createPixelAndLabel();
 	cout << "done2\n";
-	model->initWeightAndBcast();
+	//	model->initWeightAndBcast();
 	cout << "done3\n";
-	model->train();
+	//	model->train();
 
 
 
@@ -53,7 +55,7 @@ void workerNode(TrainModel<float> *model){
 
 int main(int argc, char** argv){
 
-	int pid; 
+/*	int pid; 
 	int num_process;
 	int prov;
 	MPI_Init_thread(&argc,&argv,MPI_THREAD_MULTIPLE, &prov);
@@ -75,8 +77,6 @@ int main(int argc, char** argv){
 	cudaGetDeviceCount(&num_gpu);
 	cudaSetDevice(pid % num_gpu);
 
-	cout << num_gpu << endl;
-	cout << num_process << endl;	
 
 	TrainModel<float> *voc_model = new TrainModel<float>(pid);
 	voc_model->parseNetJson("script/cifar10.json");
@@ -86,11 +86,20 @@ int main(int argc, char** argv){
 		managerNode(voc_model);
 	}   
 	else{
+		cout << num_gpu << endl;
+		cout << num_process << endl;	
 		workerNode(voc_model);
 	} 	
 
 	delete voc_model;
 	MPI_Finalize();
+
+*/
+	ConvParam* cp = new ConvParam(CONVOLUTION, "CONV1", 0.1, 0.1, 0.1, \
+			0.1, 32, 2, 2, 3, 5, 8); 
+	cp->printParam();
+//	ConvNet<float> layer(cp);
+
 	return 0;
 }
 

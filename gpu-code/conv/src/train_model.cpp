@@ -6,6 +6,13 @@
 #include <iostream>
 #include "train_model.hpp"
 #include "json/json.h"
+#include "inner_product_layer.hpp"
+#include "logistic.hpp"
+#include "sigmoid_layer.hpp"
+#include "relu_layer.hpp"
+#include "convnet.hpp"
+#include "pooling_layer.hpp"
+#include "dropout_layer.hpp"
 
 using namespace std;
 
@@ -28,7 +35,7 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 
 	//一次要读取多个进程需要处理的数据
 	if(_model_component->_pid == 0){
-//		_voc = new LoadVOC<Dtype>(_model_component->_minibatch_size * num_process);
+		//		_voc = new LoadVOC<Dtype>(_model_component->_minibatch_size * num_process);
 		_voc = new LoadCifar10<Dtype>(_model_component->_minibatch_size);
 		_model_component->_num_train = _voc->getNumTrain();
 		_model_component->_num_valid = _voc->getNumValid();
@@ -77,12 +84,12 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 		_model_component->_img_size = root["img_size"].asInt();
 		_model_component->_img_channel = root["img_channel"].asInt();
 
-		if(_model_component->_pid == 0){
-		cout << "\n===========overall==============" \
-			<< "\nnum_epoch: " << _model_component->_num_epoch \
-			<< "\nbatchSize: " << _model_component->_minibatch_size \
-			<< "\nn_fetch: " << _model_component->_n_fetch \
-			<< "\nn_push: " << _model_component->_n_push;
+		if(_model_component->_pid == 1){
+			cout << "\n===========overall==============" \
+				<< "\nnum_epoch: " << _model_component->_num_epoch \
+				<< "\nbatchSize: " << _model_component->_minibatch_size \
+				<< "\nn_fetch: " << _model_component->_n_fetch \
+				<< "\nn_push: " << _model_component->_n_push;
 		}
 
 		_model_component->_num_layers = root["layer"].size();
@@ -140,24 +147,24 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 				}
 			} else if (layer_type == "POOLING") {
 				param = new PoolParam( \
-							_model_component->_string_map_layertype[layer_type], \
-							name, pad, stride, filter_size, 0, \
-							dynamic_cast<LocalConnectParam*>( \
-								_model_component->_layers_param.at( \
+						_model_component->_string_map_layertype[layer_type], \
+						name, pad, stride, filter_size, 0, \
+						dynamic_cast<LocalConnectParam*>( \
+							_model_component->_layers_param.at( \
 								_model_component->_layers_param.size() - 2)), \
-								_model_component->_string_map_pooltype[p_type]);
+						_model_component->_string_map_pooltype[p_type]);
 			} else if (layer_type == "SIGMOID" || layer_type == "RECTIFIED" \
 					|| layer_type == "SOFTMAX" || layer_type == "DROPOUT") {
 				param = new FullConnectParam( \
-							_model_component->_string_map_layertype[layer_type], \
-							name, 0, _model_component->_layers_param.back());
+						_model_component->_string_map_layertype[layer_type], \
+						name, 0, _model_component->_layers_param.back());
 			} else if (layer_type == "INNERPRODUCT" ) {
 				param = new InnerParam( \
-							_model_component->_string_map_layertype[layer_type], \
-                            name, w_lr, bias_lr, momentum, weight_decay, \
-                            num_out, _model_component->_layers_param.back());
+						_model_component->_string_map_layertype[layer_type], \
+						name, w_lr, bias_lr, momentum, weight_decay, \
+						num_out, _model_component->_layers_param.back());
 			}
-			if(_model_component->_pid == 0)
+			if(_model_component->_pid == 1)
 				param->printParam();
 			_model_component->_layers_param.push_back(param);
 
@@ -167,44 +174,47 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 			}
 		}
 	}
-	_model_component->_one_img_len = _model_component->_img_size\
-										*_model_component->_img_size \
-										*_model_component->_img_channel;
+	_model_component->_one_img_len = _model_component->_img_size \
+									 *_model_component->_img_size \
+									 *_model_component->_img_channel;
 	_model_component->_in_len_each_process = _model_component->_one_img_len \
- 										*_model_component->_minibatch_size;
+											 *_model_component->_minibatch_size;
 }
 
 template <typename Dtype>
 void TrainModel<Dtype>::createLayerForWorker(){
+	cout << _model_component->_num_layers << endl;
 	for (int i = 0; i < _model_component->_num_layers; ++i){
 		Layer<Dtype> *layer;
-		if (_model_component->_layers_param[i]->getLayerType() == CONVOLUTION) {
-			layer = new ConvNet<Dtype>( \
-						dynamic_cast<ConvParam*>(_model_component->_layers_param[i]));
-		} else if (_model_component->_layers_param[i]->getLayerType() == POOLING) {
-			layer = new PoolingLayer<Dtype>( \
-						dynamic_cast<PoolParam*>(_model_component->_layers_param[i]));
-		} else if (_model_component->_layers_param[i]->getLayerType() == SIGMOID) {
-			layer = new SigmoidLayer<Dtype>( \
-						dynamic_cast<FullConnectParam*>(_model_component->_layers_param[i]));
-		} else if (_model_component->_layers_param[i]->getLayerType() == RECTIFIED) {
-			layer = new ReluLayer<Dtype>( \
-						dynamic_cast<FullConnectParam*>(_model_component->_layers_param[i]));
-		} else if (_model_component->_layers_param[i]->getLayerType() == SOFTMAX) {
-			layer = new Logistic<Dtype>( \
-						dynamic_cast<FullConnectParam*>(_model_component->_layers_param[i]));
-		} else if (_model_component->_layers_param[i]->getLayerType() == DROPOUT) {
-			layer = new DropoutLayer<Dtype>( \
-						dynamic_cast<FullConnectParam*>(_model_component->_layers_param[i]));
-		} else if (_model_component->_layers_param[i]->getLayerType() \
-					== INNERPRODUCT ) {
-			layer = new InnerProductLayer<Dtype>( \
-						dynamic_cast<InnerParam*>(_model_component->_layers_param[i]));
+		Param *param = _model_component->_layers_param[i];
+		try{
+			if (param->getLayerType() == CONVOLUTION) {
+				LocalConnectParam* lcp = dynamic_cast<LocalConnectParam*>(param);
+				if(lcp == NULL)
+					throw 5;
+				layer = new ConvNet<Dtype>(dynamic_cast<ConvParam*>(lcp));
+			} else if (param->getLayerType() == POOLING) {
+				layer = new PoolingLayer<Dtype>(dynamic_cast<PoolParam*>(param));
+			} else if (param->getLayerType() == SIGMOID) {
+				layer = new SigmoidLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
+			} else if (param->getLayerType() == RECTIFIED) {
+				layer = new ReluLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
+			} else if (param->getLayerType() == SOFTMAX) {
+				layer = new Logistic<Dtype>(dynamic_cast<FullConnectParam*>(param));
+			} else if (param->getLayerType() == DROPOUT) {
+				layer = new DropoutLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
+			} else if (param->getLayerType() == INNERPRODUCT ) {
+				FullConnectParam* fcp = dynamic_cast<FullConnectParam*>(param);
+				layer = new InnerProductLayer<Dtype>(dynamic_cast<InnerParam*>(fcp));
+			}
+		}catch(int e){
+			cout << "dynamic point is null\n";
 		}
+
 		layer->initCuda();
 		_model_component->_layers.push_back(layer);
 
-		if (_model_component->_layers_param[i]->getParamTrainType() == NEED) {
+		if (param->getParamTrainType() == NEED) {
 			_model_component->_layers_needed_train.push_back(layer);
 		}
 	}
@@ -219,7 +229,7 @@ void TrainModel<Dtype>::createWBiasForManager() {
 		if(tp->getLayerType() == CONVOLUTION){
 			ConvParam* cp = dynamic_cast<ConvParam*>(tp);
 			w = new Matrix<Dtype>(cp->getFilterSize() \
-				*cp->getFilterSize()*cp->getInChannel(), cp->getOutChannel());
+					*cp->getFilterSize()*cp->getInChannel(), cp->getOutChannel());
 			w_len = cp->getFilterSize()*cp->getFilterSize()\
 					*cp->getInChannel()*cp->getOutChannel();
 			bias = new Matrix<Dtype>(1, cp->getOutChannel());
@@ -253,15 +263,16 @@ void TrainModel<Dtype>::createWBiasForWorker() {
 template <typename Dtype>
 void TrainModel<Dtype>::createYDEDYForWorker() {
 	_model_component->_y_for_worker.push_back(_model_component->_mini_data[0]);
+	_model_component->_y_needed_train.push_back(_model_component->_mini_data[0]);
 	for (int i = 0; i < _model_component->_num_layers; ++i){
 		_model_component->_y_for_worker.push_back( \
-					_model_component->_layers[i]->getY());
+				_model_component->_layers[i]->getY());
 		_model_component->_dE_dy_for_worker.push_back( \
-					_model_component->_layers[i]->getDEDY());
+				_model_component->_layers[i]->getDEDY());
 		if (_model_component->_layers_param[i]->getParamTrainType() == NEED \
-						&& i > 0) {
+				&& i > 0) {
 			///> 为了反向对weight和bias求导时要用到
-			_model_component->_y_for_compute_par.push_back( \
+			_model_component->_y_needed_train.push_back( \
 					_model_component->_layers[i-1]->getY());
 		}
 	}
@@ -272,16 +283,13 @@ template <typename Dtype>
 void TrainModel<Dtype>::createPixelAndLabel(){
 	int times = 0;
 	if (_model_component->_pid == 0) 
-		times = _model_component->_num_process - 1;
+		times = (_model_component->_num_process - 1);
 	else
 		times = 1;
-	
 	for(int i = 0; i < times*2; i++){
-		Matrix<Dtype> *pixel = new Matrix<Dtype>( \
-					_model_component->_minibatch_size*times, \
-					_model_component->_one_img_len);
-		Matrix<int> *label = new Matrix<int>( \
-					_model_component->_minibatch_size*times, 1);
+		Matrix<Dtype> *pixel = new Matrix<Dtype>(_model_component->_minibatch_size, \
+				_model_component->_one_img_len);
+		Matrix<int> *label = new Matrix<int>(_model_component->_minibatch_size, 1);
 		_model_component->_mini_data.push_back(pixel);
 		_model_component->_mini_label.push_back(label);
 	}
@@ -302,24 +310,82 @@ void TrainModel<Dtype>::createLabelNum(){
 }
 
 template <typename Dtype>
+void TrainModel<Dtype>::createMPIDist() {
+	int num_trans;
+	int num_pars_type = _model_component->_num_need_train_layers;
+	if(_model_component->_pid == 0)
+		num_trans = _model_component->_num_process - 1;
+	else
+		num_trans = 1;
+	
+	MPIDistribute<Dtype> *send_pixel[2*num_trans];  //2表示train和valid,相邻的是
+	//train和valid，然后是下一个进程的
+	MPIDistribute<int> *send_label[2*num_trans];
+	int pixel_len = _model_component->_minibatch_size*_model_component->_one_img_len;
+	int label_len = _model_component->_minibatch_size;
+	
+	for(int i = 0; i < num_trans; i++){
+		int trans_pid = 0;
+		if(_model_component->_pid == 0)
+			trans_pid = i+1;
+		
+		send_pixel[i*2] = new MPIDistribute<Dtype>( \
+				pixel_len, i, trans_pid, MPI_FLOAT, \
+				_model_component->_mini_data[i*2]->getDevData());	
+		send_label[i*2] = new MPIDistribute<int>( \
+				label_len, i+num_trans, trans_pid, MPI_INT, \
+				_model_component->_mini_label[i*2]->getDevData());
+		send_pixel[i*2+1] = new MPIDistribute<Dtype>( \
+				pixel_len, i+num_trans*2, trans_pid, MPI_FLOAT, \
+				_model_component->_mini_data[i*2+1]->getDevData());
+		send_label[i*2+1] = new MPIDistribute<int>( \
+				label_len, i+num_trans*3, trans_pid, MPI_INT, \
+				_model_component->_mini_label[i*2+1]->getDevData());
+
+		_model_component->_send_recv_pixel.push_back(send_pixel[i*2]);
+		_model_component->_send_recv_pixel.push_back(send_pixel[i*2+1]);
+		_model_component->_send_recv_label.push_back(send_label[i*2]);
+		_model_component->_send_recv_label.push_back(send_label[i*2+1]);
+	}
+
+	MPIDistribute<Dtype> *send_recv_w[num_trans*num_pars_type];  
+	MPIDistribute<Dtype> *send_recv_bias[num_trans*num_pars_type];
+
+	for(int i = 0; i < num_trans; i++){
+		for(int j = 0; j < num_pars_type; j++){
+			int trans_pid = 0;
+			if(_model_component->_pid == 0)
+				trans_pid = i+1;
+			send_recv_w[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
+					_model_component->_w_len[j], i+(4+j*2)*num_trans, \
+					trans_pid, MPI_FLOAT, _model_component->_w[j]->getDevData());	
+			send_recv_bias[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
+					_model_component->_bias_len[j], i+(5+j*2)*num_trans, \
+					trans_pid, MPI_FLOAT, _model_component->_bias[j]->getDevData());
+			_model_component->_send_recv_w.push_back(send_recv_w[i*num_pars_type+j]);
+			_model_component->_send_recv_bias.push_back(send_recv_bias[i*num_pars_type+j]);
+		}
+	}
+}
+
+
+template <typename Dtype>
 void TrainModel<Dtype>::initWeightAndBcast() {
-	cout << _model_component->_pid << endl;
-	cout << _model_component->_num_need_train_layers << endl;
 
 	for (int k = 0; k < _model_component->_num_need_train_layers; ++k) {
 		if (_model_component->_pid == 0) {
 			gaussRand(_model_component->_w[k], _model_component->_w_init_gauss[k]);
 			cudaMemset(_model_component->_bias[k]->getDevData(), 0, \
-                   sizeof(float) * _model_component->_bias_len[k]);
+					sizeof(float) * _model_component->_bias_len[k]);
 		}
 
 		MPIDistribute<Dtype> *bcast_w = new MPIDistribute<Dtype>( \
-					_model_component->_w_len[k], 0, \
-					0, MPI_FLOAT, _model_component->_w[k]->getDevData());
+				_model_component->_w_len[k], 0, \
+				0, MPI_FLOAT, _model_component->_w[k]->getDevData());
 		bcast_w->bcast();
 		MPIDistribute<Dtype> *bcast_bias = new MPIDistribute<Dtype>( \
-					_model_component->_bias_len[k], 0, \
-					0, MPI_FLOAT, _model_component->_bias[k]->getDevData());
+				_model_component->_bias_len[k], 0, \
+				0, MPI_FLOAT, _model_component->_bias[k]->getDevData());
 		bcast_bias->bcast();
 		delete bcast_w;
 		delete bcast_bias;
@@ -328,137 +394,244 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 
 template <typename Dtype>
 float TrainModel<Dtype>::forwardPropagate(){
-	_model_component->layers[0].computeOutputs(_model_component->mini_data);
 	for (int k = 0; k < _model_component->_num_layers; ++k) {
-		_model_component->layers[k].computeOutputs( \
+		_model_component->_layers[k]->computeOutput(\
 				_model_component->_y_for_worker[k]);
 	}
-	_likelihood += _model_component->layers[_model_component->_num_layers-1].computeError( \
-				_model_component->_mini_label_for_voc, _error);
+	_likelihood += dynamic_cast<Logistic<Dtype>* >( \
+			_model_component->_layers[_model_component->_num_layers-1]) \
+				   ->computeError(_model_component->_mini_label_for_compute, _error);
 	return _likelihood;
 }
 
 template <typename Dtype>
 void TrainModel<Dtype>::backwardPropagate(){
-	_model_component->layers[_model_component->_num_layers-1].computeDerivsOfInput( \
-					_model_component->_y_for_compute_par.back(), \
-	              	_model_component->_mini_label_for_voc);
-	for (int k = _model_component->_num_layers-2; k >= 1; --k) {
-		_model_component->layers[k].computeDerivsOfInput( \
+	Logistic<Dtype> *last_layer = dynamic_cast<Logistic<Dtype>* >( \
+			_model_component->_layers[_model_component->_num_layers-1]);
+	last_layer->computeDerivsOfInput(_model_component->_dE_dy_for_worker[ \
+			_model_component->_num_layers-2], \
+			_model_component->_mini_label_for_compute);
+	for (int k = _model_component->_num_layers-2; k > 0; --k) {
+		_model_component->_layers[k]->computeDerivsOfInput( \
 				_model_component->_dE_dy_for_worker[k-1]);
 	}
 }
 
 template <typename Dtype>
-void TrainModel<Dtype>::updatePars(){
-	for (int k = _model_component->_num_layers-1; k >= 1; --k) {
-		_model_component->train_layers[k].computeDerivsOfPars( \
-				_model_component->_y_for_compute_par[k-1]);
+void TrainModel<Dtype>::computeAndUpdatePars(){
+	for (int k = _model_component->_num_need_train_layers-1; k >= 1; --k) {
+		TrainLayer<Dtype> *tl = dynamic_cast< TrainLayer<Dtype>* >( \
+				_model_component->_layers_needed_train[k]);
+		tl->computeDerivsOfPars(_model_component->_y_needed_train[k-1]);
+		tl->updatePars();
 	}
 }
 
 template <typename Dtype>
 void TrainModel<Dtype>::train() {
 
-	MPIDistribute<Dtype> *recv_train_pixel = new MPIDistribute<Dtype>( \
-			_model_component->_minibatch_size*_model_component->_one_img_len, \
-			_model_component->_pid-1, 0, MPI_FLOAT, \
-			_model_component->_mini_data[0]->getDevData());
-	MPIDistribute<int> *recv_train_label = new MPIDistribute<int>(\
-			_model_component->_minibatch_size, \
-			_model_component->_pid-1 + (_model_component->_num_process-1), \
-			0, MPI_INT, _model_component->_mini_label[0]->getDevData());
-	MPIDistribute<Dtype> *recv_valid_pixel = new MPIDistribute<Dtype>( \
-			_model_component->_minibatch_size*_model_component->_one_img_len, \
-			_model_component->_pid-1 + (_model_component->_num_process-1)*2, \
-			0, MPI_FLOAT, _model_component->_mini_data[1]->getDevData());
-	MPIDistribute<int> *recv_valid_label = new MPIDistribute<int>(\
-			_model_component->_minibatch_size, \
-			_model_component->_pid-1 + (_model_component->_num_process-1)*3, \
-			0, MPI_INT, _model_component->_mini_label[1]->getDevData());
-
+	int num_pars_type = _model_component->_num_need_train_layers;
+	int flag = 0;
+	clock_t t;
+	t = clock();
 	for (int epoch_idx = 0; epoch_idx < _model_component->_num_epoch; \
-					epoch_idx++) {
+			epoch_idx++) {
+		_model_component->_y_for_worker[0] = _model_component->_mini_data[0];
+		_model_component->_mini_label_for_compute= _model_component->_mini_label[0];
 		for(int batch_idx = 0; batch_idx < _model_component->_num_train_batch; \
-						batch_idx++){
-			recv_train_pixel->sendFlag(batch_idx);
-			recv_train_pixel->dataFrom();
-			recv_train_label->dataFrom();
-/*
-		//一个线程传递数据，一个线程执行运算
-		#pragma omp parallel num_threads(2)
-			{
-				int tid = omp_get_thread_num();
-				if(tid == 0){
-					recv_pixel->sendFlag(batch_idx);
-					recv_pixel->dataFrom();
-					recv_label->sendFlag(batch_idx);
-					recv_label->dataFrom();
-				}else{
-				//
-				}
+				batch_idx++){
+//	cout << batch_idx << endl;
+			if(epoch_idx == _model_component->_num_epoch - 1 \
+					&& batch_idx == _model_component->_num_train_batch - 1)
+				flag = PROCESS_END;
+			else
+				flag = batch_idx;
+
+			_model_component->_send_recv_pixel[0]->sendFlag(flag);
+			_model_component->_send_recv_label[0]->setFlag(flag);
+			_model_component->_send_recv_pixel[0]->dataFrom();
+			_model_component->_send_recv_label[0]->dataFrom();
+
+			forwardPropagate();			
+			backwardPropagate();
+			computeAndUpdatePars();
+
+			if((batch_idx + 1) % _model_component->_n_push == 0){ 
+				if(epoch_idx == _model_component->_num_epoch - 1){ 
+					if((batch_idx + _model_component->_n_push) >= \
+							_model_component->_num_train_batch \
+							|| batch_idx == _model_component->_num_train_batch - 1)
+						flag = PROCESS_END;
+					else
+						flag = batch_idx*2+1;
+				}   
+				else
+					flag = batch_idx*2+1;
+#pragma omp parallel num_threads(num_pars_type)
+				{   
+					int tid = omp_get_thread_num();
+					_model_component->_send_recv_w[tid]->sendFlag(flag);
+					_model_component->_send_recv_bias[tid]->setFlag(flag);
+					_model_component->_send_recv_w[tid]->dataTo();
+					_model_component->_send_recv_bias[tid]->dataTo();
+				}   
 			}
-	*/
-		}	
+			if((batch_idx + 1) % _model_component->_n_fetch == 0){ 
+				if(epoch_idx == _model_component->_num_epoch - 1){ 
+					if((batch_idx + _model_component->_n_fetch) >= \
+							_model_component->_num_train_batch \
+							|| batch_idx == _model_component->_num_train_batch - 1)
+						flag = PROCESS_END;
+					else
+						flag = batch_idx*2;
+				}   
+				else
+					flag = batch_idx*2;
+#pragma omp parallel num_threads(num_pars_type)
+				{   
+					int tid = omp_get_thread_num();
+					_model_component->_send_recv_w[tid]->sendFlag(flag);
+					_model_component->_send_recv_bias[tid]->setFlag(flag);
+					_model_component->_send_recv_w[tid]->dataFrom();
+					_model_component->_send_recv_bias[tid]->dataFrom();
+				}   
+			}
+
+			if(batch_idx == _model_component->_num_train_batch-1){
+				_model_component->_y_for_worker[0] = _model_component->_mini_data[1];
+				_model_component->_mini_label_for_compute \
+					= _model_component->_mini_label[1];
+				Logistic<Dtype> *last_layer = dynamic_cast<Logistic<Dtype>* >( \
+						_model_component->_layers[_model_component->_num_layers-1]);
+				last_layer->setRecordToZero();
+				double valid_likelihood = 0;
+				for(int valid_idx = 0; \
+						valid_idx < _model_component->_num_valid_batch; \
+						valid_idx++){
+					if(epoch_idx == _model_component->_num_epoch - 1 \
+							&& valid_idx == _model_component->_num_valid_batch - 1)
+						flag = PROCESS_END;
+					else
+						flag = valid_idx;
+
+					_model_component->_send_recv_pixel[1]->sendFlag(flag);
+					_model_component->_send_recv_label[1]->setFlag(flag);
+					_model_component->_send_recv_pixel[1]->dataFrom();
+					_model_component->_send_recv_label[1]->dataFrom();
+
+					valid_likelihood += forwardPropagate();			
+					backwardPropagate();
+
+				}
+				Matrix<int>* valid_record = last_layer->getResultRecord();
+				valid_record->showValue("valid record");
+			}
+		}
+		if(_model_component->_pid == 1){
+			t = clock() - t;
+			cout << ((float)t/CLOCKS_PER_SEC) << "s.\n";
+			t = clock();
+		}
 	}
-	delete recv_train_pixel;
-	delete recv_valid_pixel;
-	delete recv_train_label;
-	delete recv_valid_label;
 }
+
+template <typename Dtype>
+void TrainModel<Dtype>::sendAndRecvForManager() {
+	int num_pars_type = _model_component->_num_need_train_layers;
+	int	num_trans = _model_component->_num_process - 1;
+	
+	int pixel_len = _model_component->_minibatch_size*_model_component->_one_img_len;
+	int label_len = _model_component->_minibatch_size;
+
+#pragma omp parallel num_threads(num_trans*num_pars_type+num_trans*2)
+	{
+		int tid = omp_get_thread_num();
+		if(tid < num_trans*2){
+			int pid = tid / 2 + 1;   //计算出对应的进程ID
+			int type_id = tid % 2;   //计算是train还是valid
+			do{
+				if(type_id == 0)
+					_voc->loadTrainOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
+						num_trans, pid-1, h_mini_pixel, h_mini_label);
+				else
+					_voc->loadValidOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
+						num_trans, pid-1, h_mini_pixel, h_mini_label);
+
+				_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
+				_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);
+				_model_component->_send_recv_pixel[tid]->receviceFlag();
+				send_label[tid]->setFlag(_model_component->_send_recv_pixel[tid]->getFlag());
+				_model_component->_send_recv_pixel[tid]->dataTo();
+				send_label[tid]->dataTo();
+				if(_model_component->_send_recv_pixel[tid]->getFlag() == _model_component->_minibatch_size-1)
+					_model_component->_send_recv_pixel[tid]->setFlag(-1);
+			}while(_model_component->_send_recv_pixel[tid]->getFlag() != PROCESS_END);
+			
+		}
+		
+
+	}
+		
+
+}	
+
+template <typename Dtype>
+void TrainModel<Dtype>::sendAndRecvWeight() {
+	/*
+#pragma omp parallel num_threads(num_send*num_pars_type)
+	{
+		int tid = omp_get_thread_num();
+
+			cout << tid << endl;
+		do{
+			send_recv_w[tid]->receviceFlag();
+			send_recv_bias[tid]->setFlag(send_recv_w[tid]->getFlag());
+			//偶数是子进程向0号请求，奇数是子进程发送给0号
+			if(send_recv_w[tid]->getFlag() % 2 == 0){
+				send_recv_w[tid]->dataTo();
+				send_recv_bias[tid]->dataTo();
+			}else{
+				send_recv_w[tid]->dataFrom();
+				send_recv_bias[tid]->dataFrom();
+		//	cout << send_recv_w[tid]->getFlag() << endl;
+			}
+		}while(send_recv_w[tid]->getFlag() != PROCESS_END);
+	}		
+	*/
+}
+
+
+
 
 
 template <typename Dtype>
 void TrainModel<Dtype>::sendPixelAndLabel() {
-	
-	int num_send = _model_component->_num_process - 1;
-
-	MPIDistribute<Dtype> *send_pixel[2*num_send];  //2表示train和valid,相邻的是
-												//train和valid，然后是下一个进程的
-	MPIDistribute<int> *send_label[2*num_send];
-
-	int pixel_len = _model_component->_minibatch_size*_model_component->_one_img_len;
-	int label_len = _model_component->_minibatch_size;
-
-	for(int i = 0; i < num_send; i++){
-
-		send_pixel[i*2] = new MPIDistribute<Dtype>( \
-				pixel_len, i, i+1, MPI_FLOAT, \
-				_model_component->_mini_data[i*2]->getDevData());	
-		send_label[i*2] = new MPIDistribute<int>( \
-				label_len, i+num_send, i+1, MPI_INT, \
-				_model_component->_mini_label[i*2]->getDevData());
-		send_pixel[i*2+1] = new MPIDistribute<Dtype>( \
-				pixel_len, i+num_send*2, i+1, MPI_FLOAT, \
-				_model_component->_mini_data[i*2+1]->getDevData());
-		send_label[i*2+1] = new MPIDistribute<int>( \
-				label_len, i+num_send*3, i+1, MPI_INT, \
-				_model_component->_mini_label[i*2+1]->getDevData());
-	}
+/*
 	Dtype *h_mini_pixel;   //分配在主机内存上
-	int *h_mini_label;     
-	#pragma omp parallel num_threads(num_send*2)
+	int *h_mini_label; 
+#pragma omp parallel num_threads(num_send*2)
 	{
 		int tid = omp_get_thread_num();
 		int pid = tid / 2 + 1;   //计算出对应的进程ID
 		int type_id = tid % 2;   //计算是train还是valid
-		while(send_pixel[tid]->getFlag() != PROCESS_END){
-			send_pixel[tid]->receviceFlag();
+		do{
 			if(type_id == 0)
-				_voc->loadTrainOneBatch(0, num_send, pid-1, \
-							h_mini_pixel, h_mini_label);
+				_voc->loadTrainOneBatch(send_pixel[tid]->getFlag()+1, \
+						num_send, pid-1, h_mini_pixel, h_mini_label);
 			else
-				_voc->loadValidOneBatch(0, num_send, pid-1, \
-							h_mini_pixel, h_mini_label);
+				_voc->loadValidOneBatch(send_pixel[tid]->getFlag()+1, \
+						num_send, pid-1, h_mini_pixel, h_mini_label);
+
 			_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
 			_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);
-
+			send_pixel[tid]->receviceFlag();
+			send_label[tid]->setFlag(send_pixel[tid]->getFlag());
 			send_pixel[tid]->dataTo();
 			send_label[tid]->dataTo();
-		}
-	}		
-	delete[] send_pixel;
-	delete[] send_label;
+			if(send_pixel[tid]->getFlag() == _model_component->_minibatch_size-1)
+				send_pixel[tid]->setFlag(-1);
+		}while(send_pixel[tid]->getFlag() != PROCESS_END);
+	}	*/	
 }
 
 

@@ -1,7 +1,7 @@
 {
 	"name": "CIFAR10net",
 	"minibatch_size": 100,
-	"n_push": 49,
+	"n_push": 10,
 	"n_fetch": 50,
 	"num_epoch": 100,
 	"img_size": 32,
@@ -65,8 +65,8 @@
 			"stride": 1,
 			"filter_size": 5,
 			"filter_channel": 32,
-			"w_lr": 0.001,
-			"bias_lr": 0.001,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0001,
 			"momentum": 0.9,
 			"weight_decay": 0,
 			"w_gauss": 0.01
@@ -87,8 +87,8 @@
 			"type": "INNERPRODUCT",
 			"name": "inner1",
 			"num_out": 64,
-			"w_lr": 0.001,
-			"bias_lr": 0.001,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0001,
 			"momentum": 0.9,
 			"weight_decay": 0,
 			"w_gauss": 0.001
@@ -101,11 +101,11 @@
 			"type": "INNERPRODUCT",
 			"name": "inner2",
 			"num_out": 10,
-			"w_lr": 0.001,
-			"bias_lr": 0.001,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0001,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.001
+			"w_gauss": 0.01
 		},
 		{
 			"type": "SOFTMAX",

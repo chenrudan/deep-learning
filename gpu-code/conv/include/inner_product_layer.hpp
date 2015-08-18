@@ -18,7 +18,7 @@ public:
 	~InnerProductLayer();
 
 	void initCuda();
-	void computeOutputs(Matrix<Dtype>* x);
+	void computeOutput(Matrix<Dtype>* x);
 	void computeDerivsOfPars(Matrix<Dtype>* x);
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 

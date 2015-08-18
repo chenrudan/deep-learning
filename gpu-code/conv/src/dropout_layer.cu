@@ -39,7 +39,7 @@ void DropoutLayer<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void DropoutLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
+void DropoutLayer<Dtype>::computeOutput(Matrix<Dtype>* x){ 
 //	x->reValue(32);
 //	x->showValue("data");
 	

@@ -65,6 +65,7 @@ void ConvNet<Dtype>::initCuda() {
 
 	this->_w_inc		 	= new Matrix<Dtype>(this->_w);
 	this->_bias_inc		 	= new Matrix<Dtype>(this->_bias);
+
 	if(this->_cp->getPad() > 0)
 		this->padded_x 		= new Matrix<Dtype>(this->_cp->getMinibatchSize(), \
 									this->_cp->getInChannel() * _padded_in_pixs);
@@ -104,7 +105,7 @@ void ConvNet<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void ConvNet<Dtype>::computeOutputs(Matrix<Dtype>* _x){
+void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* _x){
 
 	this->_y->zeros();
 

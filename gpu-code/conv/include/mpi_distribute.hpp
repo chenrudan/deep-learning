@@ -10,7 +10,7 @@
 #include "mpi.h"
 #include "model_component.hpp"
 
-#define PROCESS_END 100000;
+#define PROCESS_END 100000
 
 using namespace std;
 
@@ -32,7 +32,7 @@ public:
     MPIDistribute(const int len, const int tag, const int pid, \
 			const MPI_Datatype mpi_type, Dtype *data = NULL ) : \
  		_len(len), _tag(tag), _pid(pid), _data(data), \
-		_mpi_type(mpi_type), _flag(0) {}
+		_mpi_type(mpi_type), _flag(-1) {}
     ~MPIDistribute() {}
 
     void receviceFlag();
@@ -48,6 +48,9 @@ public:
 
 	int getFlag(){
 		return _flag;
+	}
+	void setFlag(int flag){
+		_flag = flag;
 	}
 	void changeData(Dtype* data){
 		_data = data;

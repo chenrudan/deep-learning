@@ -37,7 +37,7 @@ void ReluLayer<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void ReluLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
+void ReluLayer<Dtype>::computeOutput(Matrix<Dtype>* x){ 
 //	x->reValue(16);
 //	x->showValue("data");
 

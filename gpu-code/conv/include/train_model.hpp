@@ -9,13 +9,6 @@
 
 #include "model_component.hpp"
 #include "load_layer.hpp"
-#include "inner_product_layer.hpp"
-#include "logistic.hpp"
-#include "sigmoid_layer.hpp"
-#include "relu_layer.hpp"
-#include "convnet.hpp"
-#include "pooling_layer.hpp"
-#include "dropout_layer.hpp"
 #include "mpi_distribute.hpp"
 
 using namespace std;
@@ -46,16 +39,19 @@ public:
     void createYDEDYForWorker();
     void createWBiasForManager();
     void createWBiasForWorker();
+	void createMPIDist();
 
     void initWeightAndBcast();
     float forwardPropagate();
     void backwardPropagate();
-    void updatePars();
+    void computeAndUpdatePars();
 
     void train();
     void valid();
 
 	void sendPixelAndLabel();
+	void sendAndRecvWeight();
+	void sendAndRecvForManager();
 
 };
 

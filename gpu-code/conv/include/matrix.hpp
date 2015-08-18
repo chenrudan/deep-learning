@@ -174,6 +174,9 @@ public:
     Dtype getPosValue(int pos);
     Dtype getFirstPosValue();
 
+	void savePars(string filename);
+	void readPars(string filename);
+
     void subedByUnitMat();
     void subPortion(Matrix<Dtype>* b, const int b_row, \
 			const int b_col);

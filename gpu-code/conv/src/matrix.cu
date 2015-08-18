@@ -454,7 +454,29 @@ void Matrix<Dtype>::subPortion(Matrix<Dtype>* b, const int b_row, \
 	cudaCheckError();
 }
 
+template <typename Dtype>
+void Matrix<Dtype>::readPars(string filename){
+	ifstream fin1(filename.c_str(), ios::binary);
+	int dataLen = this->getNumRows() * this->getNumCols();
+	Dtype* tmp = new Dtype[dataLen];
+	fin1.read((char*)(tmp), sizeof(Dtype) * dataLen);
+	cudaMemcpy(this->getDevData(), tmp, sizeof(Dtype)*dataLen, \
+				cudaMemcpyHostToDevice);
+	fin1.close();
+	delete tmp;
+}
 
+template <typename Dtype>
+void Matrix<Dtype>::savePars(string filename){
+	ofstream fout(filename.c_str(), ios::binary);
+	int dataLen = this->getNumRows() * this->getNumCols();
+	Dtype* tmp = new Dtype[dataLen];
+	cudaMemcpy(tmp, this->getDevData(), sizeof(Dtype)*dataLen, \
+				cudaMemcpyDeviceToHost);
+	fout.write((char*)(tmp), sizeof(Dtype) * dataLen);
+	fout.close();
+	delete tmp;
+}
 
 
 

@@ -34,7 +34,7 @@ void SigmoidLayer<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void SigmoidLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
+void SigmoidLayer<Dtype>::computeOutput(Matrix<Dtype>* x){ 
 //	x->showValue("data");
 //	this->_y->showValue("yj1");
 	x->apply(Matrix<Dtype>::SIGMOID, this->_y);

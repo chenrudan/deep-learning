@@ -182,7 +182,7 @@ LoadLayer<Dtype>::LoadLayer(const int num_train, const int num_valid, \
 				_test_pixel = new Dtype[_num_test * _img_sqrt * _img_channel];
 				_test_label = new int[_num_test];
 				_test_pixel_ptr = _test_pixel;
-				_test_label_ptr = _train_label;
+				_test_label_ptr = _test_label;
 			}
 		}
 		_is_base_alloc = true;
@@ -229,7 +229,7 @@ LoadCifar10<Dtype>::LoadCifar10(const int minibatch_size) : \
 
 template <typename Dtype>
 void LoadCifar10<Dtype>::loadTrainOneBatch(int batch_idx, int num_process, \
-		int pid, Dtype *mini_pixel, int *mini_label){
+		int pid, Dtype* &mini_pixel, int* &mini_label){
 	mini_pixel = this->_train_pixel + batch_idx*_minibatch_size*num_process \
 				*this->_img_channel*this->_img_sqrt \
 				+pid*_minibatch_size*this->_img_channel*this->_img_sqrt;
@@ -240,9 +240,9 @@ void LoadCifar10<Dtype>::loadTrainOneBatch(int batch_idx, int num_process, \
 //此处的num_process是指除了0进程外的个数
 template <typename Dtype>
 void LoadCifar10<Dtype>::loadValidOneBatch(int batch_idx, int num_process, \
-			int pid, Dtype *mini_pixel, int *mini_label){
+			int pid, Dtype* &mini_pixel, int* &mini_label){
 	mini_pixel = this->_valid_pixel + batch_idx*_minibatch_size*num_process \
-				*this->_img_channel*this->_img_sqrt\
+				*this->_img_channel*this->_img_sqrt \
 				+pid*_minibatch_size*this->_img_channel*this->_img_sqrt;
 	mini_label = this->_valid_label + batch_idx*_minibatch_size*num_process \
 				+ pid*_minibatch_size;

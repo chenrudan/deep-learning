@@ -30,7 +30,7 @@ void Logistic<Dtype>::initCuda() {
 
 	this->_y            = new Matrix<Dtype>(this->_fcp->getMinibatchSize(), \
 								this->_fcp->getNumOut());
-	h_labels 			= new Dtype[this->_fcp->getMinibatchSize()];
+	h_labels 			= new int[this->_fcp->getMinibatchSize()];
 	y_CPU 				= new Dtype[this->_y->getNumEles()];
 	correct_probs 		= new Dtype[this->_y->getNumRows()];
 	d_max_pos_of_out 	= new Matrix<Dtype>(this->_y->getNumRows(), 1);
@@ -41,7 +41,7 @@ void Logistic<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void Logistic<Dtype>::computeOutputs(Matrix<Dtype>* x){
+void Logistic<Dtype>::computeOutput(Matrix<Dtype>* x){
 //x->showValue("data");
 	this->_y->zeros();
 	x->apply(Matrix<Dtype>::SOFTMAX, this->_y);
@@ -49,7 +49,7 @@ void Logistic<Dtype>::computeOutputs(Matrix<Dtype>* x){
 }
 
 template <typename Dtype>
-double Logistic<Dtype>::computeError(Matrix<Dtype>* labels, int& num_error){
+double Logistic<Dtype>::computeError(Matrix<int>* labels, int& num_error){
 
 	/// h_labels大小是minibatch * 1
 	labels->copyToHost(h_labels, labels->getNumEles());
@@ -83,7 +83,7 @@ double Logistic<Dtype>::computeError(Matrix<Dtype>* labels, int& num_error){
 }
 
 template <typename Dtype>
-void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<Dtype>* labels){
+void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<int>* labels){
 	assert(labels->getNumRows() == dE_dx->getNumRows());
 	dE_dx->zeros();
 

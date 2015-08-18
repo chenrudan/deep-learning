@@ -51,7 +51,7 @@ void PoolingLayer<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void PoolingLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){
+void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 	this->_y->zeros();	
 	int num_box = pow(_lcp->getBoxNumSize(), 2);

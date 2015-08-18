@@ -264,21 +264,6 @@ __global__ void reshape_dE_db_tmp(float* dst, const float* ori, \
 	}
 }
 
-//row-major
-__global__ void compute_dE_dy_j(const float* y_j, const float* labels, \
-		float* dE_dy_j, const int width) {
-	const int tx = blockIdx.x;
-	const int ty = blockIdx.x * width + threadIdx.x;
-
-	const int lab = labels[tx];
-
-	if(threadIdx.x < width)
-		dE_dy_j[ty] = y_j[ty] - (lab == threadIdx.x);
-	__syncthreads();
-}
-
-
-
 __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPoolPos, \
 		const int conv_forward_size, const int in_channels, const int pool_forward_size, \
 		const int max_pool_size, const int stride, \
@@ -551,7 +536,7 @@ __global__ void compute_dE_db(const float* dE_dy, float* dE_db_h, \
 		dE_db_h[img_idx * num_filters + filt_idx] = result[0] / filt_pixs;
 	}
 } 
-__global__ void compute_dE_dy(const float* y_j, const float* labels, \
+__global__ void compute_dE_dy(const float* y_j, const int* labels, \
 		float* dE_dy_j, const int width) {
 	const int tx = blockIdx.x;
 	const int ty = blockIdx.x * width + threadIdx.x;

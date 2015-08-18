@@ -17,10 +17,10 @@ public:
 	~Logistic();
 	
 	void initCuda();
-	void computeOutputs(Matrix<Dtype>* x);
-	double computeError(Matrix<Dtype>* labels, int& num_error);
+	void computeOutput(Matrix<Dtype>* x);
+	double computeError(Matrix<int>* labels, int& num_error);
 	using Layer<Dtype>::computeDerivsOfInput;
-	void computeDerivsOfInput(Matrix<Dtype>* x, Matrix<Dtype>* labels);
+	void computeDerivsOfInput(Matrix<Dtype>* x, Matrix<int>* labels);
 
 	inline Matrix<int>* getResultRecord(){
 		_d_record->copyFromHost(_h_record, this->_y->getNumCols() * this->_y->getNumCols());
@@ -33,7 +33,7 @@ public:
 
 private:
 	FullConnectParam* _fcp;
-	Dtype* h_labels;
+	int* h_labels;
 	Dtype* y_CPU;
 	Dtype* correct_probs;
 	Matrix<Dtype>* d_max_pos_of_out;

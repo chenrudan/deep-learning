@@ -64,30 +64,6 @@ float gaussGen(float var, float mean)
 	return (X * var + mean);
 }
 
-
-
-void readPars(Matrix<float>* par, string filename){
-	ifstream fin1(filename.c_str(), ios::binary);
-	int dataLen = par->getNumRows() * par->getNumCols();
-	float* tmp = new float[dataLen];
-	fin1.read((char*)(tmp), sizeof(float) * dataLen);
-	cudaMemcpy(par->getDevData(), tmp, sizeof(float)*dataLen, \
-				cudaMemcpyHostToDevice);
-	fin1.close();
-	delete tmp;
-}
-
-void savePars(Matrix<float>* par, string filename){
-	ofstream fout(filename.c_str(), ios::binary);
-	int dataLen = par->getNumRows() * par->getNumCols();
-	float* tmp = new float[dataLen];
-	cudaMemcpy(tmp, par->getDevData(), sizeof(float)*dataLen, \
-				cudaMemcpyDeviceToHost);
-	fout.write((char*)(tmp), sizeof(float) * dataLen);
-	fout.close();
-	delete tmp;
-}
-
 void readData(Matrix<float>* nvData, string filename, \
 			bool isData, int addZerosInFront){
 	int length = nvData->getNumRows() * nvData->getNumCols();

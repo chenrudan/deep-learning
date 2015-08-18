@@ -152,9 +152,9 @@ public:
 
 	void loadBinary(string filename, Dtype* &pixel_ptr, int* &label_ptr);
 	void loadTrainOneBatch(int batch_idx, int num_process, int pid, \
-				Dtype *mini_pixel, int *mini_label);
+				Dtype* &mini_pixel, int* &mini_label);
 	void loadValidOneBatch(int batch_idx, int num_process, int pid, \
-				 Dtype *mini_pixel, int *mini_label);
+				 Dtype* &mini_pixel, int* &mini_label);
 
 };
 

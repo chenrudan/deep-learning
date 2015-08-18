@@ -12,6 +12,7 @@
 #include "matrix.hpp"
 #include "param.h"
 #include "layer.hpp"
+#include "mpi_distribute.hpp"
 
 using namespace std;
 
@@ -56,15 +57,20 @@ private:
 
     vector< Matrix<Dtype>* > _y_for_worker;
     vector< Matrix<Dtype>* > _dE_dy_for_worker;
-    vector< Matrix<Dtype>* > _y_for_compute_par;
+    vector< Matrix<Dtype>* > _y_needed_train;
 
     vector< Matrix<Dtype>* > _mini_data;  ///> 需要保存两组数据，一组当前作为运算，一组在运算的时候交换，下一次再计算
     vector< Matrix<int>* > _mini_label;
 	vector< Matrix<int>* > _mini_label_num; ///>表示voc的每一张图对应几个label几个object
+	Matrix<int> *_mini_label_for_compute;
 
     map<string, LayerType> _string_map_layertype;
 	map<string, PoolingType> _string_map_pooltype;
 
+	vector< MPIDistribute<Dtype>* > _send_recv_pixel;
+	vector< MPIDistribute<int>* > _send_recv_label;
+	vector< MPIDistribute<Dtype>* > _send_recv_w;
+	vector< MPIDistribute<Dtype>* > _send_recv_bias;
 
 public:
 

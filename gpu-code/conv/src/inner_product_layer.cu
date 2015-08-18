@@ -49,7 +49,7 @@ void InnerProductLayer<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void InnerProductLayer<Dtype>::computeOutputs(Matrix<Dtype>* x){ 
+void InnerProductLayer<Dtype>::computeOutput(Matrix<Dtype>* x){ 
 //	x->showValue("data");
 //	this->_w->showValue("w");
 //	x->reValue(1.0f);

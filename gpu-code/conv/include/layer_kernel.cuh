@@ -56,9 +56,6 @@ __global__ void convolution_forward(const float* imgs, const float* filters, \
 		const float* biases, float* targets, const int filConvtimes, \
 		const int imgConvtimes);
 
-__global__ void compute_dE_dy_j(const float* y_j, const float* labels, \
-		float* dE_dy_j, const int width);
-
 __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* out);
 
 __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
@@ -91,7 +88,7 @@ __global__ void convolution_backward(const float* imgs, const float* filters, \
 __global__ void compute_dE_db(const float* dE_dy, float* dE_db_h, \
 		const int conv_forward_size);
 
-__global__ void compute_dE_dy(const float* y_j, const float* labels, \
+__global__ void compute_dE_dy(const float* y_j, const int* labels, \
 		float* dE_dy_j, const int width);
 
 __global__ void compactOverlap(float* src, float* targets, \
