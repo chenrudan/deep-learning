@@ -105,57 +105,48 @@ void ConvNet<Dtype>::initCuda() {
 }
 
 template <typename Dtype>
-void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* _x){
+void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 	this->_y->zeros();
 
 	int num_kernel;
 	int num_block;
-//	_x->reValue(100);
+//	x->reValue(32);
 //	this->_w->reValue(1.0f);
 //	this->_bias->reValue(2.0f);
 
-//_x->showValue("_x");	
 	if(this->_cp->getPad() > 0){
 		num_kernel = this->_cp->getMinibatchSize() * _padded_in_pixs \
 					 * this->_cp->getInChannel();
 		num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) \
 					? MAX_NUM_KERNEL : (num_kernel / MAX_NUM_THREAD + 1);
 		cudaMemset(padded_x->getDevData(), 0, sizeof(Dtype) * num_kernel);
-		ori_to_padding<<<num_block, MAX_NUM_THREAD>>>(_x->getDevData(), \
+		ori_to_padding<<<num_block, MAX_NUM_THREAD>>>(x->getDevData(), \
 				padded_x->getDevData(), num_kernel, this->_cp->getInSize(), \
 				this->_cp->getPaddedInSize(), this->_cp->getInChannel());
 		cudaThreadSynchronize();
 		cudaCheckError();
 	}else
-		padded_x = _x;
+		padded_x = x;
 
-//padded_x->showValue(this->_cp->getName() + "padding");
-	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs * _filt_pixs \
-				 *this->_cp->getInChannel();
-	num_block = num_kernel / MAX_NUM_THREAD + 1;
-	cudaMemset(unrolled_x1->getDevData(), 0, sizeof(Dtype) * num_kernel);
-	im2col_filt<<<num_block, MAX_NUM_THREAD>>>(padded_x->getDevData(), \
-			unrolled_x1->getDevData(), num_kernel, this->_cp->getPaddedInSize(), \
-			this->_cp->getInChannel(), this->_cp->getFilterSize(), \
-			this->_cp->getOutSize(), this->_cp->getStride());
+//padded_x->showValue("_x");	
+	//size表示一个正方形的边长，width，height表示矩阵的宽长
+	int num_box = pow(_cp->getBoxNumSize(), 2);
+
+	dim3 blocks = dim3(_cp->getMinibatchSize(), _cp->getOutChannel()*num_box);
+	dim3 threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE);
+
+	int box_out_size = MAX_THREAD_SIZE > _cp->getOutSize() \
+					? _cp->getOutSize() : MAX_THREAD_SIZE;
+	forward_convolution<<<blocks, threads>>>(\
+			padded_x->getDevData(), this->_w->getDevData(), this->_bias->getDevData(), \
+			this->_y->getDevData(), \
+				_cp->getPaddedInSize(), _cp->getInChannel(), _cp->getOutSize(), \
+				_cp->getFilterSize(), _cp->getOutChannel(), _cp->getStride(), \
+				box_out_size, _cp->getBoxNumSize());  
 	cudaThreadSynchronize();
 	cudaCheckError();
 
-	unrolled_x1->rightMult(this->_w, 1, unranged_y, this->handle);
-
-	unranged_y->addRowVector(this->_bias);
-
-	num_kernel = this->_cp->getMinibatchSize() * _conv_pixs \
-				 * this->_cp->getOutChannel();
-	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) ? MAX_NUM_KERNEL \
-				: (num_kernel / MAX_NUM_THREAD + 1);
-	reshape_y<<<num_block, MAX_NUM_THREAD>>>(unranged_y->getDevData(), \
-			this->_y->getDevData(), num_kernel, this->_cp->getOutSize(), \
-			this->_cp->getOutChannel());
-	cudaThreadSynchronize();
-	cudaCheckError();
-//	unrolled_x1->showValue(this->_cp->getName() + "data");
 //	this->_w->showValue("whk");
 //	this->_y->showValue(this->_cp->getName() + "yh");
 }
@@ -240,12 +231,32 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 	dE_dx->zeros();
 	
-	int num_kernel = this->_cp->getMinibatchSize() * _padded_in_pixs \
-					 * _filt_pixs * this->_cp->getOutChannel();
-	int	num_block = MAX_NUM_KERNEL < (num_kernel / MAX_NUM_THREAD + 1) \
-					? MAX_NUM_KERNEL : (num_kernel / MAX_NUM_THREAD + 1);
-
 //this->_dE_dy->reValue(44);
+
+	int num_box = pow(_lcp->getBoxNumSize(), 2);
+
+	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
+	dim3 threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE);
+
+	int box_out_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
+						? _lcp->getOutSize() : MAX_THREAD_SIZE;
+
+	int box_in_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
+						  ? _lcp->getInSize() : _lcp->getBoxInSize();
+
+	Dtype* p_dE_dx;
+	if(MAX_THREAD_SIZE < _lcp->getOutSize() && _overlap_len > 0){
+		unranged_dE_dx->zeros();
+		p_dE_dx = unranged_dE_dx->getDevData();
+	}else{
+		dE_dx->zeros();
+		p_dE_dx = dE_dx->getDevData();
+	}
+
+	
+
+
+	/*
 
 	cudaMemset(unrolled_conv->getDevData(), 0, sizeof(Dtype) * num_kernel);
 	im2col_img<<<num_block, MAX_NUM_THREAD>>>(this->_dE_dy->getDevData(), \
@@ -279,6 +290,7 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 			this->_cp->getInChannel());
 	cudaThreadSynchronize();
 	cudaCheckError();
+	*/
 	
 //	this->_w->showValue("whk");
 //	unrolled_conv->showValue("unrolledconv");

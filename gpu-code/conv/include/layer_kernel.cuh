@@ -12,6 +12,12 @@
 			i < (n); \
 			i += blockDim.x * gridDim.x)
 
+__global__ void forward_convolution(const float* x, const float* w, \
+		const float* bias, \
+		float* targets, const int in_size, const int in_channel, \
+		const int out_size, const int filter_size, const int filter_channel, \
+		const int stride, const int box_out_size, const int box_num_size);
+
 __global__ void ori_to_padding(const float* src, float* dst, const int numKernels, \
         const int img_size, const int padded_img_size, const int img_channel);
 

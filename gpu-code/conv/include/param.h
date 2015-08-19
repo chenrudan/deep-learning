@@ -156,6 +156,9 @@ public:
 			this->type = PARAM_CONNECT_TYPE_LOCAL;
 			_padded_in_size = in_size + 2 * pad;
 			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
+			_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
+							* 1.0f / MAX_THREAD_SIZE) + 1;
+			_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
 		}
 
     LocalConnectParam(LayerType layer_type, string name, \
@@ -176,6 +179,9 @@ public:
 			this->type = PARAM_CONNECT_TYPE_LOCAL;
 			_padded_in_size = _in_size + 2 * pad;
 			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
+			_box_num_size = ceil((_out_size - MAX_THREAD_SIZE) \
+							* 1.0f / MAX_THREAD_SIZE) + 1;
+			_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
 
 		}
 
@@ -214,6 +220,12 @@ public:
 				<< "\npad: " << _pad \
 				<< "\nstride: " << _stride;
     }
+	inline int getBoxNumSize(){
+		return _box_num_size;
+	}
+	inline int getBoxInSize(){
+		return _box_in_size;
+	}
 
 private:
     int _in_size;
@@ -224,6 +236,8 @@ private:
     int _filter_size; ///>在卷积中是filter，在pooling中是pool
     int _out_size;
     int _out_channel;
+	int _box_in_size; ///>用来计算一个box输出的卷积输入
+	int _box_num_size;  ///>总的box个数的行/列 
 };
 
 /// \brief 全连接层的参数，展开图片为一个矢量保存数据
@@ -321,33 +335,18 @@ public:
 			const int filter_channel, PoolingType p_type) 
             :  LocalConnectParam(layer_type, name, in_size, \
 					pad, stride, in_channel, filter_size, filter_channel) , \
-			_p_type(p_type){
-				_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
-							* 1.0f / MAX_THREAD_SIZE) + 1;
-				_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
-			}
+			_p_type(p_type) {}
 
     	PoolParam(const LayerType layer_type, const string name, \
             const int pad, const int stride, \
 			const int filter_size, const int filter_channel, \
 			LocalConnectParam* lc_par, PoolingType p_type) 
             :  LocalConnectParam(layer_type, name, pad, stride, filter_size, \
-					filter_channel, lc_par), \
-			_p_type(p_type){
-				_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
-							* 1.0f / MAX_THREAD_SIZE) + 1;
-				_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
-			}
+					filter_channel, lc_par), _p_type(p_type){}
 
 
 		inline PoolingType getPoolType(){
 			return _p_type;
-		}
-		inline int getBoxNumSize(){
-			return _box_num_size;
-		}
-		inline int getBoxInSize(){
-			return _box_in_size;
 		}
         void printParam(){
             LocalConnectParam::printParam();
@@ -356,8 +355,6 @@ public:
 
 private:
 	PoolingType _p_type;	
-	int _box_in_size; ///>用来计算一个box输出的卷积输入
-	int _box_num_size;  ///>总的box个数的行/列 
 };
 
 

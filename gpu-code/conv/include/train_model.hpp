@@ -49,8 +49,6 @@ public:
     void train();
     void valid();
 
-	void sendPixelAndLabel();
-	void sendAndRecvWeight();
 	void sendAndRecvForManager();
 
 };

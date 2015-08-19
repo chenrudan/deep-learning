@@ -30,6 +30,7 @@ void managerNode(TrainModel<float> *model){
 
 	model->initWeightAndBcast();
 	model->createMPIDist();
+	model->sendAndRecvForManager();
 	cout << "CPU number: " << omp_get_num_procs() << endl;  
 }
 
@@ -45,7 +46,7 @@ void workerNode(TrainModel<float> *model){
 	model->createYDEDYForWorker();
 	model->initWeightAndBcast();
 	model->createMPIDist();
-//	model->train();
+	model->train();
 
 
 

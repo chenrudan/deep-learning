@@ -317,18 +317,18 @@ void TrainModel<Dtype>::createMPIDist() {
 		num_trans = _model_component->_num_process - 1;
 	else
 		num_trans = 1;
-	
+
 	MPIDistribute<Dtype> *send_pixel[2*num_trans];  //2表示train和valid,相邻的是
 	//train和valid，然后是下一个进程的
 	MPIDistribute<int> *send_label[2*num_trans];
 	int pixel_len = _model_component->_minibatch_size*_model_component->_one_img_len;
 	int label_len = _model_component->_minibatch_size;
-	
+
 	for(int i = 0; i < num_trans; i++){
 		int trans_pid = 0;
 		if(_model_component->_pid == 0)
 			trans_pid = i+1;
-		
+
 		send_pixel[i*2] = new MPIDistribute<Dtype>( \
 				pixel_len, i, trans_pid, MPI_FLOAT, \
 				_model_component->_mini_data[i*2]->getDevData());	
@@ -430,7 +430,6 @@ void TrainModel<Dtype>::computeAndUpdatePars(){
 template <typename Dtype>
 void TrainModel<Dtype>::train() {
 
-	int num_pars_type = _model_component->_num_need_train_layers;
 	int flag = 0;
 	clock_t t;
 	t = clock();
@@ -440,7 +439,7 @@ void TrainModel<Dtype>::train() {
 		_model_component->_mini_label_for_compute= _model_component->_mini_label[0];
 		for(int batch_idx = 0; batch_idx < _model_component->_num_train_batch; \
 				batch_idx++){
-//	cout << batch_idx << endl;
+			//	cout << batch_idx << endl;
 			if(epoch_idx == _model_component->_num_epoch - 1 \
 					&& batch_idx == _model_component->_num_train_batch - 1)
 				flag = PROCESS_END;
@@ -467,7 +466,7 @@ void TrainModel<Dtype>::train() {
 				}   
 				else
 					flag = batch_idx*2+1;
-#pragma omp parallel num_threads(num_pars_type)
+#pragma omp parallel num_threads(_model_component->_num_need_train_layers)
 				{   
 					int tid = omp_get_thread_num();
 					_model_component->_send_recv_w[tid]->sendFlag(flag);
@@ -487,7 +486,7 @@ void TrainModel<Dtype>::train() {
 				}   
 				else
 					flag = batch_idx*2;
-#pragma omp parallel num_threads(num_pars_type)
+#pragma omp parallel num_threads(_model_component->_num_need_train_layers)
 				{   
 					int tid = omp_get_thread_num();
 					_model_component->_send_recv_w[tid]->sendFlag(flag);
@@ -539,110 +538,57 @@ template <typename Dtype>
 void TrainModel<Dtype>::sendAndRecvForManager() {
 	int num_pars_type = _model_component->_num_need_train_layers;
 	int	num_trans = _model_component->_num_process - 1;
-	
+
 	int pixel_len = _model_component->_minibatch_size*_model_component->_one_img_len;
 	int label_len = _model_component->_minibatch_size;
 
-#pragma omp parallel num_threads(num_trans*num_pars_type+num_trans*2)
+	int num_threads = num_trans*num_pars_type+num_trans*2;
+	cout << "num_threads: " << num_threads<< endl;
+#pragma omp parallel num_threads(num_threads)
 	{
 		int tid = omp_get_thread_num();
+	   Dtype *h_mini_pixel;   //分配在主机内存上
+	   int *h_mini_label; 
 		if(tid < num_trans*2){
 			int pid = tid / 2 + 1;   //计算出对应的进程ID
 			int type_id = tid % 2;   //计算是train还是valid
 			do{
 				if(type_id == 0)
 					_voc->loadTrainOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
-						num_trans, pid-1, h_mini_pixel, h_mini_label);
+							num_trans, pid-1, h_mini_pixel, h_mini_label);
 				else
 					_voc->loadValidOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
-						num_trans, pid-1, h_mini_pixel, h_mini_label);
+							num_trans, pid-1, h_mini_pixel, h_mini_label);
 
 				_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
 				_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);
 				_model_component->_send_recv_pixel[tid]->receviceFlag();
-				send_label[tid]->setFlag(_model_component->_send_recv_pixel[tid]->getFlag());
+				_model_component->_send_recv_label[tid]->setFlag(_model_component->_send_recv_pixel[tid]->getFlag());
 				_model_component->_send_recv_pixel[tid]->dataTo();
-				send_label[tid]->dataTo();
+				_model_component->_send_recv_label[tid]->dataTo();
+
 				if(_model_component->_send_recv_pixel[tid]->getFlag() == _model_component->_minibatch_size-1)
 					_model_component->_send_recv_pixel[tid]->setFlag(-1);
 			}while(_model_component->_send_recv_pixel[tid]->getFlag() != PROCESS_END);
-			
+
+		}else{
+			tid -= 2*num_trans;
+
+			cout << "w tid: "<<  tid << endl;
+			do{
+				_model_component->_send_recv_w[tid]->receviceFlag();
+				_model_component->_send_recv_bias[tid]->setFlag(_model_component->_send_recv_w[tid]->getFlag());
+				//偶数是子进程向0号请求，奇数是子进程发送给0号
+				if(_model_component->_send_recv_w[tid]->getFlag() % 2 == 0){
+					_model_component->_send_recv_w[tid]->dataTo();
+					_model_component->_send_recv_bias[tid]->dataTo();
+				}else{
+					_model_component->_send_recv_w[tid]->dataFrom();
+					_model_component->_send_recv_bias[tid]->dataFrom();
+					//	cout << _model_component->_send_recv_w[tid]->getFlag() << endl;
+				}
+			}while(_model_component->_send_recv_w[tid]->getFlag() != PROCESS_END);
 		}
-		
-
 	}
-		
-
 }	
-
-template <typename Dtype>
-void TrainModel<Dtype>::sendAndRecvWeight() {
-	/*
-#pragma omp parallel num_threads(num_send*num_pars_type)
-	{
-		int tid = omp_get_thread_num();
-
-			cout << tid << endl;
-		do{
-			send_recv_w[tid]->receviceFlag();
-			send_recv_bias[tid]->setFlag(send_recv_w[tid]->getFlag());
-			//偶数是子进程向0号请求，奇数是子进程发送给0号
-			if(send_recv_w[tid]->getFlag() % 2 == 0){
-				send_recv_w[tid]->dataTo();
-				send_recv_bias[tid]->dataTo();
-			}else{
-				send_recv_w[tid]->dataFrom();
-				send_recv_bias[tid]->dataFrom();
-		//	cout << send_recv_w[tid]->getFlag() << endl;
-			}
-		}while(send_recv_w[tid]->getFlag() != PROCESS_END);
-	}		
-	*/
-}
-
-
-
-
-
-template <typename Dtype>
-void TrainModel<Dtype>::sendPixelAndLabel() {
-/*
-	Dtype *h_mini_pixel;   //分配在主机内存上
-	int *h_mini_label; 
-#pragma omp parallel num_threads(num_send*2)
-	{
-		int tid = omp_get_thread_num();
-		int pid = tid / 2 + 1;   //计算出对应的进程ID
-		int type_id = tid % 2;   //计算是train还是valid
-		do{
-			if(type_id == 0)
-				_voc->loadTrainOneBatch(send_pixel[tid]->getFlag()+1, \
-						num_send, pid-1, h_mini_pixel, h_mini_label);
-			else
-				_voc->loadValidOneBatch(send_pixel[tid]->getFlag()+1, \
-						num_send, pid-1, h_mini_pixel, h_mini_label);
-
-			_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
-			_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);
-			send_pixel[tid]->receviceFlag();
-			send_label[tid]->setFlag(send_pixel[tid]->getFlag());
-			send_pixel[tid]->dataTo();
-			send_label[tid]->dataTo();
-			if(send_pixel[tid]->getFlag() == _model_component->_minibatch_size-1)
-				send_pixel[tid]->setFlag(-1);
-		}while(send_pixel[tid]->getFlag() != PROCESS_END);
-	}	*/	
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
