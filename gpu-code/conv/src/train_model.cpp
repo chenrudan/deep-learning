@@ -37,8 +37,10 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 	if(_model_component->_pid == 0){
 		//		_voc = new LoadVOC<Dtype>(_model_component->_minibatch_size * num_process);
 		_voc = new LoadCifar10<Dtype>(_model_component->_minibatch_size);
-		_model_component->_num_train = _voc->getNumTrain();
-		_model_component->_num_valid = _voc->getNumValid();
+//		_model_component->_num_train = _voc->getNumTrain();
+//		_model_component->_num_valid = _voc->getNumValid();
+		_model_component->_num_train = 200;
+		_model_component->_num_valid = 40;
 		_model_component->_num_train_each_process = _voc->getNumTrain()/(num_process-1);
 		_model_component->_num_valid_each_process = _voc->getNumValid()/(num_process-1);
 		_model_component->setNumTrainBatch();
@@ -211,6 +213,7 @@ void TrainModel<Dtype>::createLayerForWorker(){
 			cout << "dynamic point is null\n";
 		}
 
+		cout << i << endl;
 		layer->initCuda();
 		_model_component->_layers.push_back(layer);
 
@@ -419,10 +422,10 @@ void TrainModel<Dtype>::backwardPropagate(){
 
 template <typename Dtype>
 void TrainModel<Dtype>::computeAndUpdatePars(){
-	for (int k = _model_component->_num_need_train_layers-1; k >= 1; --k) {
+	for (int k = _model_component->_num_need_train_layers-1; k >= 0; --k) {
 		TrainLayer<Dtype> *tl = dynamic_cast< TrainLayer<Dtype>* >( \
 				_model_component->_layers_needed_train[k]);
-		tl->computeDerivsOfPars(_model_component->_y_needed_train[k-1]);
+		tl->computeDerivsOfPars(_model_component->_y_needed_train[k]);
 		tl->updatePars();
 	}
 }
@@ -439,7 +442,6 @@ void TrainModel<Dtype>::train() {
 		_model_component->_mini_label_for_compute= _model_component->_mini_label[0];
 		for(int batch_idx = 0; batch_idx < _model_component->_num_train_batch; \
 				batch_idx++){
-			//	cout << batch_idx << endl;
 			if(epoch_idx == _model_component->_num_epoch - 1 \
 					&& batch_idx == _model_component->_num_train_batch - 1)
 				flag = PROCESS_END;
@@ -451,8 +453,11 @@ void TrainModel<Dtype>::train() {
 			_model_component->_send_recv_pixel[0]->dataFrom();
 			_model_component->_send_recv_label[0]->dataFrom();
 
+			cout << "forward\n";
 			forwardPropagate();			
+			cout << "backward\n";
 			backwardPropagate();
+			cout << "update\n";
 			computeAndUpdatePars();
 
 			if((batch_idx + 1) % _model_component->_n_push == 0){ 
@@ -549,16 +554,20 @@ void TrainModel<Dtype>::sendAndRecvForManager() {
 		int tid = omp_get_thread_num();
 	   Dtype *h_mini_pixel;   //分配在主机内存上
 	   int *h_mini_label; 
+	   h_mini_pixel = new Dtype[pixel_len];   //分配在主机内存上
+	   h_mini_label = new int[label_len]; 
 		if(tid < num_trans*2){
 			int pid = tid / 2 + 1;   //计算出对应的进程ID
 			int type_id = tid % 2;   //计算是train还是valid
 			do{
+				/*
 				if(type_id == 0)
 					_voc->loadTrainOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
 							num_trans, pid-1, h_mini_pixel, h_mini_label);
 				else
 					_voc->loadValidOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
 							num_trans, pid-1, h_mini_pixel, h_mini_label);
+				*/
 
 				_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
 				_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);

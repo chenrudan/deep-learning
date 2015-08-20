@@ -13,7 +13,6 @@
 
 using namespace std;
 
-#define THREAD_END 100000
 
 typedef void(*loadFun)(); 
 
@@ -45,10 +44,10 @@ void workerNode(TrainModel<float> *model){
 	model->createPixelAndLabel();
 	model->createYDEDYForWorker();
 	model->initWeightAndBcast();
+	cout << "done2\n";
 	model->createMPIDist();
+	cout << "done1\n";
 	model->train();
-
-
 
 }
 
