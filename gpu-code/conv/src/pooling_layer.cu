@@ -9,6 +9,7 @@ using namespace std;
 template <typename Dtype>
 PoolingLayer<Dtype>::PoolingLayer(PoolParam *lcp){
 	this->_lcp = lcp;
+	_overlap_len = _lcp->getFilterSize() - _lcp->getStride();
 
 	cublasCreate(&this->handle);
 }
@@ -41,7 +42,6 @@ void PoolingLayer<Dtype>::initCuda() {
 				pow(_lcp->getOutSize(), 2) * _lcp->getOutChannel());
 
 	}
-	int _overlap_len = _lcp->getFilterSize() - _lcp->getStride();
 	if(_lcp->getOutSize() > MAX_THREAD_SIZE && _overlap_len > 0){	
 		unranged_dE_dx = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
 				pow(_lcp->getBoxInSize() * _lcp->getBoxNumSize(), 2) \
@@ -117,8 +117,8 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	}
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-			this->_dE_dy->reValue(31);
-			_max_pos->reValue(1.0f);
+//			this->_dE_dy->reValue(31);
+//			_max_pos->reValue(1.0f);
 		compute_dE_dy_max<<<blocks, threads, \
 			sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
 					p_dE_dx, _max_pos->getDevData(), box_in_size, \
@@ -130,7 +130,7 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		//	dE_dx->showValue("dEdx");
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
-this->_dE_dy->reValue(63);
+//this->_dE_dy->reValue(63);
 		compute_dE_dy_avg<<<blocks, threads, \
 			sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
 					p_dE_dx, box_in_size, box_out_size, \
@@ -147,16 +147,17 @@ this->_dE_dy->reValue(63);
 
 	if(_lcp->getOutSize() > MAX_THREAD_SIZE && _overlap_len > 0){
 		dE_dx->zeros();
-unranged_dE_dx->showValue("unrangeddEdx");
+//unranged_dE_dx->showValue("unrangeddEdx");
 
 		compactOverlap<<<_lcp->getMinibatchSize(), _lcp->getInChannel()>>>( \
 				unranged_dE_dx->getDevData(), dE_dx->getDevData(), _lcp->getInSize(), \
 				_lcp->getInChannel(),  _overlap_len, \
-				_lcp->getBoxInSize(), _lcp->getBoxNumSize(), _lcp->getStride());
+				_lcp->getBoxInSize(), _lcp->getBoxNumSize());
 		cudaThreadSynchronize();
 		cudaCheckError();
 	}
-	dE_dx->showValue("dEdx");
+//	cout << _overlap_len << ":" << _lcp->getOutSize() << endl;
+//	dE_dx->showValue("dEdx");
 }
 
 

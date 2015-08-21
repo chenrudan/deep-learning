@@ -32,7 +32,15 @@ __global__ void compute_convolution_derivs(const float* dE_dy, const float *x, \
 		const int stride, const int box_num_size);
 
 __global__ void compact_dervis_w(const float* unranged_dE_dw, \
-		float* dE_dw, const int filter_size, const int box_num_size);
+		float* dE_dw, const int filter_size, const int box_num_size, \
+		const int minibatch_size, const int in_channel, const int out_channel);
+
+__global__ void compute_derivs_of_bias(const float* dE_dy, float* targets, \
+		const int out_size, const int out_channel, \
+		const int box_out_size, const int box_num_size);
+
+__global__ void pad_to_ori(float* dst, const float* src, const int num_kernel, \
+		const int img_size, const int padded_img_size, const int img_channel);
 
 __global__ void ori_to_padding(const float* src, float* dst, const int numKernels, \
         const int img_size, const int padded_img_size, const int img_channel);
@@ -76,7 +84,7 @@ __global__ void compute_dE_dy(const float* y_j, const int* labels, \
 
 __global__ void compactOverlap(float* src, float* targets, \
 		const int in_size, const int in_channel, const int overlap_len, \
-		const int box_in_size, const int box_num_size, const int stride);
+		const int box_in_size, const int box_num_size);
 
 
 

@@ -37,10 +37,8 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 	if(_model_component->_pid == 0){
 		//		_voc = new LoadVOC<Dtype>(_model_component->_minibatch_size * num_process);
 		_voc = new LoadCifar10<Dtype>(_model_component->_minibatch_size);
-//		_model_component->_num_train = _voc->getNumTrain();
-//		_model_component->_num_valid = _voc->getNumValid();
-		_model_component->_num_train = 200;
-		_model_component->_num_valid = 40;
+		_model_component->_num_train = _voc->getNumTrain();
+		_model_component->_num_valid = _voc->getNumValid();
 		_model_component->_num_train_each_process = _voc->getNumTrain()/(num_process-1);
 		_model_component->_num_valid_each_process = _voc->getNumValid()/(num_process-1);
 		_model_component->setNumTrainBatch();

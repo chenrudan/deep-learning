@@ -15,10 +15,10 @@ class ConvNet : public TrainLayer<Dtype>{
 private:
 
 
-	Matrix<Dtype>* ranged_dE_dy2; ///> 重排dE_dy来计算b的导数
-	Matrix<Dtype>* unrolled_dE_db_tmp;
+	Matrix<Dtype>* unfold_dE_db_tmp;
 	Matrix<Dtype>* dE_db_tmp;
 	Matrix<Dtype>* padded_x;
+	Matrix<Dtype>* unfold_x;
 
 	Matrix<Dtype>* unranged_dE_dx;
 	Matrix<Dtype>* unranged_dE_dw;
@@ -26,6 +26,7 @@ private:
 	int _filt_pixs;
 	int _conv_pixs;
 	int _padded_in_pixs;
+	int _in_pixs;
 	
 	ConvParam* _cp;
 

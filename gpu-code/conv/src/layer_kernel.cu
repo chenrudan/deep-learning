@@ -100,22 +100,29 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		targets += img_idx * in_channel * in_pixs + in_channel_idx * in_pixs \
 				   + box_row_idx * box_in_size * in_size \
 				   + box_col_idx * box_in_size;
-		dE_dy += img_idx * out_channel * out_pixs;
+		dE_dy += img_idx*out_channel*out_pixs + out_row*out_size + out_col;
+		w += in_channel_idx*filt_pixs;
 
-		float ele;
 		int interval = out_size - box_out_size * (box_num_size - 1);
-		for(int i = threadIdx.x; i < box_in_size; i+=interval)
-			for(int j = threadIdx.y; j < box_in_size; j+=interval)
-				result[i*box_in_size + j] = 0;
+		int tmp_row = threadIdx.y;
+		int tmp_col = threadIdx.x;
+		while(tmp_row < box_in_size){
+			tmp_col = threadIdx.x;
+			while(tmp_col < box_in_size){
+				result[tmp_row*box_in_size + tmp_col] = 0;
+				tmp_col += interval;
+			}
+			tmp_row += interval;
+		}
 
+		float ele = 0;
 		for(int k = 0; k < out_channel; k++){
 			for(int i = 0; i < filter_size; i++){
 				for(int j = 0; j < filter_size; j++){
 					int box_in_row = threadIdx.y*stride + i;
 					int box_in_col = threadIdx.x*stride + j;
 					if(box_in_row < box_in_size && box_in_col < box_in_size){
-						ele = dE_dy[k*out_pixs+(i+out_row)*out_size+j+out_col] \
-							  *w[k*filt_pixs*in_channel+i*filter_size+j];
+						ele = dE_dy[k*out_pixs]*w[k*filt_pixs*in_channel+i*filter_size+j];
 						__syncthreads();
 						atomicAdd(result + box_in_row*box_in_size+box_in_col, ele);
 						__syncthreads();
@@ -123,10 +130,18 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 				}
 			}
 		}
-		for(int i = threadIdx.y; i < box_in_size; i+=interval)
-			for(int j = threadIdx.x; j < box_in_size; j+=interval)
-				targets[i * in_size + j] = result[i * box_in_size + j];
+
+		tmp_row = threadIdx.y;
+		while(tmp_row < box_in_size){
+			tmp_col = threadIdx.x;
+			while(tmp_col < box_in_size){
+				targets[tmp_row*in_size + tmp_col] \
+					= result[tmp_row*box_in_size + tmp_col];
+				tmp_col += interval;
+			}
+			tmp_row += interval;
 		}
+	}
 }
 
 
@@ -157,27 +172,34 @@ __global__ void compute_convolution_derivs(const float* dE_dy, const float *x, \
 
 	
 	if(out_row < out_size && out_col < out_size){
-		x += img_idx*in_channel*in_pixs + in_channel_idx*in_pixs;
-		dE_dw += out_channel_idx*in_channel*filt_pixs*num_box \
+		x += img_idx*in_channel*in_pixs + in_channel_idx*in_pixs \
+			 + box_row_idx*box_in_size*in_size \
+			 + box_col_idx*box_in_size; 
+		dE_dw += img_idx*out_channel*in_channel*filt_pixs*num_box \
+				 + out_channel_idx*in_channel*filt_pixs*num_box \
 				 + in_channel_idx*filt_pixs*num_box + box_idx*filt_pixs;
-		dE_dy += img_idx*out_channel*out_pixs + out_channel_idx*out_pixs;
+		dE_dy += img_idx*out_channel*out_pixs + out_channel_idx*out_pixs \
+				 + out_row*out_size + out_col;
 
+		int interval = out_size - box_out_size * (box_num_size - 1);
 		int tmp_row = threadIdx.y;
 		int tmp_col = threadIdx.x;
-		while(tmp_row < filter_size && tmp_col < filter_size){
-			result[tmp_row*filter_size + tmp_col] = 0;
-			tmp_row += blockDim.y;
-			tmp_col += blockDim.x;
+		while(tmp_row < filter_size){
+			tmp_col = threadIdx.x;
+			while(tmp_col < filter_size){
+				result[tmp_row*filter_size + tmp_col] = 0;
+				tmp_col += interval;
+			}
+			tmp_row += interval;
 		}
 
 		float ele;
 		for(int i = 0; i < filter_size; i++){
 			for(int j = 0; j < filter_size; j++){
-				int in_row = out_row*stride + i;
-				int in_col = out_col*stride + j;
-				if(in_row < in_size && in_col < in_size){
-					ele = dE_dy[(i+out_row)*out_size+j+out_col] \
-							  *x[in_row*in_size + in_col];
+				int box_in_row = threadIdx.y*stride + i;
+				int box_in_col = threadIdx.x*stride + j;
+				if(box_in_row < box_in_size && box_in_col < box_in_size){
+					ele = dE_dy[0]*x[box_in_row*in_size + box_in_col];
 					__syncthreads();
 					atomicAdd(result+i*filter_size+j, ele);
 					__syncthreads();
@@ -186,20 +208,24 @@ __global__ void compute_convolution_derivs(const float* dE_dy, const float *x, \
 		}
 		tmp_row = threadIdx.y;
 		tmp_col = threadIdx.x;
-		while(tmp_row < filter_size && tmp_col < filter_size){
-			dE_dw[tmp_row*filter_size+tmp_col] \
+		while(tmp_row < filter_size){
+			tmp_col = threadIdx.x;
+			while(tmp_col < filter_size){
+				dE_dw[tmp_row*filter_size+tmp_col] \
 					= result[tmp_row*filter_size+tmp_col];
-			tmp_row += blockDim.y;
-			tmp_col += blockDim.x;
+				tmp_col += interval;
+			}
+			tmp_row += interval;
 		}
 		__syncthreads();
 	}
 }
 
 __global__ void compact_dervis_w(const float* unranged_dE_dw, \
-		float* dE_dw, const int filter_size, const int box_num_size){
+		float* dE_dw, const int filter_size, const int box_num_size, \
+		const int minibatch_size, const int in_channel, const int out_channel){
 	//此处grid是一维
-	int filt_idx = blockIdx.x;	
+	int filt_idx = blockIdx.y;	
 	const int num_box = box_num_size * box_num_size;	
 	int filt_pixs = filter_size * filter_size;
 	if(threadIdx.y < filter_size && threadIdx.x < filter_size){
@@ -207,10 +233,49 @@ __global__ void compact_dervis_w(const float* unranged_dE_dw, \
 		unranged_dE_dw += filt_idx*filt_pixs*num_box \
 						  + threadIdx.y*filter_size + threadIdx.x;
 		dE_dw[0] = 0;
-		for(int i = 0; i < num_box; i++){
-			dE_dw[0] += unranged_dE_dw[i*filt_pixs]; 
+		for(int k = 0; k < minibatch_size; k++){
+			for(int i = 0; i < num_box; i++){
+				dE_dw[0] += unranged_dE_dw[k*in_channel*out_channel \
+							*filt_pixs*num_box+i*filt_pixs]; 
+			}
+
 		}
 	}
+}
+
+__global__ void compute_derivs_of_bias(const float* dE_dy, float* targets, \
+		const int out_size, const int out_channel, \
+		const int box_out_size, const int box_num_size){
+
+	const int num_box = box_num_size * box_num_size;	
+	const int img_idx = blockIdx.x;
+	const int filt_idx = blockIdx.y / num_box;
+	const int box_idx = blockIdx.y % num_box; 
+	const int box_row_idx = box_idx / box_num_size;
+	const int box_col_idx = box_idx % box_num_size;
+
+	int out_pixs = out_size * out_size;
+	extern __shared__ float result[];
+
+	//输出的行列idx，当输出大于MAX_THREAD_SIZE的时候每个线程都做了计算
+	int out_row = box_out_size * box_row_idx + threadIdx.y;
+	int out_col = box_out_size * box_col_idx + threadIdx.x;
+
+	if(out_row < out_size && out_col < out_size){
+		dE_dy += img_idx*out_pixs*out_channel + filt_idx*out_pixs \
+				 + out_row*out_size + out_col;
+		
+		targets += img_idx*out_channel*num_box+filt_idx*num_box \
+				   +box_row_idx*box_num_size + box_col_idx;
+
+		__syncthreads();
+		atomicAdd(result, dE_dy[0]);
+		__syncthreads();
+
+		if(threadIdx.x == 0 && threadIdx.y == 0)
+			targets[0] = result[0];
+	}
+
 }
 
 
@@ -218,14 +283,26 @@ __global__ void compact_dervis_w(const float* unranged_dE_dw, \
 
 
 
+__global__ void pad_to_ori(float* dst, const float* src, const int num_kernel, \
+		const int img_size, const int padded_img_size, const int img_channel){
 
+	int index;
+	int img_pixs = img_size * img_size;
+	int padded_img_pixs = padded_img_size * padded_img_size;
+	int pad = (padded_img_size - img_size) / 2;
+	CUDA_KERNEL_LOOP(idx, num_kernel){
 
-
-
-
-
-
-
+		const int img_idx = idx / (img_channel * img_pixs);
+		const int src_col = idx % (img_channel * img_pixs);
+		const int img_channel_idx = src_col / img_pixs;
+		const int img_row = (src_col % img_pixs) / img_size; 
+		const int img_col = (src_col % img_pixs) % img_size; 
+		index = img_idx * img_channel * padded_img_pixs + img_channel_idx * padded_img_pixs \
+				+ (img_row + pad) * padded_img_size \
+				+ (img_col + pad); 
+		dst[idx] = src[index]; 
+	}
+}
 
 __global__ void ori_to_padding(const float* src, float* dst, const int num_kernel, \
 		const int img_size, const int padded_img_size, const int img_channel){
@@ -407,9 +484,16 @@ __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
 					+ threadIdx.x * stride;
 
 		int interval = pool_forward_size - box_out_size * (box_num_size - 1);
-		for(int i = threadIdx.y; i < box_in_size; i += interval)
-			for(int j = threadIdx.x; j < box_in_size; j += interval)
-				result[i*box_in_size + j] = 0;
+		int tmp_row = threadIdx.y;
+		int tmp_col = threadIdx.x;
+		while(tmp_row < box_in_size){
+			tmp_col = threadIdx.x;
+			while(tmp_col < box_in_size){
+				result[tmp_row*box_in_size + tmp_col] = 0;
+				tmp_col += interval;
+			}
+			tmp_row += interval;
+		}
 
 		int pos = maxPoolPos[0];
 		int row = pos / max_pool_size;
@@ -465,9 +549,16 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 
 		float ele;
 		int interval = pool_forward_size - box_out_size * (box_num_size - 1);
-		for(int i = threadIdx.x; i < box_in_size; i+=interval)
-			for(int j = threadIdx.y; j < box_in_size; j+=interval)
-				result[i*box_in_size + j]	= 0;
+		int tmp_row = threadIdx.y;
+		int tmp_col = threadIdx.x;
+		while(tmp_row < box_in_size){
+			tmp_col = threadIdx.x;
+			while(tmp_col < box_in_size){
+				result[tmp_row*box_in_size + tmp_col] = 0;
+				tmp_col += interval;
+			}
+			tmp_row += interval;
+		}
 
 		for(int i = 0; i < avg_pool_size; i++){
 			for(int j = 0; j < avg_pool_size; j++){
@@ -481,9 +572,16 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 				}
 			}
 		}
-		for(int i = threadIdx.y; i < box_in_size; i+=interval)
-			for(int j = threadIdx.x; j < box_in_size; j+=interval)
-				targets[i * in_size + j] = result[i * box_in_size + j];
+		tmp_row = threadIdx.y;
+		tmp_col = threadIdx.x;
+		while(tmp_row < box_in_size){
+			tmp_col = threadIdx.x;
+			while(tmp_col < box_in_size){
+				targets[tmp_row * in_size + tmp_col] = result[tmp_row * box_in_size + tmp_col];
+				tmp_col += interval;
+			}
+			tmp_row += interval;
+		}
 	}
 
 }
@@ -528,7 +626,7 @@ __global__ void compute_dE_dy(const float* y_j, const int* labels, \
 
 __global__ void compactOverlap(float* src, float* targets, \
 		const int in_size, const int in_channel, const int overlap_len, \
-		const int box_in_size, const int box_num_size, const int stride){
+		const int box_in_size, const int box_num_size){
 
 	const int img_idx = blockIdx.x;
 	const int filt_idx = threadIdx.x;
@@ -539,15 +637,14 @@ __global__ void compactOverlap(float* src, float* targets, \
 
 	src += img_idx*in_channel*unfold_in_pix + filt_idx*unfold_in_pix;
 	targets += img_idx*in_channel*in_pixs + filt_idx*in_pixs;
-
-	const int stride_for_overlap = box_in_size - stride;
-
-	for(int i = 0; i < in_size; i++){
-		for(int j = 0; j < in_size; j++){
-			int unfold_in_row = i + overlap_len*(i/stride_for_overlap);
-			int unfold_in_col = j + overlap_len*(j/stride_for_overlap);
-			src[i*in_size+j] += targets[unfold_in_row*unfold_in_size+unfold_in_col];
-
+ 
+	for(int i = 0; i < unfold_in_size; i++){
+		for(int j = 0; j < unfold_in_size; j++){
+			int in_row = i - overlap_len*(i/box_in_size);
+			int in_col = j - overlap_len*(j/box_in_size);
+			if(in_row >= in_size || in_col >= in_size)
+				break;
+			targets[in_row*in_size+in_col] += src[i*unfold_in_size+j];
 		}
 	}
 }
