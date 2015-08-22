@@ -1,10 +1,10 @@
 {
 	"name": "CIFAR10net",
 	"minibatch_size": 100,
-	"n_push": 10,
-	"n_fetch": 50,
+	"n_push": 200,
+	"n_fetch": 500,
 	"num_epoch": 100,
-	"img_size": 500,
+	"img_size": 32,
 	"img_channel": 3,
 	"layer":
 	[
@@ -12,14 +12,14 @@
 			"type": "CONVOLUTION",
 			"name": "conv1",
 			"pad": 2,
-			"stride": 4,
+			"stride": 1,
 			"filter_size": 5,
 			"filter_channel": 8,
 			"w_lr": 0.001,
 			"bias_lr": 0.001,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.0001
 		},
 		{
 			"type": "RECTIFIED",
@@ -44,7 +44,7 @@
 			"bias_lr": 0.001,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.001
 		},
 		{
 			"type": "RECTIFIED",
@@ -69,7 +69,7 @@
 			"bias_lr": 0.001,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.001
 		},
 		{
 			"type": "RECTIFIED",

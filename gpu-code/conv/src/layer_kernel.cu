@@ -123,7 +123,6 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 					int box_in_col = threadIdx.x*stride + j;
 					if(box_in_row < box_in_size && box_in_col < box_in_size){
 						ele = dE_dy[k*out_pixs]*w[k*filt_pixs*in_channel+i*filter_size+j];
-						__syncthreads();
 						atomicAdd(result + box_in_row*box_in_size+box_in_col, ele);
 						__syncthreads();
 					}
@@ -146,78 +145,72 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 
 
 __global__ void compute_convolution_derivs(const float* dE_dy, const float *x, \
-		float* dE_dw, const int box_in_size, const int box_out_size, \
-		const int out_channel, const int in_channel, \
+		float* dE_dw, const int box_out_size, \
+		const int out_channel, const int in_channel, const int in_size, \
 		const int out_size, const int filter_size, \
 		const int stride, const int box_num_size){
 
 	extern __shared__ float result[];
 
-	const int num_box = box_num_size * box_num_size;	
-	const int img_idx = blockIdx.x;
-	const int out_channel_idx = blockIdx.y % out_channel;
-	const int in_channel_idx = (blockIdx.y/out_channel) / num_box;
-	const int box_idx = (blockIdx.y/out_channel) % num_box; 
-	const int box_row_idx = box_idx / box_num_size;
-	const int box_col_idx = box_idx % box_num_size;
-
-	///反向求的输入width
-	const int in_size = box_in_size * box_num_size; 
 	int in_pixs = in_size * in_size;
 	int filt_pixs = filter_size * filter_size;
 	int out_pixs = out_size * out_size;
+	int box_out_pixs = box_out_size * box_out_size;
+
+	const int num_box = box_num_size * box_num_size;	
+	const int img_idx = blockIdx.x;
+	const int out_channel_idx = blockIdx.y/(num_box*filt_pixs*in_channel);
+	int tmp = blockIdx.y%(num_box*filt_pixs*in_channel);
+	const int in_channel_idx = tmp/(num_box*filt_pixs);
+	tmp = tmp%(num_box*filt_pixs);
+	const int box_idx = tmp / filt_pixs;
+	const int box_row_idx = box_idx / box_num_size;
+	const int box_col_idx = box_idx % box_num_size;
+	const int filt_row_idx = (tmp % filt_pixs) / filter_size; 
+	const int filt_col_idx = (tmp % filt_pixs) % filter_size; 
 
 	int out_row = box_out_size * box_row_idx + threadIdx.y;
 	int out_col = box_out_size * box_col_idx + threadIdx.x;
+	int in_row = out_row*stride + filt_row_idx;
+	int in_col = out_col*stride + filt_col_idx;
 
-	
+	if(threadIdx.y < box_out_size && threadIdx.x < box_out_size)
+		result[threadIdx.y*box_out_size+threadIdx.x] = 0;
+
 	if(out_row < out_size && out_col < out_size){
 		x += img_idx*in_channel*in_pixs + in_channel_idx*in_pixs \
-			 + box_row_idx*box_in_size*in_size \
-			 + box_col_idx*box_in_size; 
+			 + in_row*in_size + in_col; 
 		dE_dw += img_idx*out_channel*in_channel*filt_pixs*num_box \
 				 + out_channel_idx*in_channel*filt_pixs*num_box \
-				 + in_channel_idx*filt_pixs*num_box + box_idx*filt_pixs;
+				 + in_channel_idx*filt_pixs*num_box + box_idx*filt_pixs \
+				 + filt_row_idx*filter_size + filt_col_idx;
 		dE_dy += img_idx*out_channel*out_pixs + out_channel_idx*out_pixs \
 				 + out_row*out_size + out_col;
 
-		int interval = out_size - box_out_size * (box_num_size - 1);
-		int tmp_row = threadIdx.y;
-		int tmp_col = threadIdx.x;
-		while(tmp_row < filter_size){
-			tmp_col = threadIdx.x;
-			while(tmp_col < filter_size){
-				result[tmp_row*filter_size + tmp_col] = 0;
-				tmp_col += interval;
-			}
-			tmp_row += interval;
-		}
+		int idx = threadIdx.y*box_out_size + threadIdx.x;
+		
+		result[idx] = dE_dy[0]*x[0];
 
-		float ele;
-		for(int i = 0; i < filter_size; i++){
-			for(int j = 0; j < filter_size; j++){
-				int box_in_row = threadIdx.y*stride + i;
-				int box_in_col = threadIdx.x*stride + j;
-				if(box_in_row < box_in_size && box_in_col < box_in_size){
-					ele = dE_dy[0]*x[box_in_row*in_size + box_in_col];
-					__syncthreads();
-					atomicAdd(result+i*filter_size+j, ele);
-					__syncthreads();
-				}
+		int pow2Length = box_out_pixs;
+		if(pow2Length & (pow2Length - 1)){
+			while(pow2Length & (pow2Length - 1)){
+				pow2Length &= pow2Length - 1;
 			}
-		}
-		tmp_row = threadIdx.y;
-		tmp_col = threadIdx.x;
-		while(tmp_row < filter_size){
-			tmp_col = threadIdx.x;
-			while(tmp_col < filter_size){
-				dE_dw[tmp_row*filter_size+tmp_col] \
-					= result[tmp_row*filter_size+tmp_col];
-				tmp_col += interval;
-			}
-			tmp_row += interval;
 		}
 		__syncthreads();
+
+		if(idx >= pow2Length && idx < box_out_pixs)
+			result[idx - pow2Length] += result[idx];
+		__syncthreads();
+
+		for(int activeThreads = (pow2Length >> 1); activeThreads; \
+				activeThreads >>= 1){
+			if(idx < activeThreads)
+				result[idx] += result[idx+activeThreads];
+			__syncthreads();
+		}
+		if(idx == 0)
+			dE_dw[0] = result[0];
 	}
 }
 
@@ -255,11 +248,15 @@ __global__ void compute_derivs_of_bias(const float* dE_dy, float* targets, \
 	const int box_col_idx = box_idx % box_num_size;
 
 	int out_pixs = out_size * out_size;
+	int box_out_pixs = box_out_size * box_out_size;
 	extern __shared__ float result[];
 
 	//输出的行列idx，当输出大于MAX_THREAD_SIZE的时候每个线程都做了计算
 	int out_row = box_out_size * box_row_idx + threadIdx.y;
 	int out_col = box_out_size * box_col_idx + threadIdx.x;
+
+	if(threadIdx.y < box_out_size && threadIdx.x < box_out_size)
+		result[threadIdx.y*box_out_size+threadIdx.x] = 0;
 
 	if(out_row < out_size && out_col < out_size){
 		dE_dy += img_idx*out_pixs*out_channel + filt_idx*out_pixs \
@@ -268,11 +265,29 @@ __global__ void compute_derivs_of_bias(const float* dE_dy, float* targets, \
 		targets += img_idx*out_channel*num_box+filt_idx*num_box \
 				   +box_row_idx*box_num_size + box_col_idx;
 
-		__syncthreads();
-		atomicAdd(result, dE_dy[0]);
+		int idx = threadIdx.y*box_out_size + threadIdx.x;
+		result[idx] = dE_dy[0];
+
+		int pow2Length = box_out_pixs;
+		if(pow2Length & (pow2Length - 1)){
+			while(pow2Length & (pow2Length - 1)){
+				pow2Length &= pow2Length - 1;
+			}
+		}
 		__syncthreads();
 
-		if(threadIdx.x == 0 && threadIdx.y == 0)
+		if(idx >= pow2Length && idx < box_out_pixs)
+			result[idx - pow2Length] += result[idx];
+		__syncthreads();
+
+		for(int activeThreads = (pow2Length >> 1); activeThreads; \
+				activeThreads >>= 1){
+			if(idx < activeThreads)
+				result[idx] += result[idx+activeThreads];
+			__syncthreads();
+		}
+
+		if(idx == 0)
 			targets[0] = result[0];
 	}
 
@@ -503,7 +518,6 @@ __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
 
 		float ele = dE_dy_i[0];
 
-		__syncthreads();
 		atomicAdd(result+posIdx, ele);
 		__syncthreads();
 
@@ -566,7 +580,6 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 				int box_in_col = threadIdx.x * stride + j;
 				if(box_in_row < box_in_size && box_in_col < box_in_size){
 					ele = dE_dy_i[0] / (avg_pool_size * avg_pool_size);
-					__syncthreads();
 					atomicAdd(result + box_in_row*box_in_size+box_in_col, ele);
 					__syncthreads();
 				}
@@ -603,7 +616,6 @@ __global__ void compute_dE_db(const float* dE_dy, float* dE_db_h, \
 
 	float ele = dE_dy[0];
 
-	__syncthreads();
 	atomicAdd(result, ele);
 	__syncthreads();
 

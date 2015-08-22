@@ -450,14 +450,32 @@ void TrainModel<Dtype>::train() {
 			_model_component->_send_recv_label[0]->setFlag(flag);
 			_model_component->_send_recv_pixel[0]->dataFrom();
 			_model_component->_send_recv_label[0]->dataFrom();
-
-			cout << "forward\n";
+/*
+	t = clock() - t;
+	cout << " load data: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+	t = clock();
+	cout << batch_idx << ":forward\n";
+*/
 			forwardPropagate();			
-			cout << "backward\n";
+/*
+	t = clock() - t;
+	cout << " forward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+	t = clock();
+	cout << "backward\n";
+*/
 			backwardPropagate();
-			cout << "update\n";
+/*
+	t = clock() - t;
+	cout << " backward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+	t = clock();
+	cout << batch_idx << ": update\n";
+*/
 			computeAndUpdatePars();
-
+/*
+	t = clock() - t;
+	cout << " update: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+	t = clock();
+*/
 			if((batch_idx + 1) % _model_component->_n_push == 0){ 
 				if(epoch_idx == _model_component->_num_epoch - 1){ 
 					if((batch_idx + _model_component->_n_push) >= \
@@ -558,14 +576,14 @@ void TrainModel<Dtype>::sendAndRecvForManager() {
 			int pid = tid / 2 + 1;   //计算出对应的进程ID
 			int type_id = tid % 2;   //计算是train还是valid
 			do{
-				/*
+			
 				if(type_id == 0)
 					_voc->loadTrainOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
 							num_trans, pid-1, h_mini_pixel, h_mini_label);
 				else
 					_voc->loadValidOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
 							num_trans, pid-1, h_mini_pixel, h_mini_label);
-				*/
+				
 
 				_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
 				_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);
@@ -592,7 +610,6 @@ void TrainModel<Dtype>::sendAndRecvForManager() {
 				}else{
 					_model_component->_send_recv_w[tid]->dataFrom();
 					_model_component->_send_recv_bias[tid]->dataFrom();
-					//	cout << _model_component->_send_recv_w[tid]->getFlag() << endl;
 				}
 			}while(_model_component->_send_recv_w[tid]->getFlag() != PROCESS_END);
 		}

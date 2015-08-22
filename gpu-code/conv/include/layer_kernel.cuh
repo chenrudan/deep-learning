@@ -26,8 +26,8 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		const int stride, const int box_num_size);
 
 __global__ void compute_convolution_derivs(const float* dE_dy, const float *x, \
-		float* dE_dw, const int box_in_size, const int box_out_size, \
-		const int out_channel, const int in_channel, \
+		float* dE_dw, const int box_out_size, \
+		const int out_channel, const int in_channel, const int in_size, \
 		const int out_size, const int filter_size, \
 		const int stride, const int box_num_size);
 
