@@ -95,7 +95,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 		_model_component->_num_layers = root["layer"].size();
 
 		string layer_type, name;
-		int pad, stride, filter_size, filter_channel, num_out;
+		int pad, stride, filter_size, filter_channel, num_out, num_in;
 		float w_lr, bias_lr, momentum, weight_decay;
 		string p_type;
 		Param* param;
@@ -116,6 +116,9 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 			}
 			if (!root["layer"][i]["num_out"].isNull()) {
 				num_out = root["layer"][i]["num_out"].asInt();
+			}
+			if (!root["layer"][i]["num_in"].isNull()) {
+				num_in = root["layer"][i]["num_in"].asInt();
 			}
 			if (!root["layer"][i]["pool_type"].isNull()) {
 				p_type = root["layer"][i]["pool_type"].asString();
@@ -159,10 +162,17 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 						_model_component->_string_map_layertype[layer_type], \
 						name, 0, _model_component->_layers_param.back());
 			} else if (layer_type == "INNERPRODUCT" ) {
-				param = new InnerParam( \
+				if (_model_component->_layers_param.size() == 0) {
+					param = new InnerParam( \
+						_model_component->_string_map_layertype[layer_type], \
+						name, w_lr, bias_lr, momentum, weight_decay, \
+						num_in, num_out);
+				}else{
+					param = new InnerParam( \
 						_model_component->_string_map_layertype[layer_type], \
 						name, w_lr, bias_lr, momentum, weight_decay, \
 						num_out, _model_component->_layers_param.back());
+				}
 			}
 			if(_model_component->_pid == 1)
 				param->printParam();
@@ -211,7 +221,6 @@ void TrainModel<Dtype>::createLayerForWorker(){
 			cout << "dynamic point is null\n";
 		}
 
-		cout << i << endl;
 		layer->initCuda();
 		_model_component->_layers.push_back(layer);
 
@@ -394,7 +403,7 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 }
 
 template <typename Dtype>
-float TrainModel<Dtype>::forwardPropagate(){
+void TrainModel<Dtype>::forwardPropagate(){
 	for (int k = 0; k < _model_component->_num_layers; ++k) {
 		_model_component->_layers[k]->computeOutput(\
 				_model_component->_y_for_worker[k]);
@@ -402,7 +411,6 @@ float TrainModel<Dtype>::forwardPropagate(){
 	_likelihood += dynamic_cast<Logistic<Dtype>* >( \
 			_model_component->_layers[_model_component->_num_layers-1]) \
 				   ->computeError(_model_component->_mini_label_for_compute, _error);
-	return _likelihood;
 }
 
 template <typename Dtype>
@@ -438,6 +446,8 @@ void TrainModel<Dtype>::train() {
 			epoch_idx++) {
 		_model_component->_y_for_worker[0] = _model_component->_mini_data[0];
 		_model_component->_mini_label_for_compute= _model_component->_mini_label[0];
+		_likelihood = 0;
+		_error = 0;
 		for(int batch_idx = 0; batch_idx < _model_component->_num_train_batch; \
 				batch_idx++){
 			if(epoch_idx == _model_component->_num_epoch - 1 \
@@ -518,13 +528,19 @@ void TrainModel<Dtype>::train() {
 			}
 
 			if(batch_idx == _model_component->_num_train_batch-1){
+				cout << "----------epoch_idx: " << epoch_idx << "-----------\n";
+				cout << "training likelihood: " << _likelihood << endl;
+				cout << "training accuarcy: " << 1-(float)_error/ \
+					(_model_component->_num_train_batch*_model_component->getMinibatchSize()) << endl;
+				_likelihood = 0;
+				_error = 0;
+
 				_model_component->_y_for_worker[0] = _model_component->_mini_data[1];
 				_model_component->_mini_label_for_compute \
 					= _model_component->_mini_label[1];
 				Logistic<Dtype> *last_layer = dynamic_cast<Logistic<Dtype>* >( \
 						_model_component->_layers[_model_component->_num_layers-1]);
 				last_layer->setRecordToZero();
-				double valid_likelihood = 0;
 				for(int valid_idx = 0; \
 						valid_idx < _model_component->_num_valid_batch; \
 						valid_idx++){
@@ -539,12 +555,13 @@ void TrainModel<Dtype>::train() {
 					_model_component->_send_recv_pixel[1]->dataFrom();
 					_model_component->_send_recv_label[1]->dataFrom();
 
-					valid_likelihood += forwardPropagate();			
-					backwardPropagate();
-
+					forwardPropagate();			
 				}
 				Matrix<int>* valid_record = last_layer->getResultRecord();
 				valid_record->showValue("valid record");
+				cout << "validation likelihood: " << _likelihood << endl;
+				cout << "valid accuarcy: " << 1-(float)_error/ \
+					(_model_component->_num_valid_batch*_model_component->getMinibatchSize()) << endl;
 			}
 		}
 		if(_model_component->_pid == 1){
@@ -584,7 +601,6 @@ void TrainModel<Dtype>::sendAndRecvForManager() {
 					_voc->loadValidOneBatch(_model_component->_send_recv_pixel[tid]->getFlag()+1, \
 							num_trans, pid-1, h_mini_pixel, h_mini_label);
 				
-
 				_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
 				_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);
 				_model_component->_send_recv_pixel[tid]->receviceFlag();
@@ -599,7 +615,6 @@ void TrainModel<Dtype>::sendAndRecvForManager() {
 		}else{
 			tid -= 2*num_trans;
 
-			cout << "w tid: "<<  tid << endl;
 			do{
 				_model_component->_send_recv_w[tid]->receviceFlag();
 				_model_component->_send_recv_bias[tid]->setFlag(_model_component->_send_recv_w[tid]->getFlag());

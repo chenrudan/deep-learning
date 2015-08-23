@@ -164,7 +164,7 @@ public:
     /// 输入是float时，矩阵全部赋值为这个值。输入是int时，矩阵每个位置对这个int取余
     void reValue(float value);
 
-    void reValue(int value);
+	void reValue(int value, bool is_div = false);
 
     Dtype computeNorm(int len);
 

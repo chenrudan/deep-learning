@@ -27,6 +27,8 @@ private:
 	int _conv_pixs;
 	int _padded_in_pixs;
 	int _in_pixs;
+	int _thread_num;
+	int _num_box;
 	
 	ConvParam* _cp;
 

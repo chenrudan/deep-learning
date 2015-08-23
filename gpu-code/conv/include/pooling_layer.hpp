@@ -28,6 +28,7 @@ private:
     Matrix<int>* _max_pos;
     PoolParam* _lcp;
 	int _overlap_len;
+	int _thread_num;
 	Matrix<Dtype>* unranged_dE_dx;
 };
 

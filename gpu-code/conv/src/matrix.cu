@@ -364,11 +364,14 @@ void Matrix<Dtype>::reValue(float value){
 }
 
 template <typename Dtype>
-void Matrix<Dtype>::reValue(int value){
+void Matrix<Dtype>::reValue(int value, bool is_div){
 	int length = this->getNumRows() * this->getNumCols();
 	Dtype* tmp_yh = new Dtype[length];
 	for(int i = 0; i < length; i++){
-		tmp_yh[i] = i % value;
+		if(!is_div)
+			tmp_yh[i] = i % value;
+		else
+			tmp_yh[i] = i / value;
 	}
 	this->copyFromHost(tmp_yh, length);
 	delete[] tmp_yh;

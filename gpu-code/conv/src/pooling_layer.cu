@@ -12,6 +12,15 @@ PoolingLayer<Dtype>::PoolingLayer(PoolParam *lcp){
 	_overlap_len = _lcp->getFilterSize() - _lcp->getStride();
 
 	cublasCreate(&this->handle);
+	
+	int pow2Length = _lcp->getOutSize();
+	if(pow2Length & (pow2Length - 1)){
+		while(pow2Length & (pow2Length - 1)){
+			pow2Length &= pow2Length - 1;
+		}
+		pow2Length *= 2;
+	}
+	_thread_num = pow2Length > MAX_THREAD_SIZE ? MAX_THREAD_SIZE : pow2Length;
 }
 
 template <typename Dtype>
@@ -58,11 +67,11 @@ void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 
 	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
-	dim3 threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE); 
+	dim3 threads = dim3(_thread_num, _thread_num); 
 
 	/// 每个block计算输出32*32的大小
 	/// 同时并行多个block
-	//	x->reValue(126);
+//	x->reValue(32);
 	int box_out_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
 					   ? _lcp->getOutSize() : MAX_THREAD_SIZE;
 	if(_lcp->getPoolType() == MAX_POOLING ){
@@ -87,7 +96,7 @@ void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 	cudaThreadSynchronize();
 	cudaCheckError();
 	//	if(_lcp->getName() == "pool3_layer")
-	//		this->_y->showValue(_lcp->getName() + "y");
+//	this->_y->showValue(_lcp->getName() + "y");
 
 }
 
@@ -99,7 +108,7 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	/// 计算一个box的pooling对应的输入行列大小
 
 	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
-	dim3 threads = dim3(MAX_THREAD_SIZE, MAX_THREAD_SIZE);
+	dim3 threads = dim3(_thread_num, _thread_num);
 
 	int box_out_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
 					   ? _lcp->getOutSize() : MAX_THREAD_SIZE;
@@ -117,8 +126,8 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	}
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-//			this->_dE_dy->reValue(31);
-//			_max_pos->reValue(1.0f);
+	//		this->_dE_dy->reValue(16);
+	//		_max_pos->reValue(1.0f);
 		compute_dE_dy_max<<<blocks, threads, \
 			sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
 					p_dE_dx, _max_pos->getDevData(), box_in_size, \
@@ -130,7 +139,7 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		//	dE_dx->showValue("dEdx");
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
-//this->_dE_dy->reValue(63);
+//this->_dE_dy->reValue(4);
 		compute_dE_dy_avg<<<blocks, threads, \
 			sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
 					p_dE_dx, box_in_size, box_out_size, \

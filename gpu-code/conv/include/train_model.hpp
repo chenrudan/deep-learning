@@ -42,7 +42,7 @@ public:
 	void createMPIDist();
 
     void initWeightAndBcast();
-    float forwardPropagate();
+    void forwardPropagate();
     void backwardPropagate();
     void computeAndUpdatePars();
 

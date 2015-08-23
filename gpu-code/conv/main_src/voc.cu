@@ -40,7 +40,6 @@ void workerNode(TrainModel<float> *model){
 	model->createLayerForWorker();
 	cout << "Initialize layers is done.\n";
 	model->createWBiasForWorker();
-	cout << "Each process reciving their data...\n";
 	model->createPixelAndLabel();
 	model->createYDEDYForWorker();
 	model->initWeightAndBcast();

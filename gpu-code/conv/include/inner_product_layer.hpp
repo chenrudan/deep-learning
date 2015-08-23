@@ -24,6 +24,8 @@ public:
 
 private:
 	InnerParam* _fcp;
+	Matrix<Dtype>* data_T;
+	Matrix<Dtype>* w_T;
 };
 
 #include "../src/inner_product_layer.cu"
