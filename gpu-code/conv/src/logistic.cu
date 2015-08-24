@@ -45,7 +45,7 @@ void Logistic<Dtype>::computeOutput(Matrix<Dtype>* x){
 //x->showValue("data");
 	this->_y->zeros();
 	x->apply(Matrix<Dtype>::SOFTMAX, this->_y);
-//this->_y->showValue("yj1");
+//this->_y->showValue("sigmoid_y");
 }
 
 template <typename Dtype>
@@ -78,6 +78,7 @@ double Logistic<Dtype>::computeError(Matrix<int>* labels, int& num_error){
 	for(int i = 0; i < labels->getNumEles(); i++){
 		result -= correct_probs[i];
 	}
+//	cout << result << endl;
 
 	return result;
 }

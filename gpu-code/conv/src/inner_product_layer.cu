@@ -56,12 +56,12 @@ void InnerProductLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 //	x->showValue("data");
 //	this->_w->showValue("w");
 
-	x->reValue(512);
-	this->_w->reValue(1.0f);
+//	x->reValue(512);
+//	this->_w->reValue(1.0f);
 
 	x->rightMult(this->_w, 1, this->_y, this->handle);
 	this->_y->addRowVector(this->_bias);
-	this->_y->showValue("yj1");
+//	this->_y->showValue("yj1");
 
 }
 
@@ -70,27 +70,27 @@ template <typename Dtype>
 void InnerProductLayer<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 
 	
-	x->reValue(512);
-	this->_dE_dy->reValue(1.0f);
+//	x->reValue(512);
+//	this->_dE_dy->reValue(1.0f);
 
 	x->getTranspose(data_T);
 
 	data_T->rightMult(this->_dE_dy, 1, this->_dE_dw, this->handle);
 	this->_dE_dy->sumRow(this->_dE_db);
 
-this->_dE_dw->showValue("dedwinner");
+//this->_dE_dw->showValue("dedwinner");
 //this->_dE_dy->showValue("innerdedy");
 }
 
 template <typename Dtype>
 void InnerProductLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
-	this->_w->reValue(1.0f);
-	this->_dE_dy->reValue(64);
+//	this->_w->reValue(1.0f);
+//	this->_dE_dy->reValue(64);
 
 	this->_w->getTranspose(w_T);
 	this->_dE_dy->rightMult(w_T, 1, dE_dx, this->handle);
-dE_dx->showValue("innerdedx");
+//dE_dx->showValue("innerdedx");
 
 
 }

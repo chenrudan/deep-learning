@@ -24,6 +24,13 @@ private:
 	int _error;
     int _cur_batch_idx; 
     map<string, int> transmit_data_id;
+	//early stopping
+	float _min_likelihood;
+	vector<float> _strip_likelihood;
+	int _min_epoch;
+	int _min_error;
+	int _num_strip;
+	bool _is_stop;
 
 public:
     TrainModel(const int pid);
@@ -49,6 +56,8 @@ public:
     void train();
     void valid();
 
+	//返回是true就停下，返回是false就继续执行
+	void earlyStopping(int epoch_idx);
 	void sendAndRecvForManager();
 
 };

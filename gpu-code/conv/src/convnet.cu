@@ -129,6 +129,7 @@ void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 		padded_x = x;
 
 	//size表示一个正方形的边长，width，height表示矩阵的宽长
+//if(_cp->getName() == "conv3")
 //padded_x->showValue("_x");	
 
 	dim3 blocks = dim3(_cp->getMinibatchSize(), _cp->getOutChannel()*_num_box);

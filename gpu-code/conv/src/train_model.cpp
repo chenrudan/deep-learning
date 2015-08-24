@@ -4,6 +4,7 @@
 
 
 #include <iostream>
+#include <algorithm>
 #include "train_model.hpp"
 #include "json/json.h"
 #include "inner_product_layer.hpp"
@@ -21,6 +22,7 @@ TrainModel<Dtype>::TrainModel(const int pid){
 	_model_component = new ModelComponent<Dtype>();
 	_model_component->_pid = pid;
 	_likelihood = 0;
+	_is_stop = false;
 }
 
 template <typename Dtype>
@@ -450,8 +452,9 @@ void TrainModel<Dtype>::train() {
 		_error = 0;
 		for(int batch_idx = 0; batch_idx < _model_component->_num_train_batch; \
 				batch_idx++){
-			if(epoch_idx == _model_component->_num_epoch - 1 \
-					&& batch_idx == _model_component->_num_train_batch - 1)
+			if((epoch_idx == _model_component->_num_epoch - 1 \
+					&& batch_idx == _model_component->_num_train_batch - 1) \
+					|| _is_stop == true)
 				flag = PROCESS_END;
 			else
 				flag = batch_idx;
@@ -486,17 +489,19 @@ void TrainModel<Dtype>::train() {
 	cout << " update: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 	t = clock();
 */
-			if((batch_idx + 1) % _model_component->_n_push == 0){ 
-				if(epoch_idx == _model_component->_num_epoch - 1){ 
+			if((batch_idx + 1) % _model_component->_n_push == 0 || _is_stop == true){ 
+				if(_is_stop == true){
+					flag = PROCESS_END;
+				}else if(epoch_idx == _model_component->_num_epoch - 1){ 
 					if((batch_idx + _model_component->_n_push) >= \
 							_model_component->_num_train_batch \
 							|| batch_idx == _model_component->_num_train_batch - 1)
 						flag = PROCESS_END;
 					else
 						flag = batch_idx*2+1;
-				}   
-				else
+				}else{
 					flag = batch_idx*2+1;
+				}
 #pragma omp parallel num_threads(_model_component->_num_need_train_layers)
 				{   
 					int tid = omp_get_thread_num();
@@ -506,17 +511,19 @@ void TrainModel<Dtype>::train() {
 					_model_component->_send_recv_bias[tid]->dataTo();
 				}   
 			}
-			if((batch_idx + 1) % _model_component->_n_fetch == 0){ 
-				if(epoch_idx == _model_component->_num_epoch - 1){ 
+			if((batch_idx + 1) % _model_component->_n_fetch == 0 || _is_stop == true){ 
+				if(_is_stop == true){
+					flag = PROCESS_END;
+				}else if(epoch_idx == _model_component->_num_epoch - 1){ 
 					if((batch_idx + _model_component->_n_fetch) >= \
 							_model_component->_num_train_batch \
 							|| batch_idx == _model_component->_num_train_batch - 1)
 						flag = PROCESS_END;
 					else
 						flag = batch_idx*2;
-				}   
-				else
+				}else{
 					flag = batch_idx*2;
+				}
 #pragma omp parallel num_threads(_model_component->_num_need_train_layers)
 				{   
 					int tid = omp_get_thread_num();
@@ -545,7 +552,8 @@ void TrainModel<Dtype>::train() {
 						valid_idx < _model_component->_num_valid_batch; \
 						valid_idx++){
 					if(epoch_idx == _model_component->_num_epoch - 1 \
-							&& valid_idx == _model_component->_num_valid_batch - 1)
+							&& valid_idx == _model_component->_num_valid_batch - 1 \
+							|| _is_stop == true)
 						flag = PROCESS_END;
 					else
 						flag = valid_idx;
@@ -555,6 +563,7 @@ void TrainModel<Dtype>::train() {
 					_model_component->_send_recv_pixel[1]->dataFrom();
 					_model_component->_send_recv_label[1]->dataFrom();
 
+
 					forwardPropagate();			
 				}
 				Matrix<int>* valid_record = last_layer->getResultRecord();
@@ -563,12 +572,68 @@ void TrainModel<Dtype>::train() {
 				cout << "valid accuarcy: " << 1-(float)_error/ \
 					(_model_component->_num_valid_batch*_model_component->getMinibatchSize()) << endl;
 			}
+
+		}
+
+		for(int i = 0; i < _model_component->_num_need_train_layers; i++){
+			_model_component->_w[i]->showValue(_model_component->_layers_need_train_param[i]->getName()+"_w");
+		}
+
+//		if(_is_stop == false)
+//			earlyStopping(epoch_idx);
+
+		if((epoch_idx+1) % 5 == 0){
+			for(int i = 0; i < _model_component->_num_need_train_layers; i++){
+				dynamic_cast<TrainParam*>(_model_component->_layers_need_train_param[i])->lrMultiScale(0.8);
+			}
 		}
 		if(_model_component->_pid == 1){
 			t = clock() - t;
 			cout << ((float)t/CLOCKS_PER_SEC) << "s.\n";
 			t = clock();
 		}
+		
+	}
+}
+
+template <typename Dtype>
+void TrainModel<Dtype>::earlyStopping(int epoch_idx) {
+	if(_strip_likelihood.size() == 0){
+		_min_likelihood = _likelihood;
+		_min_error = _error;
+		_min_epoch = epoch_idx;
+		_strip_likelihood.push_back(_likelihood);
+	}else if(_strip_likelihood.size() < _num_strip){
+		_strip_likelihood.push_back(_likelihood);
+		if(_min_likelihood > _likelihood){
+			_min_likelihood = _likelihood;
+			_min_error = _error;
+			_min_epoch = epoch_idx;
+		}
+	}else if(_strip_likelihood.size() == _num_strip){
+		if(_min_likelihood > _likelihood){
+			_min_likelihood = _likelihood;
+			_min_error = _error;
+			_min_epoch = epoch_idx;
+		}
+		_strip_likelihood.erase(_strip_likelihood.begin());
+		_strip_likelihood.push_back(_likelihood);
+		
+		double tmp = 0;
+	//	std::accumulate(_strip_likelihood.begin(), _strip_likelihood.end(), tmp);
+		
+		vector<float>::iterator min_value = min_element(_strip_likelihood.begin(), _strip_likelihood.end());
+
+		double generalization_loss = 100*(_likelihood/_min_likelihood - 1);
+		double progress_loss = 1000 * (tmp / (_num_strip*(*min_value)) - 1);
+		
+		cout << generalization_loss << ":" << progress_loss << endl;
+
+		if(generalization_loss / progress_loss > 0.8)
+			_is_stop = true;
+	}else{
+		cerr << "early Stopping parameters are wrong." << endl;
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -608,8 +673,19 @@ void TrainModel<Dtype>::sendAndRecvForManager() {
 				_model_component->_send_recv_pixel[tid]->dataTo();
 				_model_component->_send_recv_label[tid]->dataTo();
 
-				if(_model_component->_send_recv_pixel[tid]->getFlag() == _model_component->_minibatch_size-1)
+				if(type_id == 0){
+				   if(_model_component->_send_recv_pixel[tid]->getFlag() \
+						== _model_component->_num_train_batch-1){
 					_model_component->_send_recv_pixel[tid]->setFlag(-1);
+					_model_component->_send_recv_label[tid]->setFlag(-1);
+					}
+				}else{
+					if(_model_component->_send_recv_pixel[tid]->getFlag() \
+						== _model_component->_num_valid_batch-1){
+						_model_component->_send_recv_pixel[tid]->setFlag(-1);
+						_model_component->_send_recv_label[tid]->setFlag(-1);
+					}
+				}
 			}while(_model_component->_send_recv_pixel[tid]->getFlag() != PROCESS_END);
 
 		}else{
