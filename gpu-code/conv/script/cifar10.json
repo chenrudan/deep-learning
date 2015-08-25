@@ -1,11 +1,11 @@
 {
 	"name": "CIFAR10net",
-	"minibatch_size": 100,
+	"minibatch_size": 10,
 	"n_push": 200,
 	"n_fetch": 201,
-	"num_epoch": 100,
+	"num_epoch": 300,
 	"img_size": 32,
-	"img_channel": 1,
+	"img_channel": 3,
 	"layer":
 	[
 		{
@@ -19,7 +19,7 @@
 			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.001
 		},
 		{
 			"type": "RECTIFIED",
@@ -96,6 +96,10 @@
 		{
 			"type": "RECTIFIED",
 			"name": "relu4"
+		},
+		{
+			"type": "DROPOUT",
+			"name": "drop1"
 		},
 		{
 			"type": "INNERPRODUCT",

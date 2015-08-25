@@ -186,8 +186,7 @@ private:
 	string _valid_file;
 	ifstream _fin1;
 	ifstream _fin2;
-	int *_label_and_coord; ///>先用vector保存，然后再转化为int数组
-								///这个数据里面保存的是label和坐标
+	int *_label_and_coord; 
 	int *_label_num; ///>这个数组保存的minibatch大小数组每一张图中有几个物体label
 	vector<int> _label_and_coord_vec;
 

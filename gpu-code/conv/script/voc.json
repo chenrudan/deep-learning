@@ -12,7 +12,7 @@
 			"type": "CONVOLUTION",
 			"name": "conv1",
 			"pad": 2,
-			"stride": 2,
+			"stride": 4,
 			"filter_size": 5,
 			"filter_channel": 8,
 			"w_lr": 0.001,
@@ -103,8 +103,8 @@
 			"weight_decay": 0
 		},
 		{
-			"type": "LOGISTIC",
-			"name": "softmax"
+			"type": "PREDICTOBJECT",
+			"name": "predictobject"
 		}
 
 	]

@@ -36,7 +36,8 @@ typedef enum LAYER_TYPE {
     RECTIFIED = 3,
     INNERPRODUCT = 4,
     SOFTMAX = 5,
-    DROPOUT = 6
+    DROPOUT = 6,
+	PREDICTOBJECT = 7
 } LayerType;
 
 /// \brief 实现了每一层的参数
