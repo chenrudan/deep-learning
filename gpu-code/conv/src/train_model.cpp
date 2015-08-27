@@ -14,7 +14,6 @@
 #include "convnet.hpp"
 #include "pooling_layer.hpp"
 #include "dropout_layer.hpp"
-#include "predict_object_layer.hpp"
 
 using namespace std;
 
@@ -38,8 +37,8 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 
 	//一次要读取多个进程需要处理的数据
 	if(_model_component->_pid == 0){
-		_voc = new LoadVOC<Dtype>(_model_component->_minibatch_size);
-		//_voc = new LoadCifar10<Dtype>(_model_component->_minibatch_size);
+		//		_voc = new LoadVOC<Dtype>(_model_component->_minibatch_size * num_process);
+		_voc = new LoadCifar10<Dtype>(_model_component->_minibatch_size);
 		_model_component->_num_train = _voc->getNumTrain();
 		_model_component->_num_valid = _voc->getNumValid();
 		_model_component->_num_train_each_process = _voc->getNumTrain()/(num_process-1);
@@ -407,50 +406,22 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 
 template <typename Dtype>
 void TrainModel<Dtype>::forwardPropagate(){
-	for (int k = 0; k < _model_component->_num_layers-1; ++k) {
+	for (int k = 0; k < _model_component->_num_layers; ++k) {
 		_model_component->_layers[k]->computeOutput(\
 				_model_component->_y_for_worker[k]);
 	}
-}
-
-template <typename Dtype>
-void TrainModel<Dtype>::forwardClassification(){
-	_model_component->_layers[_model_component->_num_layers-1]->computeOutput(\
-				_model_component->_y_for_worker[_model_component->_num_layers-1]);
 	_likelihood += dynamic_cast<Logistic<Dtype>* >( \
 			_model_component->_layers[_model_component->_num_layers-1]) \
 				   ->computeError(_model_component->_mini_label_for_compute, _error);
 }
 
 template <typename Dtype>
-void TrainModel<Dtype>::forwardDetection(){
-	_likelihood += dynamic_cast<PredictObjectLayer<Dtype>* >( \
-			_model_component->_layers[_model_component->_num_layers-1]) \
-				   ->computeError(_model_component->_y_for_worker[_model_component->_num_layers-2], \
-						   _model_component->_mini_label_for_compute, \
-						   _model_component->_mini_label_num);
-}
-
-template <typename Dtype>
-void TrainModel<Dtype>::backwardDetection(){
-	PredictObjectLayer<Dtype> *last_layer = dynamic_cast<PredictObjectLayer<Dtype>* >( \
-			_model_component->_layers[_model_component->_num_layers-1]);
-	last_layer->computeDerivsOfInput(_model_component->_dE_dy_for_worker[ \
-			_model_component->_num_layers-2]);
-}
-
-template <typename Dtype>
-void TrainModel<Dtype>::backwardClassification(){
+void TrainModel<Dtype>::backwardPropagate(){
 	Logistic<Dtype> *last_layer = dynamic_cast<Logistic<Dtype>* >( \
 			_model_component->_layers[_model_component->_num_layers-1]);
 	last_layer->computeDerivsOfInput(_model_component->_dE_dy_for_worker[ \
 			_model_component->_num_layers-2], \
 			_model_component->_mini_label_for_compute);
-}
-
-
-template <typename Dtype>
-void TrainModel<Dtype>::backwardPropagate(){
 	for (int k = _model_component->_num_layers-2; k > 0; --k) {
 		_model_component->_layers[k]->computeDerivsOfInput( \
 				_model_component->_dE_dy_for_worker[k-1]);
@@ -465,22 +436,6 @@ void TrainModel<Dtype>::computeAndUpdatePars(){
 		tl->computeDerivsOfPars(_model_component->_y_needed_train[k]);
 		tl->updatePars();
 	}
-}
-
-template <typename Dtype>
-void TrainModel<Dtype>::trainClassification() {
-	forwardPropagate();			
-	forwardClassification();
-	backwardClassification();
-	backwardPropagate();
-}
-
-template <typename Dtype>
-void TrainModel<Dtype>::trainDetection() {
-	forwardPropagate();			
-	forwardDetection();
-	backwardDetection();
-	backwardPropagate();
 }
 
 template <typename Dtype>
@@ -514,13 +469,14 @@ void TrainModel<Dtype>::train() {
 	t = clock();
 	cout << batch_idx << ":forward\n";
 */
+			forwardPropagate();			
 /*
 	t = clock() - t;
 	cout << " forward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 	t = clock();
 	cout << "backward\n";
 */
-			trainDetection();
+			backwardPropagate();
 /*
 	t = clock() - t;
 	cout << " backward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
@@ -608,8 +564,7 @@ void TrainModel<Dtype>::train() {
 					_model_component->_send_recv_label[1]->dataFrom();
 
 
-					forwardPropagate();	
-					forwardDetection();	
+					forwardPropagate();			
 				}
 				Matrix<int>* valid_record = last_layer->getResultRecord();
 				valid_record->showValue("valid record");
@@ -620,16 +575,16 @@ void TrainModel<Dtype>::train() {
 
 		}
 
-	//	for(int i = 0; i < _model_component->_num_need_train_layers; i++){
-	//		_model_component->_w[i]->showValue(_model_component->_layers_need_train_param[i]->getName()+"_w");
-	//	}
+		for(int i = 0; i < _model_component->_num_need_train_layers; i++){
+			_model_component->_w[i]->showValue(_model_component->_layers_need_train_param[i]->getName()+"_w");
+		}
 
 //		if(_is_stop == false)
 //			earlyStopping(epoch_idx);
 
-		if((epoch_idx+1) % 5 == 0 ){
+		if((epoch_idx+1) == 50){
 			for(int i = 0; i < _model_component->_num_need_train_layers; i++){
-				dynamic_cast<TrainParam*>(_model_component->_layers_need_train_param[i])->lrMultiScale(0.8);
+				dynamic_cast<TrainParam*>(_model_component->_layers_need_train_param[i])->lrMultiScale(0.1);
 			}
 		}
 		if(_model_component->_pid == 1){

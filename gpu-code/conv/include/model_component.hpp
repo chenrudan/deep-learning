@@ -61,7 +61,7 @@ private:
 
     vector< Matrix<Dtype>* > _mini_data;  ///> 需要保存两组数据，一组当前作为运算，一组在运算的时候交换，下一次再计算
     vector< Matrix<int>* > _mini_label;
-	int _mini_label_num; ///>表示voc的每一张图对应几个label几个object
+	vector< Matrix<int>* > _mini_label_num; ///>表示voc的每一张图对应几个label几个object
 	Matrix<int> *_mini_label_for_compute;
 
     map<string, LayerType> _string_map_layertype;

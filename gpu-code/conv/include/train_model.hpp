@@ -19,7 +19,7 @@ template<typename Dtype>
 class TrainModel {
 private:
     ModelComponent<Dtype> *_model_component;
-    LoadVOC<Dtype> *_voc;
+    LoadCifar10<Dtype> *_voc;
     float _likelihood;
 	int _error;
     int _cur_batch_idx; 
@@ -52,14 +52,6 @@ public:
     void forwardPropagate();
     void backwardPropagate();
     void computeAndUpdatePars();
-
-	void backwardClassification();
-	void backwardDetection();
-	void forwardClassification();
-	void forwardDetection();
-
-	void trainClassification();
-	void trainDetection();
 
     void train();
     void valid();

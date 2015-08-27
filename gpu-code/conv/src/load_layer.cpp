@@ -209,7 +209,7 @@ LoadLayer<Dtype>::~LoadLayer(){
 
 template <typename Dtype>
 LoadCifar10<Dtype>::LoadCifar10(const int minibatch_size) : \
-	LoadLayer<Dtype>(50000, 10000, 0, 32, 3){
+	LoadLayer<Dtype>(50000, 10000, 0, 32, 1){
 
 	_minibatch_size = minibatch_size;
 
@@ -218,11 +218,11 @@ LoadCifar10<Dtype>::LoadCifar10(const int minibatch_size) : \
 			stringstream ss;
 			ss << i;
 			ss >> s;
-			string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
+			string filename = "../data/cifar-10-batches-bin/gray/data_batch_"+s+"_gray.bin";
 			loadBinary(filename, this->_train_pixel_ptr, \
 					this->_train_label_ptr);
 		}
-		loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
+		loadBinary("../data/cifar-10-batches-bin/gray/test_batch_gray.bin", \
 				this->_valid_pixel_ptr, this->_valid_label_ptr);
 
 }
