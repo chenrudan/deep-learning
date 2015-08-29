@@ -33,7 +33,10 @@ void gaussRand(Matrix<float>* nvMat, float var, float mean){
 
 	for(int i = 0; i < length; i++){
 		//        float k = distribution(generator);
-		a[i] = gaussGen(var, mean); 
+		if(var == 0)
+			a[i] = 0.0f;
+		else
+			a[i] = gaussGen(var, mean); 
 	} 
 	nvMat->copyFromHost(a, length);
 	delete a;

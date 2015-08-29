@@ -21,20 +21,24 @@ PredictObjectLayer<Dtype>::~PredictObjectLayer<Dtype>() {
 template <typename Dtype>
 void PredictObjectLayer<Dtype>::initCuda() {
 	_h_x            = new Dtype[_fcp->getMinibatchSize()*_fcp->getNumOut()];
-	_h_coord		= new int[_fcp->getNumOut()];
+	_h_coord		= new int[_fcp->getMinibatchSize()*_fcp->getNumOut()];
 	_h_dE_dx		= new Dtype[_fcp->getMinibatchSize()*_fcp->getNumOut()];
 }
 
 template <typename Dtype>
 double PredictObjectLayer<Dtype>::computeError(Matrix<Dtype> *x, \
-		Matrix<int>* coord, int num_object){
-	_num_object = num_object;
+		Matrix<int>* coord){
 	x->copyToHost(_h_x, x->getNumEles());
 	coord->copyToHost(_h_coord, coord->getNumEles());
 	double error = 0;
-	for(int i = 0; i < _num_object*4; i++){
-		error += (_h_x[i] - _h_coord[i])*(_h_x[i] - _h_coord[i]);
+	for(int i = 0; i < _fcp->getMinibatchSize()*4*MAX_OBJECT_NUM; i++){
+		error += (_h_x[i] - (double)_h_coord[i]/500.0) \
+				 *(_h_x[i] - (double)_h_coord[i]/500.0);
 	}
+//	x->showValue("x");
+//	coord->showValue("coord");
+//	coord->showValue("coord");
+//	cout << error << endl;
 	return error /= 2;
 }
 
@@ -42,9 +46,10 @@ double PredictObjectLayer<Dtype>::computeError(Matrix<Dtype> *x, \
 template <typename Dtype>
 void PredictObjectLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	memset(_h_dE_dx, 0, dE_dx->getNumEles()*sizeof(Dtype));
-	for(int i = 0; i < _num_object*4; i++){
-		_h_dE_dx[i] = _h_x[i] - _h_coord[i];
+	for(int i = 0; i < _fcp->getMinibatchSize()*MAX_OBJECT_NUM*4; i++){
+		_h_dE_dx[i] = _h_x[i] - (double)_h_coord[i]/500.0;
 	}
 	dE_dx->copyFromHost(_h_dE_dx, dE_dx->getNumEles());
+//	dE_dx->showValue("predict dE_dx");
 }
 

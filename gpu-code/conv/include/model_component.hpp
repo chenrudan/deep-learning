@@ -16,6 +16,7 @@
 
 using namespace std;
 
+
 /// \brief 实现了网络的组件，例如由几个卷积层几个全链接层构成
 ///
 template<typename Dtype>
@@ -23,6 +24,12 @@ class ModelComponent {
 
 template<typename D>
 friend class TrainModel;
+
+template<typename E>
+friend class TrainDetection;
+
+template<typename F>
+friend class TrainClassification;
 
 private:
 
@@ -41,6 +48,7 @@ private:
     int _img_channel;
     int _one_img_len;  ///>输入的一张图片的长度
 	int _in_len_each_process;
+	int _master_pid;  ///> 与之交换数据的主进程id号
     int _pid;  ///>进程id
 	int _n_push;
 	int _n_fetch;
@@ -59,18 +67,25 @@ private:
     vector< Matrix<Dtype>* > _dE_dy_for_worker;
     vector< Matrix<Dtype>* > _y_needed_train;
 
-    vector< Matrix<Dtype>* > _mini_data;  ///> 需要保存两组数据，一组当前作为运算，一组在运算的时候交换，下一次再计算
-    vector< Matrix<int>* > _mini_label;
-	vector< Matrix<int>* > _mini_label_num; ///>表示voc的每一张图对应几个label几个object
-	Matrix<int> *_mini_label_for_compute;
+    vector< Matrix<Dtype>* > _mini_data;  ///> 保存像素值
+    vector< Matrix<int>* > _mini_label;   ///> 保存物体分类的类别
+    vector< Matrix<int>* > _mini_coord;   ///> 保存物体识别的训练集坐标
+	vector< Matrix<int>* > _mini_coord_num; ///>表示voc的每一张图中有几个label
+	vector< Matrix<int>* > _mini_coord_label; ///>表示voc的每一张图中每一个坐标对应的label
+
+	Matrix<int> *_mini_label_for_compute; 
+	Matrix<int> *_mini_coord_for_compute;
 
     map<string, LayerType> _string_map_layertype;
 	map<string, PoolingType> _string_map_pooltype;
 
-	vector< MPIDistribute<Dtype>* > _send_recv_pixel;
+	vector< MPIDistribute<Dtype>* > _send_recv_pixel;   ///>这是在每个detection或者classification进程之间传递数据
 	vector< MPIDistribute<int>* > _send_recv_label;
 	vector< MPIDistribute<Dtype>* > _send_recv_w;
 	vector< MPIDistribute<Dtype>* > _send_recv_bias;
+	
+	vector< MPIDistribute<Dtype>* > _send_recv_pixel_between_task;  ///>这是从detection传给classification
+	vector< MPIDistribute<int>* > _send_recv_label_between_task;
 
 public:
 

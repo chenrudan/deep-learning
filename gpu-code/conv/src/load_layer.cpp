@@ -293,9 +293,10 @@ LoadVOC<Dtype>::LoadVOC(int minibatch_size){
 
 	this->_is_base_alloc = false;
 
-	_train_file = "../data/VOCdevkit/VOC2012/VOC_train_data.bin";
-	_valid_file = "../data/VOCdevkit/VOC2012/VOC_valid_data.bin";
+	_train_file = "../data/VOC_train_data.bin";
+	_valid_file = "../data/VOC_valid_data.bin";
 
+	ifstream _fin1, _fin2;
 	_fin1.open(_train_file.c_str(), ifstream::binary);
 	_fin2.open(_valid_file.c_str(), ifstream::binary);
 	if(!_fin1.is_open() || !_fin2.is_open()){
@@ -320,60 +321,111 @@ LoadVOC<Dtype>::LoadVOC(int minibatch_size){
 	_minibatch_size = minibatch_size;
 
 	this->_train_pixel = new Dtype[minibatch_size*this->_img_sqrt*this->_img_channel];
-	_label_num = new int[minibatch_size];
+	_object_coord = new int[minibatch_size*4*MAX_OBJECT_NUM];
+	this->_train_label = new int[minibatch_size*MAX_OBJECT_NUM];
+
+	///先把label_num全部读出来
+	_train_label_num = new int[this->_num_train];
+	_valid_label_num = new int[this->_num_valid];
+	for(int i = 0; i < this->_num_train; i++){
+		_fin1.read((char*)&_train_label_num[i], sizeof(int));
+		_fin1.seekg(sizeof(int)*5*_train_label_num[i] \
+				+ sizeof(float)*this->_img_channel*this->_img_sqrt, _fin1.cur);
+	}
+	for(int i = 0; i < this->_num_valid; i++){
+		_fin2.read((char*)&_valid_label_num[i], sizeof(int));
+		_fin2.seekg(sizeof(int)*5*_valid_label_num[i] \
+				+ sizeof(float)*this->_img_channel*this->_img_sqrt, _fin2.cur);
+	}
+	_fin1.close();
+	_fin2.close();
 }
 
 template <typename Dtype>
 LoadVOC<Dtype>::~LoadVOC(){
-	_fin1.close();
-	_fin2.close();
 	delete[] this->_train_pixel;
-	delete[] _label_num;
+	delete[] this->_train_label;
+	delete[] _object_coord;
+	delete[] _train_label_num;
+	delete[] _valid_label_num;
 }
 
 template <typename Dtype>
-void LoadVOC<Dtype>::loadTrainOneBatch(){
-	loadBinary(_fin1, this->_train_pixel, _label_and_coord, _label_num);
+void LoadVOC<Dtype>::loadTrainOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_coord){
+	loadBinary(_train_file, this->_train_pixel, this->_train_label, \
+			_object_coord, \
+			_train_label_num, batch_idx, num_process, pid);
+	mini_pixel = this->_train_pixel;
+	mini_coord = _object_coord;
 }
 
 template <typename Dtype>
-void LoadVOC<Dtype>::loadValidOneBatch(){
-	loadBinary(_fin2, this->_train_pixel, _label_and_coord, _label_num);
+void LoadVOC<Dtype>::loadValidOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_coord){
+	loadBinary(_valid_file, this->_train_pixel, this->_train_label, \
+			_object_coord, \
+			_valid_label_num, batch_idx, num_process, pid);
+	mini_pixel = this->_train_pixel;
+	mini_coord = _object_coord;
 }
 
 
 //之前的数据集传引用是因为要读全部的数据，所以要留下读取的位置，而本次中
 //一次只读取一个minibatch的数据
 template <typename Dtype>
-void LoadVOC<Dtype>::loadBinary(ifstream fin, Dtype* &pixel_ptr, \
-		int* &label_ptr, int* &label_num){
-	_label_and_coord_vec.clear();
+void LoadVOC<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
+		int* &label_ptr, \
+		int* &coord_ptr, int* &label_num, int batch_idx, \
+		int num_process, int pid){
+
+	ifstream fin(filename.c_str(), ifstream::binary);		
+	memset(coord_ptr, 0, sizeof(int)*_minibatch_size*4*MAX_OBJECT_NUM);
+	memset(label_ptr, 0, sizeof(int)*_minibatch_size*MAX_OBJECT_NUM);
+
+	fin.seekg(4*sizeof(int), fin.beg);
+	int offset = batch_idx*num_process*_minibatch_size \
+				 + pid*_minibatch_size; 
+	//本次计算之前所有object个数
+	int num_past_object = 0;
+	int offidx = 0; 
+	while(offidx < offset){
+		num_past_object += label_num[offidx];
+		offidx++;
+	}
+	//每记录一个object对应一个label四个coord
+	fin.seekg(sizeof(int)*offset + sizeof(int)*5*num_past_object \
+			+ offset*this->_img_channel*this->_img_sqrt*sizeof(Dtype), \
+			fin.cur);
 
 	for(int i = 0; i < _minibatch_size; i++){
-		if(fin.eof())
-			fin.seekg(4*sizeof(int), fin.beg);
 
 		int num_object;
 		fin.read((char*)&num_object, sizeof(int));
-		_label_num[i] = num_object;
 		for(int j = 0; j < num_object; j++){
 			int tmp;
 			//首先是label，再是这个label在原图中的坐标
 			fin.read((char*)&tmp, sizeof(int));
-			_label_and_coord_vec.push_back(tmp);
+
+			label_ptr[i*MAX_OBJECT_NUM+j] = tmp;
+			for(int k = 0; k < 4; k++){
+				fin.read((char*)&tmp, sizeof(int));
+				_object_coord[i*4*MAX_OBJECT_NUM+j*4+k] = tmp;	
+			}
 		}
 		//然后是像素数据
 		for(int j = 0; j < this->_img_channel; j++){
 			for(int k = 0; k < this->_img_sqrt; k++){
 				fin.read((char*)&pixel_ptr[k], sizeof(Dtype));
 			}
-			meanOneImg(pixel_ptr, this->_img_sqrt);
+			//meanOneImg(pixel_ptr, this->_img_sqrt);
 			//	stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != _minibatch_size - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
 		}
 	}
-	label_ptr = &_label_and_coord_vec[0];
 	fin.close();
 }
 

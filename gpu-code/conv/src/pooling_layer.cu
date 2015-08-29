@@ -9,18 +9,9 @@ using namespace std;
 template <typename Dtype>
 PoolingLayer<Dtype>::PoolingLayer(PoolParam *lcp){
 	this->_lcp = lcp;
-	_overlap_len = _lcp->getFilterSize() - _lcp->getStride();
 
 	cublasCreate(&this->handle);
 	
-	int pow2Length = _lcp->getOutSize();
-	if(pow2Length & (pow2Length - 1)){
-		while(pow2Length & (pow2Length - 1)){
-			pow2Length &= pow2Length - 1;
-		}
-		pow2Length *= 2;
-	}
-	_thread_num = pow2Length > MAX_THREAD_SIZE ? MAX_THREAD_SIZE : pow2Length;
 }
 
 template <typename Dtype>
@@ -31,7 +22,9 @@ PoolingLayer<Dtype>::~PoolingLayer() {
 
 	if(_lcp->getPoolType() == MAX_POOLING )
 		delete _max_pos;
-	if(_lcp->getOutSize() > MAX_THREAD_SIZE && _overlap_len > 0)	
+	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0))
 		delete unranged_dE_dx;
 	cublasDestroy(this->handle);
 }
@@ -51,7 +44,9 @@ void PoolingLayer<Dtype>::initCuda() {
 				pow(_lcp->getOutSize(), 2) * _lcp->getOutChannel());
 
 	}
-	if(_lcp->getOutSize() > MAX_THREAD_SIZE && _overlap_len > 0){	
+	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0))
 		unranged_dE_dx = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
 				pow(_lcp->getBoxInSize() * _lcp->getBoxNumSize(), 2) \
 				* _lcp->getOutChannel());
@@ -67,7 +62,7 @@ void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 
 	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
-	dim3 threads = dim3(_thread_num, _thread_num); 
+	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth()); 
 
 	/// 每个block计算输出32*32的大小
 	/// 同时并行多个block
@@ -108,7 +103,7 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	/// 计算一个box的pooling对应的输入行列大小
 
 	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
-	dim3 threads = dim3(_thread_num, _thread_num);
+	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth());
 
 	int box_out_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
 					   ? _lcp->getOutSize() : MAX_THREAD_SIZE;
@@ -117,7 +112,9 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 					  ? _lcp->getInSize() : _lcp->getBoxInSize();
 
 	Dtype* p_dE_dx;
-	if(MAX_THREAD_SIZE < _lcp->getOutSize() && _overlap_len > 0){
+	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0)){
 		unranged_dE_dx->zeros();
 		p_dE_dx = unranged_dE_dx->getDevData();
 	}else{
@@ -154,7 +151,9 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		exit(EXIT_FAILURE);
 	}
 
-	if(_lcp->getOutSize() > MAX_THREAD_SIZE && _overlap_len > 0){
+	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0)){
 		dE_dx->zeros();
 //unranged_dE_dx->showValue("unrangeddEdx");
 

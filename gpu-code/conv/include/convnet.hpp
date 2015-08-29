@@ -14,7 +14,6 @@ class ConvNet : public TrainLayer<Dtype>{
 
 private:
 
-
 	Matrix<Dtype>* unfold_dE_db_tmp;
 	Matrix<Dtype>* dE_db_tmp;
 	Matrix<Dtype>* padded_x;
@@ -22,12 +21,11 @@ private:
 
 	Matrix<Dtype>* unranged_dE_dx;
 	Matrix<Dtype>* unranged_dE_dw;
-	int _overlap_len;
 	int _filt_pixs;
 	int _conv_pixs;
 	int _padded_in_pixs;
 	int _in_pixs;
-	int _thread_num;
+	int _box_in_pixs;
 	int _num_box;
 	
 	ConvParam* _cp;

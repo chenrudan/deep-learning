@@ -17,7 +17,7 @@ public:
 	~PredictObjectLayer();
 
 	void initCuda();
-	double computeError(Matrix<Dtype> *x, Matrix<int>* coord, int num_object);
+	double computeError(Matrix<Dtype> *x, Matrix<int>* coord);
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
 private:
@@ -25,7 +25,6 @@ private:
 	Dtype *_h_x;
 	Dtype *_h_dE_dx;
 	int *_h_coord;
-	int _num_object;
 };
 
 #include "../src/predict_object_layer.cu"

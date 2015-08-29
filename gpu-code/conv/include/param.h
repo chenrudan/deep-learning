@@ -36,7 +36,8 @@ typedef enum LAYER_TYPE {
     RECTIFIED = 3,
     INNERPRODUCT = 4,
     SOFTMAX = 5,
-    DROPOUT = 6
+    DROPOUT = 6,
+	PREDICTOBJECT = 7
 } LayerType;
 
 /// \brief 实现了每一层的参数
@@ -52,9 +53,10 @@ public:
                 _name(name), _layer_type(layer_type), \
 				_param_train_type(NOTNEED){}
 
-	inline virtual int getNumOut() {return 0;}
-	inline virtual int getOutChannel() {return 0;}
-	inline virtual int getOutSize() {return 0;}	
+	virtual int getNumOut() {return 0;}
+	virtual int getOutChannel() {return 0;}
+	virtual int getOutWidth() {return 0;}	
+	virtual int getOutHeight {return 0;}	
 
     inline int getMinibatchSize() {
         return _minibatch_size;
@@ -145,29 +147,66 @@ public:
 
     virtual ~LocalConnectParam() { }
 
-    LocalConnectParam(LayerType layer_type, string name, const int in_size, \
-		const int pad, const int stride, const int in_channel, \
-		const int filter_size, const int out_channel) \
-		: _in_size(in_size), _stride(stride), _in_channel(in_channel), \
-		_pad(pad), _filter_size(filter_size), _out_channel(out_channel){
+    LocalConnectParam(LayerType layer_type, string name, const int in_height, \
+		const int in_width, const int pad_height, const int pad_width, \
+		const int stride_height, const int stride_width, \
+		const int in_channel, \
+		const int filter_height, const int filter_width, const int out_channel) \
+		: _in_height(in_height), _in_width(in_width), _stride_height(stride_height), \
+		_stride_width(stride_width), _in_channel(in_channel), \
+		_pad_height(pad_height), _pad_width(pad_width), \
+		_filter_height(filter_height), _filter_width(filter_width), \
+		_out_channel(out_channel){
 
             this->_layer_type = layer_type;
 			this->_name = name;
 			this->type = PARAM_CONNECT_TYPE_LOCAL;
-			_padded_in_size = in_size + 2 * pad;
-			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
-			_box_num_size = ceil((this->getOutSize() - MAX_THREAD_SIZE) \
+			_padded_in_height = in_height + 2 * pad_height;
+			_padded_in_width = in_width + 2 * pad_width;
+			_out_height = ceil(((_padded_in_height - filter_height)*1.0f) / stride_height) + 1;
+			_out_width = ceil(((_padded_in_width - filter_width)*1.0f) / stride_width) + 1;
+			_box_num_height = ceil((this->getOutHeight() - MAX_THREAD_SIZE) \
 							* 1.0f / MAX_THREAD_SIZE) + 1;
-			_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
+			_box_num_width = ceil((this->getOutWidth() - MAX_THREAD_SIZE) \
+							* 1.0f / MAX_THREAD_SIZE) + 1;
+			_box_in_height = (MAX_THREAD_SIZE - 1) * stride_height + filter_height;
+			_box_in_width = (MAX_THREAD_SIZE - 1) * stride_width + filter_width;
+			_box_out_height = MAX_THREAD_SIZE > _out_height \
+					? _out_height : MAX_THREAD_SIZE;
+			_box_out_width = MAX_THREAD_SIZE > _out_width \
+					? _out_width : MAX_THREAD_SIZE;
+			
+			int pow2Length = _cp->getOutHeight(); 
+			if(pow2Length & (pow2Length - 1)){
+				while(pow2Length & (pow2Length - 1)){
+					pow2Length &= pow2Length - 1;
+				}
+				pow2Length *= 2;
+			}
+			_thread_height = pow2Length > MAX_THREAD_SIZE \
+							 ? MAX_THREAD_SIZE : pow2Length;
+
+			pow2Length = _cp->getOutWidth(); 
+			if(pow2Length & (pow2Length - 1)){
+				while(pow2Length & (pow2Length - 1)){
+					pow2Length &= pow2Length - 1;
+				}
+				pow2Length *= 2;
+			}
+			_thread_width = pow2Length > MAX_THREAD_SIZE \
+							? MAX_THREAD_SIZE : pow2Length;
+
 		}
 
     LocalConnectParam(LayerType layer_type, string name, \
-		const int pad, const int stride, \
-		const int filter_size, const int filter_channel, \
+		const int pad_height, const int pad_width, \
+		const int stride_height, const int stride_width, \
+		const int filter_height, const int filter_width, const int filter_channel, \
 		LocalConnectParam* lc_par) \
-		: _in_size(lc_par->getOutSize()), _stride(stride), \
-		_in_channel(lc_par->getOutChannel()), _pad(pad), \
-		_filter_size(filter_size) {
+		: _in_height(lc_par->getOutHeight()), _in_widht(lc_par->getOutWidth()), \
+		_stride_height(stride_height), _stride_width(stride_width), \
+		_in_channel(lc_par->getOutChannel()), _pad_height(pad_height), \
+		_filter_height(filter_height), _filter_width(filter_width) {
 
             this->_layer_type = layer_type;
 			this->_name = name;
@@ -177,67 +216,162 @@ public:
 				_out_channel = _in_channel;
 
 			this->type = PARAM_CONNECT_TYPE_LOCAL;
-			_padded_in_size = _in_size + 2 * pad;
-			_out_size = ceil(((_padded_in_size - filter_size)*1.0f) / stride) + 1;
-			_box_num_size = ceil((_out_size - MAX_THREAD_SIZE) \
+
+			_padded_in_height = in_height + 2 * pad_height;
+			_padded_in_width = in_width + 2 * pad_height;
+			_out_height = ceil(((_padded_in_height - filter_height)*1.0f) / stride_height) + 1;
+			_out_width = ceil(((_padded_in_width - filter_width)*1.0f) / stride_width) + 1;
+			_box_num_height = ceil((this->getOutHeight() - MAX_THREAD_SIZE) \
 							* 1.0f / MAX_THREAD_SIZE) + 1;
-			_box_in_size = (MAX_THREAD_SIZE - 1) * stride + filter_size;
+			_box_num_width = ceil((this->getOutWidth() - MAX_THREAD_SIZE) \
+							* 1.0f / MAX_THREAD_SIZE) + 1;
+	
+			_box_out_height = MAX_THREAD_SIZE > _out_height \
+					? _out_height : MAX_THREAD_SIZE;
+			_box_out_width = MAX_THREAD_SIZE > _out_width \
+					? _out_width : MAX_THREAD_SIZE;
+
+			_box_in_height = (MAX_THREAD_SIZE - 1) * stride_height + filter_height;
+			_box_in_width = (MAX_THREAD_SIZE - 1) * stride_width + filter_width;
+			
+			int pow2Length = _cp->getOutHeight(); 
+			if(pow2Length & (pow2Length - 1)){
+				while(pow2Length & (pow2Length - 1)){
+					pow2Length &= pow2Length - 1;
+				}
+				pow2Length *= 2;
+			}
+			_thread_height = pow2Length > MAX_THREAD_SIZE \
+							 ? MAX_THREAD_SIZE : pow2Length;
+
+			pow2Length = _cp->getOutWidth(); 
+			if(pow2Length & (pow2Length - 1)){
+				while(pow2Length & (pow2Length - 1)){
+					pow2Length &= pow2Length - 1;
+				}
+				pow2Length *= 2;
+			}
+			_thread_width = pow2Length > MAX_THREAD_SIZE \
+							? MAX_THREAD_SIZE : pow2Length;
+
 
 		}
 
-    inline int getInSize() {
-        return _in_size;
+    inline int getInHeight() {
+        return _in_height;
+    }
+    inline int getInWidth() {
+        return _in_width;
     }
     inline int getInChannel() {
         return _in_channel;
     }
-    inline int getOutSize() {
-        return _out_size;
+    inline int getOutHeight() {
+        return _out_height;
     }
-    inline int getFilterSize() {
-        return _filter_size;
+    inline int getOutWidth() {
+        return _out_width;
+    }
+    inline int getFilterHeight() {
+        return _filter_height;
+    }
+    inline int getFilterWidth() {
+        return _filter_width;
     }
     inline int getOutChannel() {
         return _out_channel;
     }
-    inline int getPaddedInSize() {
-        return _padded_in_size;
+    inline int getPaddedInHeight() {
+        return _padded_in_height;
+    }
+    inline int getPaddedInWidth() {
+        return _padded_in_width;
     }
 
-    inline int getStride(){
-        return _stride;
+    inline int getStrideHeight(){
+        return _stride_height;
     }
-
-    inline int getPad(){
-        return _pad;
+    inline int getStrideWidth(){
+        return _stride_width;
     }
+    inline int getPadHeight(){
+        return _pad_height;
+    }
+    inline int getPadWidth(){
+        return _pad_width;
+    }
+	int getOverlapHeight(){
+		return _overlap_height;
+	}
+	int getOverlapWidth(){
+		return _overlap_width;
+	}
+	int getThreadHeight(){
+		return _thread_height;
+	}
+	int getThreadWidth(){
+		return _thread_width;
+	}
     void printParam(){
         Param::printParam();
-        cout << "\nin_size: " << _in_size \
+        cout << "\nin_height: " << _in_height \
+			<< "\nin_width: " << in_width \
 				<< "\nin_channel: " << _in_channel \
-                << "\nfilter_size: " << _filter_size \
+                << "\nfilter_height: " << _filter_height \
+                << "\nfilter_width: " << _filter_width \
 				<< "\nfilter_channel: " << _out_channel \
-				<< "\npad: " << _pad \
-				<< "\nstride: " << _stride;
+				<< "\npad_height: " << _pad_height \
+				<< "\npad_width: " << _pad_width \
+				<< "\nstride_height: " << _stride_height \
+				<< "\nstride_width: " << _stride_width;
     }
-	inline int getBoxNumSize(){
-		return _box_num_size;
+	inline int getBoxNumHeight(){
+		return _box_num_height;
 	}
-	inline int getBoxInSize(){
-		return _box_in_size;
+	inline int getBoxNumWidth(){
+		return _box_num_width;
+	}
+	inline int getBoxInHeight(){
+		return _box_in_height;
+	}
+	inline int getBoxInHeight(){
+		return _box_in_height;
+	}
+	inline int getBoxInWidth(){
+		return _box_in_width;
+	}
+	inline int getBoxOutHeight(){
+		return _box_out_height;
+	}
+	inline int getBoxOutWidth(){
+		return _box_out_width;
 	}
 
 private:
-    int _in_size;
-    int _pad;
-    int _padded_in_size;
-    int _stride;
+    int _in_height;
+	int _in_width;
+    int _pad_height;
+    int _pad_width;
+    int _padded_in_height;
+    int _padded_in_width;
+    int _stride_height;
+    int _stride_width;
     int _in_channel;
-    int _filter_size; ///>在卷积中是filter，在pooling中是pool
-    int _out_size;
+    int _filter_height; ///>在卷积中是filter，在pooling中是pool
+    int _filter_width; ///>在卷积中是filter，在pooling中是pool
+    int _out_height;
+    int _out_width;
     int _out_channel;
-	int _box_in_size; ///>用来计算一个box输出的卷积输入
-	int _box_num_size;  ///>总的box个数的行/列 
+	int _box_in_height; ///>用来计算一个box输出的
+	int _box_in_width; ///>用来计算一个box输出的卷积输入
+	int _box_out_height; 
+	int _box_out_width; 
+	int _box_num_height;  ///>总的box个数的行 
+	int _box_num_width;  ///>总的box个数的列 
+	int _thread_height;
+	int _thread_width;
+	int _overlap_height;
+	int _overlap_width;
 };
 
 /// \brief 全连接层的参数，展开图片为一个矢量保存数据
@@ -264,7 +398,7 @@ public:
 			///由传递进来的层类型决定计算方式
 			ConnectType ct = par->getConnectType();
 			if(ct == PARAM_CONNECT_TYPE_LOCAL)
-				_num_in = pow(par->getOutSize(), 2) * par->getOutChannel(); 
+				_num_in = par->getOutHeight()*par->getOutWidth()*par->getOutChannel(); 
 			else if(ct == PARAM_CONNECT_TYPE_FULL)
 				_num_in = par->getNumOut(); 
 	
@@ -303,21 +437,28 @@ public:
             const float w_lr, \
 			const float b_lr, const float momentum, \
 			const float weight_decay, \
-            const int in_size, \
-            const int pad, const int stride, const int in_channel, \
-            const int filter_size, const int filter_channel) \
+            const int in_height, const int width, \
+            const int pad_height, const int pad_width, \
+			const int stride_height, \
+			const int stride_width, const int in_channel, \
+            const int filter_height, const int filter_width, \
+			const int filter_channel) \
             : TrainParam(w_lr, b_lr, momentum, weight_decay), \
-              LocalConnectParam(layer_type, name, in_size, \
-		            pad, stride, in_channel, filter_size, filter_channel) {}
+              LocalConnectParam(layer_type, name, in_height, in_width, \
+		            pad_height, pad_width, stride_height, stride_width, \
+					in_channel, filter_height, \
+					filter_width, filter_channel) {}
 
     ConvParam(const LayerType layer_type, const string name, const float w_lr, \
             const float b_lr, const float momentum, \
-			const float weight_decay, const int pad, \
-            const int stride, const int filter_size, \
+			const float weight_decay, const int pad_height, const int pad_width, \
+            const int stride_height, const int stride_width, const int filter_height, \
+			const int filter_width, \
             const int filter_channel, LocalConnectParam *lc_par) \
             : TrainParam(w_lr, b_lr, momentum, weight_decay), \
-              LocalConnectParam(layer_type, name, pad, stride, \
-		            filter_size, filter_channel, lc_par)  {}
+              LocalConnectParam(layer_type, name, pad_height, pad_width, stride_height, \
+					  stride_width, \
+		            filter_height, filter_width, filter_channel, lc_par)  {}
     void printParam(){
         LocalConnectParam::printParam();
         TrainParam::printParam();
@@ -330,20 +471,29 @@ public:
 		~PoolParam() {}
 
     	PoolParam(const LayerType layer_type, const string name, \
-            const int in_size, const int pad, const int stride, \
-			const int in_channel, const int filter_size, \
+            const int in_height, const int width, \
+			const int pad_height, const int pad_width, \
+			const int stride_height, const int stride_width\
+			const int in_channel, const int filter_height, \
+			const int filter_width, \
 			const int filter_channel, PoolingType p_type) 
-            :  LocalConnectParam(layer_type, name, in_size, \
-					pad, stride, in_channel, filter_size, filter_channel) , \
+            :  LocalConnectParam(layer_type, name, in_height, in_width, \
+					pad_height, pad_width, stride_height, stride_width, \
+					in_channel, filter_height, \
+					filter_width, filter_channel) , \
 			_p_type(p_type) {}
 
     	PoolParam(const LayerType layer_type, const string name, \
-            const int pad, const int stride, \
-			const int filter_size, const int filter_channel, \
+            const int pad_height, const int pad_width, \
+			const int stride_height, const int stride_width, \
+			const int filter_height, const int filter_width, \
+			const int filter_channel, \
 			LocalConnectParam* lc_par, PoolingType p_type) 
-            :  LocalConnectParam(layer_type, name, pad, stride, filter_size, \
+            :  LocalConnectParam(layer_type, name, pad_height, \
+					pad_width, stride_height, \
+					stride_width, \
+					filter_height, filter_width, \
 					filter_channel, lc_par), _p_type(p_type){}
-
 
 		inline PoolingType getPoolType(){
 			return _p_type;

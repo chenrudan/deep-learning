@@ -11,6 +11,8 @@
 #include<vector>
 #include<stdlib.h>
 
+#define MAX_OBJECT_NUM 24
+
 using namespace std;
 
 /// \brief 数据的基本保存单元，一张图片会产生这样的一个对象，但是数据不是它们读取的，它们只保存指针
@@ -58,6 +60,10 @@ public:
 	void meanOneImg(Dtype* pixel_ptr, int process_len);
 	void stdOneImg(Dtype* pixel_ptr, int process_len);
 
+	virtual void loadTrainOneBatch(int batch_idx, int num_process, int pid, \
+				Dtype* &mini_pixel, int* &mini_label) {}
+	virtual void loadValidOneBatch(int batch_idx, int num_process, int pid, \
+				 Dtype* &mini_pixel, int* &mini_label) {}
 
 	int getNumTrain(){
 		return _num_train;
@@ -167,29 +173,35 @@ public:
 	~LoadVOC();
 
 	using LoadLayer<Dtype>::loadBinary;
-	void loadBinary(ifstream fin, Dtype* &pixel_ptr, int* &label_ptr, \
-				int* &label_num);
+	void loadBinary(string filenmae, Dtype* &pixel_ptr, \
+		int* &label_ptr, \
+		int* &coord_ptr, int* &label_num, int batch_idx, \
+		int num_process, int pid);
 	
-	void loadTrainOneBatch();
-	void loadValidOneBatch();
+	void loadTrainOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_coord);
+	void loadValidOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_coord);
 
-	int* getTrainLabelAndCoord(){
-		return _label_and_coord;
+	int* getObjectCoord(){
+		return _object_coord;
 	}
-	int* getLabelNum(){
-		return _label_num;
+	int* getTrainLabelNum(){
+		return _train_label_num;
+	}
+	int* getValidLabelNum(){
+		return _valid_label_num;
 	}
 
 private:
 	int _minibatch_size;
 	string _train_file;
 	string _valid_file;
-	ifstream _fin1;
-	ifstream _fin2;
-	int *_label_and_coord; ///>先用vector保存，然后再转化为int数组
-								///这个数据里面保存的是label和坐标
-	int *_label_num; ///>这个数组保存的minibatch大小数组每一张图中有几个物体label
-	vector<int> _label_and_coord_vec;
+	int *_object_coord; 
+	int *_train_label_num; ///>这个数组保存的minibatch大小数组每一张图中有几个物体label
+	int *_valid_label_num;
 
 };
 

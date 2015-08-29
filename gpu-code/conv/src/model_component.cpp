@@ -14,6 +14,7 @@ ModelComponent<Dtype>::ModelComponent() {
 	_string_map_layertype["INNERPRODUCT"] = INNERPRODUCT;
 	_string_map_layertype["SOFTMAX"] = SOFTMAX;
 	_string_map_layertype["DROPOUT"] = DROPOUT;
+	_string_map_layertype["PREDICTOBJECT"] = PREDICTOBJECT;
 
 	_string_map_pooltype["MAX_POOLING"] = MAX_POOLING;
 	_string_map_pooltype["AVG_POOLING"] = AVG_POOLING;

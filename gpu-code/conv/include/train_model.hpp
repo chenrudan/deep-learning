@@ -17,48 +17,47 @@ using namespace std;
 ///
 template<typename Dtype>
 class TrainModel {
-private:
+protected:
     ModelComponent<Dtype> *_model_component;
-    LoadCifar10<Dtype> *_voc;
-    float _likelihood;
-	int _error;
-    int _cur_batch_idx; 
-    map<string, int> transmit_data_id;
+    LoadLayer<Dtype> *_load_layer;
+    float _likelihood;    ///>cost function的输出值
+	int _error;    ///>分类的error个数
 	//early stopping
-	float _min_likelihood;
-	vector<float> _strip_likelihood;
+	float _min_likelihood;       ///>early stopping所控制得到的最小cost
+	vector<float> _strip_likelihood;  ///>用来控制early stopping
 	int _min_epoch;
 	int _min_error;
 	int _num_strip;
-	bool _is_stop;
+	bool _is_stop;   ///>训练是否由于early stopping而中断
 
 public:
-    TrainModel(const int pid);
-    ~TrainModel();
+    TrainModel(const int master_pid, const int pid);
+    virtual ~TrainModel();
 
-    void initModel(int num_process, string json_file);
-    void parseImgBinary(int num_process);
+    virtual void parseImgBinary(int num_process);
     void parseNetJson(string json_file);
-    void createPixelAndLabel();
-    void createLabelNum();
 
     void createLayerForWorker();
     void createYDEDYForWorker();
     void createWBiasForManager();
     void createWBiasForWorker();
-	void createMPIDist();
+	
+	virtual void createMPIDist();
 
     void initWeightAndBcast();
     void forwardPropagate();
     void backwardPropagate();
     void computeAndUpdatePars();
+	void sendAndRecvWBiasForWorker(const int epoch_idx, \
+			const int batch_idx, int flag);
 
-    void train();
-    void valid();
+	virtual void forwardLastLayer() {}
+	virtual void backwardLastLayer() {}
+
+    virtual void train() {}
 
 	//返回是true就停下，返回是false就继续执行
 	void earlyStopping(int epoch_idx);
-	void sendAndRecvForManager();
 
 };
 
