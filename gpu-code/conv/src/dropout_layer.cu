@@ -27,7 +27,8 @@ void DropoutLayer<Dtype>::initCuda() {
 	ConnectType ct = this->_p->getConnectType();
 	int col;
 	if(ct == PARAM_CONNECT_TYPE_LOCAL)
-		col = pow(this->_p->getOutSize(), 2) * this->_p->getOutChannel(); 
+		col = _p->getOutHeight()*_p->getOutWidth() \
+			  * this->_p->getOutChannel(); 
 	else if(ct == PARAM_CONNECT_TYPE_FULL)
 		col = this->_p->getNumOut();
 		

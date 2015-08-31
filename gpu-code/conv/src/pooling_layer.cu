@@ -9,6 +9,7 @@ using namespace std;
 template <typename Dtype>
 PoolingLayer<Dtype>::PoolingLayer(PoolParam *lcp){
 	this->_lcp = lcp;
+	_num_box = _lcp->getBoxNumHeight()*_lcp->getBoxNumWidth();
 
 	cublasCreate(&this->handle);
 	
@@ -22,9 +23,9 @@ PoolingLayer<Dtype>::~PoolingLayer() {
 
 	if(_lcp->getPoolType() == MAX_POOLING )
 		delete _max_pos;
-	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
-				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
-			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0))
+	if((_lcp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _lcp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_lcp->getOverlapHeight() > 0 || _lcp->getOverlapWidth() > 0))
 		delete unranged_dE_dx;
 	cublasDestroy(this->handle);
 }
@@ -34,21 +35,22 @@ void PoolingLayer<Dtype>::initCuda() {
 
 
 	this->_y               = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
-			pow(_lcp->getOutSize(), 2) * _lcp->getOutChannel());
+			_lcp->getOutHeight()*_lcp->getOutWidth()* _lcp->getOutChannel());
 
 	this->_dE_dy           = new Matrix<Dtype>(this->_y);
 
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
 		_max_pos           = new Matrix<int>(_lcp->getMinibatchSize(), \
-				pow(_lcp->getOutSize(), 2) * _lcp->getOutChannel());
+			_lcp->getOutHeight()*_lcp->getOutWidth()* _lcp->getOutChannel());
 
 	}
-	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
-				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
-			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0))
+	if((_lcp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _lcp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_lcp->getOverlapHeight() > 0 || _lcp->getOverlapWidth() > 0)){
 		unranged_dE_dx = new Matrix<Dtype>(_lcp->getMinibatchSize(), \
-				pow(_lcp->getBoxInSize() * _lcp->getBoxNumSize(), 2) \
+				_lcp->getBoxInHeight()*_lcp->getBoxInWidth() \
+				* _lcp->getBoxNumHeight()*_lcp->getBoxNumWidth() \
 				* _lcp->getOutChannel());
 	}
 
@@ -58,31 +60,35 @@ template <typename Dtype>
 void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 	this->_y->zeros();	
-	int num_box = pow(_lcp->getBoxNumSize(), 2);
 
-
-	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
-	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth()); 
+	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * _num_box);
+	dim3 threads = dim3(_lcp->getThreadHeight(), _lcp->getThreadWidth()); 
 
 	/// 每个block计算输出32*32的大小
 	/// 同时并行多个block
-//	x->reValue(32);
-	int box_out_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
-					   ? _lcp->getOutSize() : MAX_THREAD_SIZE;
 	if(_lcp->getPoolType() == MAX_POOLING ){
-		max_pooling<<<blocks, threads>>>(x->getDevData(), this->_y->getDevData(), \
-				_max_pos->getDevData(), _lcp->getInSize(), \
-				_lcp->getInChannel(), _lcp->getOutSize(), \
-				_lcp->getFilterSize(), _lcp->getStride(), \
-				box_out_size, _lcp->getBoxNumSize());  
-		//	this->_y->showValue("y");
+//	x->reValue(321);
+		max_pooling<<<blocks, threads>>>(x->getDevData(), \
+				this->_y->getDevData(), _max_pos->getDevData(), \
+				_lcp->getInHeight(), _lcp->getInWidth(), \
+				_lcp->getInChannel(), \
+				_lcp->getOutHeight(), _lcp->getOutWidth(), \
+				_lcp->getFilterHeight(), _lcp->getFilterWidth(), \
+				_lcp->getStrideHeight(), _lcp->getStrideWidth(), \
+				_lcp->getBoxOutHeight(), _lcp->getBoxOutWidth(), \
+				_lcp->getBoxNumHeight(), _lcp->getBoxNumWidth());  
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
-		avg_pooling<<<blocks, threads>>>(x->getDevData(), this->_y->getDevData(), \
-				_lcp->getInSize(), \
-				_lcp->getInChannel(), _lcp->getOutSize(), \
-				_lcp->getFilterSize(), _lcp->getStride(), \
-				box_out_size, _lcp->getBoxNumSize());  
+//	x->reValue(160);
+		avg_pooling<<<blocks, threads>>>(x->getDevData(), \
+				this->_y->getDevData(), \
+				_lcp->getInHeight(), _lcp->getInWidth(), \
+				_lcp->getInChannel(), \
+				_lcp->getOutHeight(), _lcp->getOutWidth(), \
+				_lcp->getFilterHeight(), _lcp->getFilterWidth(), \
+				_lcp->getStrideHeight(), _lcp->getStrideWidth(), \
+				_lcp->getBoxOutHeight(), _lcp->getBoxOutWidth(), \
+				_lcp->getBoxNumHeight(), _lcp->getBoxNumWidth());  
 	}else{
 		cout << "Pooling type is invalid !\n";	
 		exit(EXIT_FAILURE);
@@ -98,23 +104,20 @@ void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 template <typename Dtype>
 void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
-	int num_box = pow(_lcp->getBoxNumSize(), 2);
-
 	/// 计算一个box的pooling对应的输入行列大小
 
-	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * num_box);
-	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth());
+	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * _num_box);
+	dim3 threads = dim3(_lcp->getThreadHeight(), _lcp->getThreadWidth());
 
-	int box_out_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
-					   ? _lcp->getOutSize() : MAX_THREAD_SIZE;
-
-	int box_in_size = MAX_THREAD_SIZE > _lcp->getOutSize() \
-					  ? _lcp->getInSize() : _lcp->getBoxInSize();
+	int box_in_height = MAX_THREAD_SIZE > _lcp->getOutHeight() \
+				? _lcp->getInHeight() : _lcp->getBoxInHeight();
+	int box_in_width = MAX_THREAD_SIZE > _lcp->getOutWidth() \
+				? _lcp->getInWidth() : _lcp->getBoxInWidth();
 
 	Dtype* p_dE_dx;
-	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
-				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
-			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0)){
+	if((_lcp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _lcp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_lcp->getOverlapHeight() > 0 || _lcp->getOverlapWidth() > 0)){
 		unranged_dE_dx->zeros();
 		p_dE_dx = unranged_dE_dx->getDevData();
 	}else{
@@ -123,26 +126,36 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	}
 
 	if(_lcp->getPoolType() == MAX_POOLING ){
-	//		this->_dE_dy->reValue(16);
-	//		_max_pos->reValue(1.0f);
+//			this->_dE_dy->reValue(160);
+//			_max_pos->reValue(1.0f);
 		compute_dE_dy_max<<<blocks, threads, \
-			sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
-					p_dE_dx, _max_pos->getDevData(), box_in_size, \
-					box_out_size, _lcp->getInChannel(), _lcp->getOutSize(), \
-					_lcp->getFilterSize(), _lcp->getStride(), _lcp->getBoxNumSize());
+			sizeof(Dtype)*box_in_height*box_in_width>>>( \
+					this->_dE_dy->getDevData(), \
+					p_dE_dx, _max_pos->getDevData(), \
+					box_in_height, box_in_width, \
+					_lcp->getBoxOutHeight(), _lcp->getBoxOutWidth(), \
+					_lcp->getInChannel(), \
+					_lcp->getOutHeight(), _lcp->getOutWidth(), \
+					_lcp->getFilterHeight(), _lcp->getFilterWidth(), \
+					_lcp->getStrideHeight(), _lcp->getStrideWidth(), \
+					_lcp->getBoxNumHeight(), _lcp->getBoxNumWidth());  
 		cudaThreadSynchronize();
 		cudaCheckError();
 
 		//	dE_dx->showValue("dEdx");
 
 	}else if(_lcp->getPoolType() == AVG_POOLING){
-//this->_dE_dy->reValue(4);
+//this->_dE_dy->reValue(80);
 		compute_dE_dy_avg<<<blocks, threads, \
-			sizeof(Dtype)*pow(box_in_size, 2)>>>(this->_dE_dy->getDevData(), \
-					p_dE_dx, box_in_size, box_out_size, \
+			sizeof(Dtype)*box_in_height*box_in_width>>>( \
+					this->_dE_dy->getDevData(), p_dE_dx, \
+					box_in_height, box_in_width, \
+					_lcp->getBoxOutHeight(), _lcp->getBoxOutWidth(), \
 					_lcp->getInChannel(), \
-					_lcp->getOutSize(), _lcp->getFilterSize(), \
-					_lcp->getStride(), _lcp->getBoxNumSize());
+					_lcp->getOutHeight(), _lcp->getOutWidth(), \
+					_lcp->getFilterHeight(), _lcp->getFilterWidth(), \
+					_lcp->getStrideHeight(), _lcp->getStrideWidth(), \
+					_lcp->getBoxNumHeight(), _lcp->getBoxNumWidth());  
 		cudaThreadSynchronize();
 		cudaCheckError();
 
@@ -151,16 +164,19 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		exit(EXIT_FAILURE);
 	}
 
-	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
-				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
-			&& (_cp->getOverlapHeight() > 0 || _cp->getOverlapWidth() > 0)){
+	if((_lcp->getOutHeight() > MAX_THREAD_SIZE \
+				|| _lcp->getOutWidth() > MAX_THREAD_SIZE) \
+			&& (_lcp->getOverlapHeight() > 0 || _lcp->getOverlapWidth() > 0)){
 		dE_dx->zeros();
 //unranged_dE_dx->showValue("unrangeddEdx");
 
 		compactOverlap<<<_lcp->getMinibatchSize(), _lcp->getInChannel()>>>( \
-				unranged_dE_dx->getDevData(), dE_dx->getDevData(), _lcp->getInSize(), \
-				_lcp->getInChannel(),  _overlap_len, \
-				_lcp->getBoxInSize(), _lcp->getBoxNumSize());
+				unranged_dE_dx->getDevData(), dE_dx->getDevData(), \
+				_lcp->getInHeight(), _lcp->getInWidth(), \
+				_lcp->getInChannel(),  _lcp->getOverlapHeight(), \
+				_lcp->getOverlapWidth(), \
+				box_in_height, box_in_width, \
+				_lcp->getBoxNumHeight(), _lcp->getBoxNumWidth());  
 		cudaThreadSynchronize();
 		cudaCheckError();
 	}

@@ -430,6 +430,109 @@ void LoadVOC<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 }
 
 
+template <typename Dtype>
+LoadDIC<Dtype>::LoadDIC(int minibatch_size){
+
+	this->_is_base_alloc = false;
+
+	_train_file = "../data/DIC_train_data.bin";
+	_valid_file = "../data/DIC_valid_data.bin";
+
+	ifstream _fin1, _fin2;
+	_fin1.open(_train_file.c_str(), ifstream::binary);
+	_fin2.open(_valid_file.c_str(), ifstream::binary);
+
+	if(!_fin1.is_open() || !_fin2.is_open()){
+		cout << "open original data file failed\n";
+		exit(EXIT_FAILURE);
+	}
+
+	_fin1.read((char*)&this->_num_train, sizeof(int));
+	_fin2.read((char*)&this->_num_valid, sizeof(int));
+
+	_fin1.read((char*)&this->_img_channel, sizeof(int));
+	_fin1.read((char*)&this->_img_width, sizeof(int));
+	_fin1.read((char*)&this->_img_height, sizeof(int));
+
+	//将valid集偏移到数据的地方统一方法处理
+	_fin2.seekg(3*sizeof(int), _fin2.cur);
+
+	this->_img_sqrt = this->_img_width * this->_img_height;
+
+	cout << this->_num_train << ":" << this->_num_valid \
+		<< ":" << this->_img_channel \
+		<< ":" << this->_img_height << ":" << this->_img_width << endl; 
+	_minibatch_size = minibatch_size;
+
+	this->_train_pixel = new Dtype[minibatch_size*this->_img_sqrt*this->_img_channel];
+	this->_train_label = new int[minibatch_size];
+
+	_fin1.close();
+	_fin2.close();
+}
+
+template <typename Dtype>
+LoadDIC<Dtype>::~LoadDIC(){
+	delete[] this->_train_pixel;
+	delete[] this->_train_label;
+}
+
+template <typename Dtype>
+void LoadDIC<Dtype>::loadTrainOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label){
+	loadBinary(_train_file, this->_train_pixel, this->_train_label, \
+			batch_idx, num_process, pid);
+	mini_pixel = this->_train_pixel;
+	mini_label = this->_train_label;
+}
+
+template <typename Dtype>
+void LoadDIC<Dtype>::loadValidOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label){
+	loadBinary(_valid_file, this->_train_pixel, this->_train_label, \
+			batch_idx, num_process, pid);
+	mini_pixel = this->_train_pixel;
+	mini_label = this->_train_label;
+}
+
+
+//之前的数据集传引用是因为要读全部的数据，所以要留下读取的位置，而本次中
+//一次只读取一个minibatch的数据
+template <typename Dtype>
+void LoadDIC<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
+		int* label_ptr, int batch_idx, \
+		int num_process, int pid){
+
+	ifstream fin(filename.c_str(), ifstream::binary);		
+
+	fin.seekg(4*sizeof(int), fin.beg);
+	int offset = batch_idx*num_process*_minibatch_size \
+				 + pid*_minibatch_size; 
+	
+	fin.seekg(sizeof(int)*offset \
+			+ offset*this->_img_channel*this->_img_sqrt*sizeof(Dtype), \
+			fin.cur);
+
+	for(int i = 0; i < _minibatch_size; i++){
+
+		fin.read((char*)&(label_ptr[i]), sizeof(int));
+
+		//然后是像素数据
+		for(int j = 0; j < this->_img_channel; j++){
+			for(int k = 0; k < this->_img_sqrt; k++){
+				fin.read((char*)&pixel_ptr[k], sizeof(Dtype));
+			}
+			if(i != _minibatch_size - 1 || j != this->_img_channel - 1)
+				pixel_ptr += this->_img_sqrt;
+		}
+	}
+	fin.close();
+}
+
+
+
 
 
 

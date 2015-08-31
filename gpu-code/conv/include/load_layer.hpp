@@ -105,6 +105,8 @@ protected:
 	int _num_valid;
 	int _num_test;
 	int _img_size;
+	int _img_height;
+	int _img_width;
 	int _img_channel;
 	int _img_sqrt;
 
@@ -204,6 +206,34 @@ private:
 	int *_valid_label_num;
 
 };
+
+template <typename Dtype>
+class LoadDIC : public LoadLayer<Dtype> {
+
+public: 
+	LoadDIC(int minibatch);
+
+	~LoadDIC();
+
+	using LoadLayer<Dtype>::loadBinary;
+	void loadBinary(string filenmae, Dtype* pixel_ptr, \
+		int* label_ptr, int batch_idx, \
+		int num_process, int pid);
+	
+	void loadTrainOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label);
+	void loadValidOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label);
+
+private:
+	int _minibatch_size;
+	string _train_file;
+	string _valid_file;
+
+};
+
 
 
 #include "../src/load_layer.cpp"

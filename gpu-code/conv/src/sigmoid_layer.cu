@@ -25,7 +25,8 @@ void SigmoidLayer<Dtype>::initCuda() {
 	ConnectType ct = this->_fcp->getConnectType();
 	int col;
 	if(ct == PARAM_CONNECT_TYPE_LOCAL)
-		col = pow(this->_fcp->getOutSize(), 2) * this->_fcp->getOutChannel(); 
+		col = _fcp->getOutHeight()*_fcp->getOutWidth() \
+			   	* this->_fcp->getOutChannel(); 
 	else if(ct == PARAM_CONNECT_TYPE_FULL)
 		col = this->_fcp->getNumOut(); 
 	this->_y             = new Matrix<Dtype>(_fcp->getMinibatchSize(), \

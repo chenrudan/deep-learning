@@ -44,7 +44,8 @@ private:
     int _num_epoch;
     int _num_layers;
     int _num_need_train_layers;
-    int _img_size;
+    int _img_height;
+    int _img_width;
     int _img_channel;
     int _one_img_len;  ///>输入的一张图片的长度
 	int _in_len_each_process;
@@ -93,8 +94,11 @@ public:
     ~ModelComponent();
 
 
-    void setImgSize(const int img_size){
-        _img_size = img_size;
+    void setImgHeight(const int img_height){
+        _img_height = img_height;
+    }
+    void setImgWidth(const int img_width){
+        _img_width = img_width;
     }
     void setPid(const int pid){
         _pid = pid;
@@ -187,8 +191,11 @@ public:
     int getNFetch(){
         return _n_fetch;
     }
-    int getImgSize(){
-        return _img_size;
+    int getImgHeight(){
+        return _img_height;
+    }
+    int getImgWidth(){
+        return _img_width;
     }
     int getImgChannel(){
         return _img_channel;

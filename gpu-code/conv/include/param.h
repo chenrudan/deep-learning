@@ -56,7 +56,7 @@ public:
 	virtual int getNumOut() {return 0;}
 	virtual int getOutChannel() {return 0;}
 	virtual int getOutWidth() {return 0;}	
-	virtual int getOutHeight {return 0;}	
+	virtual int getOutHeight() {return 0;}	
 
     inline int getMinibatchSize() {
         return _minibatch_size;
@@ -176,7 +176,7 @@ public:
 			_box_out_width = MAX_THREAD_SIZE > _out_width \
 					? _out_width : MAX_THREAD_SIZE;
 			
-			int pow2Length = _cp->getOutHeight(); 
+			int pow2Length = _out_height; 
 			if(pow2Length & (pow2Length - 1)){
 				while(pow2Length & (pow2Length - 1)){
 					pow2Length &= pow2Length - 1;
@@ -186,7 +186,7 @@ public:
 			_thread_height = pow2Length > MAX_THREAD_SIZE \
 							 ? MAX_THREAD_SIZE : pow2Length;
 
-			pow2Length = _cp->getOutWidth(); 
+			pow2Length = _out_width; 
 			if(pow2Length & (pow2Length - 1)){
 				while(pow2Length & (pow2Length - 1)){
 					pow2Length &= pow2Length - 1;
@@ -196,6 +196,9 @@ public:
 			_thread_width = pow2Length > MAX_THREAD_SIZE \
 							? MAX_THREAD_SIZE : pow2Length;
 
+			_overlap_height = _filter_height - stride_height;
+			_overlap_width = _filter_width - stride_width;
+
 		}
 
     LocalConnectParam(LayerType layer_type, string name, \
@@ -203,7 +206,7 @@ public:
 		const int stride_height, const int stride_width, \
 		const int filter_height, const int filter_width, const int filter_channel, \
 		LocalConnectParam* lc_par) \
-		: _in_height(lc_par->getOutHeight()), _in_widht(lc_par->getOutWidth()), \
+		: _in_height(lc_par->getOutHeight()), _in_width(lc_par->getOutWidth()), \
 		_stride_height(stride_height), _stride_width(stride_width), \
 		_in_channel(lc_par->getOutChannel()), _pad_height(pad_height), \
 		_filter_height(filter_height), _filter_width(filter_width) {
@@ -217,8 +220,8 @@ public:
 
 			this->type = PARAM_CONNECT_TYPE_LOCAL;
 
-			_padded_in_height = in_height + 2 * pad_height;
-			_padded_in_width = in_width + 2 * pad_height;
+			_padded_in_height = _in_height + 2 * pad_height;
+			_padded_in_width = _in_width + 2 * pad_height;
 			_out_height = ceil(((_padded_in_height - filter_height)*1.0f) / stride_height) + 1;
 			_out_width = ceil(((_padded_in_width - filter_width)*1.0f) / stride_width) + 1;
 			_box_num_height = ceil((this->getOutHeight() - MAX_THREAD_SIZE) \
@@ -234,7 +237,7 @@ public:
 			_box_in_height = (MAX_THREAD_SIZE - 1) * stride_height + filter_height;
 			_box_in_width = (MAX_THREAD_SIZE - 1) * stride_width + filter_width;
 			
-			int pow2Length = _cp->getOutHeight(); 
+			int pow2Length = _out_height; 
 			if(pow2Length & (pow2Length - 1)){
 				while(pow2Length & (pow2Length - 1)){
 					pow2Length &= pow2Length - 1;
@@ -244,7 +247,7 @@ public:
 			_thread_height = pow2Length > MAX_THREAD_SIZE \
 							 ? MAX_THREAD_SIZE : pow2Length;
 
-			pow2Length = _cp->getOutWidth(); 
+			pow2Length = _out_width; 
 			if(pow2Length & (pow2Length - 1)){
 				while(pow2Length & (pow2Length - 1)){
 					pow2Length &= pow2Length - 1;
@@ -253,6 +256,9 @@ public:
 			}
 			_thread_width = pow2Length > MAX_THREAD_SIZE \
 							? MAX_THREAD_SIZE : pow2Length;
+			
+			_overlap_height = _filter_height - stride_height;
+			_overlap_width = _filter_width - stride_width;
 
 
 		}
@@ -315,7 +321,7 @@ public:
     void printParam(){
         Param::printParam();
         cout << "\nin_height: " << _in_height \
-			<< "\nin_width: " << in_width \
+			<< "\nin_width: " << _in_width \
 				<< "\nin_channel: " << _in_channel \
                 << "\nfilter_height: " << _filter_height \
                 << "\nfilter_width: " << _filter_width \
@@ -330,9 +336,6 @@ public:
 	}
 	inline int getBoxNumWidth(){
 		return _box_num_width;
-	}
-	inline int getBoxInHeight(){
-		return _box_in_height;
 	}
 	inline int getBoxInHeight(){
 		return _box_in_height;
@@ -437,7 +440,7 @@ public:
             const float w_lr, \
 			const float b_lr, const float momentum, \
 			const float weight_decay, \
-            const int in_height, const int width, \
+            const int in_height, const int in_width, \
             const int pad_height, const int pad_width, \
 			const int stride_height, \
 			const int stride_width, const int in_channel, \
@@ -471,9 +474,9 @@ public:
 		~PoolParam() {}
 
     	PoolParam(const LayerType layer_type, const string name, \
-            const int in_height, const int width, \
+            const int in_height, const int in_width, \
 			const int pad_height, const int pad_width, \
-			const int stride_height, const int stride_width\
+			const int stride_height, const int stride_width, \
 			const int in_channel, const int filter_height, \
 			const int filter_width, \
 			const int filter_channel, PoolingType p_type) 

@@ -28,6 +28,7 @@ private:
     Matrix<int>* _max_pos;
     PoolParam* _lcp;
 	Matrix<Dtype>* unranged_dE_dx;
+	int _num_box;
 };
 
 #include "../src/pooling_layer.cu"

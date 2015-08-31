@@ -31,7 +31,7 @@ void TrainClassification<Dtype>::parseImgBinary(int num_process){
 	this->_model_component->_num_process = num_process;
 
 	if(this->_model_component->_pid == this->_model_component->_master_pid){
-		this->_load_layer = new LoadCifar10<Dtype>(this->_model_component->_minibatch_size);
+		this->_load_layer = new LoadDIC<Dtype>(this->_model_component->_minibatch_size);
 	}
 	TrainModel<Dtype>::parseImgBinary(num_process);
 }
@@ -182,10 +182,11 @@ void TrainClassification<Dtype>::train() {
 		
 		}
 
-//		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
-//			this->_model_component->_w[i]->showValue( \
-//					this->_model_component->_layers_need_train_param[i]->getName()+"_w");
-//		}
+		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
+			if(i == 0 || i == 5)
+				this->_model_component->_w[i]->showValue( \
+						this->_model_component->_layers_need_train_param[i]->getName()+"_w");
+		}
 
 //		if(this->_is_stop == false)
 //			earlyStopping(epoch_idx);

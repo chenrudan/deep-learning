@@ -42,7 +42,7 @@ void Logistic<Dtype>::initCuda() {
 
 template <typename Dtype>
 void Logistic<Dtype>::computeOutput(Matrix<Dtype>* x){
-//x->showValue("data");
+x->showValue("data");
 	this->_y->zeros();
 	x->apply(Matrix<Dtype>::SOFTMAX, this->_y);
 //this->_y->showValue("sigmoid_y");
@@ -61,14 +61,17 @@ double Logistic<Dtype>::computeError(Matrix<int>* labels, int& num_error){
 	/// 记录最大位置的下标
 	this->_y->maxPosInRow(d_max_pos_of_out);
 //d_max_pos_of_out->showValue("maxpos");
-//this->_y->showValue("yj1");
+		
 
 	d_max_pos_of_out->copyToHost(h_max_pos_of_out, this->_y->getNumRows());
 
 	for (int c = 0; c < this->_y->getNumRows(); c++) {
 		int true_label = h_labels[c];
 		int predict_label = h_max_pos_of_out[c];
-		correct_probs[c] = log(y_CPU[c * this->_y->getNumCols() + true_label]);
+		if(y_CPU[c*this->_y->getNumCols()+true_label] == 0)
+			correct_probs[c] = -10000;
+		else
+			correct_probs[c] = log(y_CPU[c * this->_y->getNumCols() + true_label]);
 
 		if(predict_label != true_label)
 			num_error++;
@@ -78,7 +81,8 @@ double Logistic<Dtype>::computeError(Matrix<int>* labels, int& num_error){
 	for(int i = 0; i < labels->getNumEles(); i++){
 		result -= correct_probs[i];
 	}
-//	cout << result << endl;
+
+	cout << result << endl;	
 
 	return result;
 }
@@ -90,6 +94,7 @@ void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<int>* la
 
 //this->_y->reValue(1.0f);
 //labels->reValue(1.0f);
+	this->_y->showValue("yj1");
 
 	const int num_thread = DIVUP(this->_fcp->getNumOut(), ADD_BLOCK_SIZE) * ADD_BLOCK_SIZE;
 	compute_dE_dy<<<this->_fcp->getMinibatchSize(), num_thread>>>(this->_y->getDevData(), \
@@ -97,6 +102,7 @@ void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<int>* la
 	cudaThreadSynchronize();
 	cudaCheckError();
 
+	dE_dx->showValue("dE_dx");
 
 }
 

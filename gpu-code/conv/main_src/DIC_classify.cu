@@ -76,20 +76,20 @@ int main(int argc, char** argv){
 	cudaSetDevice(pid % num_gpu);
 
 
-	TrainClassification<float> *voc_model = new TrainClassification<float>(0, pid);
-//	TrainModel<float> *voc_model = new TrainModel<float>(0, pid);
+	TrainClassification<float> *DIC_model = new TrainClassification<float>(0, pid);
+//	TrainModel<float> *DIC_model = new TrainModel<float>(0, pid);
 
-	voc_model->parseNetJson("script/cifar10.json");
-	voc_model->parseImgBinary(num_process);
+	DIC_model->parseNetJson("script/DIC.json");
+	DIC_model->parseImgBinary(num_process);
 
 	if(pid == 0){ 
-		managerNode(voc_model);
+		managerNode(DIC_model);
 	}   
 	else{
-		detectionNode(voc_model);
+		detectionNode(DIC_model);
 	}
 	 	
-	delete voc_model;
+	delete DIC_model;
 	MPI_Finalize();
 
 

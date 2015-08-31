@@ -169,18 +169,20 @@ __global__ void compute_convolution_derivs(const float* dE_dy, const float *x, \
 	int box_out_pixs = box_out_height * box_out_width;
 
 	const int num_box = box_num_height * box_num_width;	
-	const int img_idx = blockIdx.x;
-	const int out_channel_idx = blockIdx.y/(num_box*filt_pixs*in_channel);
-	int tmp = blockIdx.y%(num_box*filt_pixs*in_channel);
-	const int in_channel_idx = tmp/(num_box*filt_pixs);
-	tmp = tmp%(num_box*filt_pixs);
+
+	const int img_idx = blockIdx.x / out_channel;
+	const int out_channel_idx = blockIdx.x % out_channel;
+
+	const int in_channel_idx = blockIdx.y / (num_box*filt_pixs);
+
+	int tmp = blockIdx.y%(num_box*filt_pixs);
 	const int box_idx = tmp / filt_pixs;
 	const int box_row_idx = box_idx / box_num_width;
 	const int box_col_idx = box_idx % box_num_width;
 	const int filt_row_idx = (tmp % filt_pixs) / filter_width; 
 	const int filt_col_idx = (tmp % filt_pixs) % filter_width; 
 
-	int out_row = box_out_width * box_row_idx + threadIdx.y;
+	int out_row = box_out_height * box_row_idx + threadIdx.y;
 	int out_col = box_out_width * box_col_idx + threadIdx.x;
 	int in_row = out_row*stride_height + filt_row_idx;
 	int in_col = out_col*stride_width + filt_col_idx;
@@ -188,7 +190,8 @@ __global__ void compute_convolution_derivs(const float* dE_dy, const float *x, \
 	if(threadIdx.y < box_out_height && threadIdx.x < box_out_width)
 		result[threadIdx.y*box_out_width+threadIdx.x] = 0;
 
-	if(out_row < out_height && out_col < out_width){
+	if(out_row < out_height && out_col < out_width \
+			&& in_row < in_height && in_col < in_width){
 		x += img_idx*in_channel*in_pixs + in_channel_idx*in_pixs \
 			 + in_row*in_width + in_col; 
 		dE_dw += img_idx*out_channel*in_channel*filt_pixs*num_box \
@@ -262,6 +265,7 @@ __global__ void compute_derivs_of_bias(const float* dE_dy, float* targets, \
 
 	int out_pixs = out_height * out_width;
 	int box_out_pixs = box_out_height * box_out_width;
+
 	extern __shared__ float result[];
 
 	//输出的行列idx，当输出大于MAX_THREAD_SIZE的时候每个线程都做了计算
@@ -306,10 +310,6 @@ __global__ void compute_derivs_of_bias(const float* dE_dy, float* targets, \
 }
 
 
-
-
-
-
 __global__ void pad_to_ori(float* dst, const float* src, const int num_kernel, \
 		const int img_height, const int img_width, \
 		const int padded_img_height, const int padded_img_width, \
@@ -329,8 +329,8 @@ __global__ void pad_to_ori(float* dst, const float* src, const int num_kernel, \
 		const int img_col = (src_col % img_pixs) % img_width; 
 		index = img_idx * img_channel * padded_img_pixs \
 				+ img_channel_idx * padded_img_pixs \
-				+ (img_row + pad) * padded_img_width \
-				+ (img_col + pad); 
+				+ (img_row + pad_height) * padded_img_width \
+				+ (img_col + pad_width); 
 		dst[idx] = src[index]; 
 	}
 }
@@ -359,72 +359,47 @@ __global__ void ori_to_padding(const float* src, float* dst, const int num_kerne
 
 }
 
-__global__ void reshape_dE_dy2(float* un_dE_dy, const float* dE_dy, \
-		const int num_kernel, const int conv_forward_size, \
-		const int filter_channel){
-	int index;
-	CUDA_KERNEL_LOOP(idx, num_kernel){
-		int conv_pixs = conv_forward_size * conv_forward_size;
-
-		const int dst_row = idx / (conv_pixs * filter_channel);
-		const int dst_col = idx % (conv_pixs * filter_channel);
-		const int ori_col = dst_col % conv_pixs;
-		const int ori_row = dst_row * filter_channel + dst_col / conv_pixs;
-		index = ori_row * conv_pixs + ori_col;
-		un_dE_dy[index] = dE_dy[idx]; 
-	}
-}
-
-__global__ void reshape_dE_db_tmp(float* dst, const float* ori, \
-		const int num_kernel, const int filter_channel){
-	int index;
-	CUDA_KERNEL_LOOP(idx, num_kernel){
-
-		const int ori_col = idx % filter_channel;
-		const int ori_row = idx / filter_channel;
-		index = ori_row * filter_channel + ori_col;
-		dst[index] = ori[idx]; 
-	}
-}
-
 __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPoolPos, \
-		const int conv_forward_size, const int in_channels, const int pool_forward_size, \
-		const int max_pool_size, const int stride, \
-		const int box_out_size, const int box_num_size){
+		const int in_height, const int in_width, \
+		const int in_channels, const int out_height, const int out_width, \
+		const int filter_height, const int filter_width, \
+		const int stride_height, const int stride_width,  \
+		const int box_out_height, const int box_out_width, \
+		const int box_num_height, const int box_num_width){
 
-	const int num_box = box_num_size * box_num_size;	
+	const int num_box = box_num_height * box_num_width;	
 	const int img_idx = blockIdx.x;
 	const int filt_idx = blockIdx.y / num_box;
 	const int box_idx = blockIdx.y % num_box; 
-	const int box_row_idx = box_idx / box_num_size;
-	const int box_col_idx = box_idx % box_num_size;
+	const int box_row_idx = box_idx / box_num_width;
+	const int box_col_idx = box_idx % box_num_width;
 
-	int conv_pixs = conv_forward_size * conv_forward_size;
-	int pool_pixs = pool_forward_size * pool_forward_size;
+	int conv_pixs = in_height * in_width;
+	int pool_pixs = out_height * out_width;
 
 	//输出的行列idx，当输出大于MAX_THREAD_SIZE的时候每个线程都做了计算
 	int out_row = MAX_THREAD_SIZE * box_row_idx + threadIdx.y;
 	int out_col = MAX_THREAD_SIZE * box_col_idx + threadIdx.x;
 
-	if(out_row < pool_forward_size && out_col < pool_forward_size){
+	if(out_row < out_height && out_col < out_width){
 		//首先定位哪一个batch的哪一个channel的哪一张图，然后寻找在这张图上位置
 		convOutputs += img_idx * in_channels * conv_pixs + filt_idx * conv_pixs;
 		targets += img_idx * in_channels * pool_pixs + filt_idx * pool_pixs \
-				   + out_row * pool_forward_size + out_col;
+				   + out_row * out_width + out_col;
 		maxPoolPos += img_idx * in_channels * pool_pixs + filt_idx * pool_pixs \
-					  + out_row * pool_forward_size + out_col;
+					  + out_row * out_width + out_col;
 
-		float max_value = convOutputs[out_row*stride*conv_forward_size+out_col*stride];
+		float max_value = convOutputs[out_row*stride_height*in_width+out_col*stride_width];
 		int max_pos = 0;
-		for(int i = 0; i < max_pool_size; i++){
-			for(int j = 0; j < max_pool_size; j++){
-				int conv_row = out_row * stride + i;
-				int conv_col = out_col * stride + j;
-				if(conv_row < conv_forward_size && conv_col < conv_forward_size){
-					if(convOutputs[conv_row*conv_forward_size+conv_col]>max_value){
-						max_value = convOutputs[conv_row*conv_forward_size \
+		for(int i = 0; i < filter_height; i++){
+			for(int j = 0; j < filter_width; j++){
+				int conv_row = out_row * stride_height + i;
+				int conv_col = out_col * stride_width + j;
+				if(conv_row < in_height && conv_col < in_width){
+					if(convOutputs[conv_row*in_width+conv_col]>max_value){
+						max_value = convOutputs[conv_row*in_width \
 									+ conv_col];
-						max_pos = i*max_pool_size +j;
+						max_pos = i*filter_width +j;
 					}
 				}
 			}
@@ -437,210 +412,200 @@ __global__ void max_pooling(const float* convOutputs, float* targets, int* maxPo
 }
 
 __global__ void avg_pooling(const float* convOutputs, float* targets, \
-		const int conv_forward_size, const int in_channels, \
-		const int pool_forward_size, const int avg_pool_size, \
-		const int stride, const int box_out_size, const int box_num_size){
+		const int in_height, const int in_width, \
+		const int in_channels, const int out_height, const int out_width, \
+		const int filter_height, const int filter_width, \
+		const int stride_height, const int stride_width,  \
+		const int box_out_height, const int box_out_width, \
+		const int box_num_height, const int box_num_width){
 
-	const int num_box = box_num_size * box_num_size;	
+	const int num_box = box_num_height * box_num_width;	
 	const int img_idx = blockIdx.x;
 	const int filt_idx = blockIdx.y / num_box;
 	const int box_idx = blockIdx.y % num_box; 
-	const int box_row_idx = box_idx / box_num_size;
-	const int box_col_idx = box_idx % box_num_size;
+	const int box_row_idx = box_idx / box_num_width;
+	const int box_col_idx = box_idx % box_num_width;
 
-
-	int conv_pixs = conv_forward_size * conv_forward_size;
-	int pool_pixs = pool_forward_size * pool_forward_size;
+	int conv_pixs = in_height * in_width;
+	int pool_pixs = out_height * out_width;
 
 	int out_row = MAX_THREAD_SIZE * box_row_idx + threadIdx.y;
 	int out_col = MAX_THREAD_SIZE * box_col_idx + threadIdx.x;
 
-	if(out_row < pool_forward_size && out_col < pool_forward_size){
+	if(out_row < out_height && out_col < out_width){
 		convOutputs += img_idx * in_channels * conv_pixs + filt_idx * conv_pixs; 
 		targets += img_idx * in_channels * pool_pixs + filt_idx * pool_pixs \
-				   + out_row * pool_forward_size + out_col;
+				   + out_row * out_width + out_col;
 
 		float avg_value = 0;
-		for(int i = 0; i < avg_pool_size; i++){
-			for(int j = 0; j < avg_pool_size; j++){
-				int conv_row = out_row * stride + i;
-				int conv_col = out_col * stride + j;
-				if(conv_row < conv_forward_size && conv_col < conv_forward_size){
-					avg_value += convOutputs[conv_row*conv_forward_size+conv_col];
+		for(int i = 0; i < filter_height; i++){
+			for(int j = 0; j < filter_width; j++){
+				int conv_row = out_row * stride_height + i;
+				int conv_col = out_col * stride_width + j;
+				if(conv_row < in_height && conv_col < in_width){
+					avg_value += convOutputs[conv_row*in_width+conv_col];
 				}
 			}
 		}
 		__syncthreads();
 
-		targets[0] = avg_value / (avg_pool_size * avg_pool_size);
+		targets[0] = avg_value / (filter_height * filter_width);
 	}
 }
 
 
 
 __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
-		int* maxPoolPos, const int box_in_size, const int box_out_size, \
+		int* maxPoolPos, \
+		const int box_in_height, const int box_in_width, \
+		const int box_out_height, const int box_out_width, \
 		const int num_filters, \
-		const int pool_forward_size, const int max_pool_size, \
-		const int stride, const int box_num_size){
+		const int out_height, const int out_width, \
+		const int filter_height, const int filter_width, \
+		const int stride_height, const int stride_width,  \
+		const int box_num_height, const int box_num_width){
 
-	const int num_box = box_num_size * box_num_size;	
+	const int num_box = box_num_height * box_num_width;	
 	const int img_idx = blockIdx.x;
 	const int filt_idx = blockIdx.y / num_box;
 	const int box_idx = blockIdx.y % num_box; 
-	const int box_row_idx = box_idx / box_num_size;
-	const int box_col_idx = box_idx % box_num_size;
+	const int box_row_idx = box_idx / box_num_width;
+	const int box_col_idx = box_idx % box_num_width;
 
-	const int in_size = box_in_size * box_num_size; 
-	int in_pixs = in_size * in_size;
-	int pool_pixs = pool_forward_size * pool_forward_size;
+	const int in_height = box_in_height * box_num_height; 
+	const int in_width = box_in_width * box_num_width; 
+	int in_pixs = in_height * in_width;
+	int pool_pixs = out_height * out_width;
 
 	//输出的行列idx
-	int out_row = box_out_size * box_row_idx + threadIdx.y;
-	int out_col = box_out_size * box_col_idx + threadIdx.x;
+	int out_row = box_out_height * box_row_idx + threadIdx.y;
+	int out_col = box_out_width * box_col_idx + threadIdx.x;
 
-	int in_row = box_in_size * box_row_idx + threadIdx.y * stride;
-	int	in_col = box_in_size * box_col_idx + threadIdx.x * stride;
+	int in_row = box_in_height * box_row_idx + threadIdx.y * stride_height;
+	int	in_col = box_in_width * box_col_idx + threadIdx.x * stride_width;
 
 	//共享内存的大小只有计算一块pool输出的对应conv输入
 	extern __shared__ float result[];
 
-	if(out_row < pool_forward_size && out_col < pool_forward_size){
+	if(out_row < out_height && out_col < out_width){
 		targets += img_idx * num_filters * in_pixs + filt_idx * in_pixs \
-				   + in_row * in_size + in_col; 
+				   + in_row * in_width + in_col; 
 		dE_dy_i += img_idx * num_filters * pool_pixs + filt_idx * pool_pixs \
-				   + out_row * pool_forward_size + out_col;
+				   + out_row * out_width + out_col;
 		maxPoolPos += img_idx * num_filters * pool_pixs + filt_idx * pool_pixs \
-					  + out_row * pool_forward_size + out_col;
+					  + out_row * out_width + out_col;
 
-		int posIdx= threadIdx.y * box_in_size * stride \
-					+ threadIdx.x * stride;
+		int posIdx= threadIdx.y * box_in_width * stride_height \
+					+ threadIdx.x * stride_width;
 
-		int interval = pool_forward_size - box_out_size * (box_num_size - 1);
+		int interval_height = out_height - box_out_height * (box_num_height - 1);
+		int interval_width = out_width - box_out_width* (box_num_width - 1);
 		int tmp_row = threadIdx.y;
 		int tmp_col = threadIdx.x;
-		while(tmp_row < box_in_size){
+		while(tmp_row < box_in_height){
 			tmp_col = threadIdx.x;
-			while(tmp_col < box_in_size){
-				result[tmp_row*box_in_size + tmp_col] = 0;
-				tmp_col += interval;
+			while(tmp_col < box_in_width){
+				result[tmp_row*box_in_width + tmp_col] = 0;
+				tmp_col += interval_width;
 			}
-			tmp_row += interval;
+			tmp_row += interval_height;
 		}
 
 		int pos = maxPoolPos[0];
-		int row = pos / max_pool_size;
-		int col = pos % max_pool_size;
+		int row = pos / filter_width;
+		int col = pos % filter_width;
 
-		posIdx += row * box_in_size + col;
+		posIdx += row * box_in_width + col;
 
 		float ele = dE_dy_i[0];
 
 		atomicAdd(result+posIdx, ele);
 		__syncthreads();
 
-		if(in_row + row < in_size && in_col + col < in_size){
-			targets[row * in_size + col] = result[posIdx];
+		if(in_row + row < in_height && in_col + col < in_width){
+			targets[row * in_height + col] = result[posIdx];
 		}
 	}
 }
 
 __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
-		const int box_in_size, const int box_out_size, \
+		const int box_in_height, const int box_in_width, \
+		const int box_out_height, const int box_out_width, \
 		const int num_filters, \
-		const int pool_forward_size, const int avg_pool_size, \
-		const int stride, const int box_num_size){
+		const int out_height, const int out_width, \
+		const int filter_height, const int filter_width, \
+		const int stride_height, const int stride_width,  \
+		const int box_num_height, const int box_num_width){
 
 	//这里的out代表的是pooling的输出
 	extern __shared__ float result[];
 
-	const int num_box = box_num_size * box_num_size;	
+	const int num_box = box_num_height * box_num_width;	
 	const int img_idx = blockIdx.x;
 	const int filt_idx = blockIdx.y / num_box;
 	const int box_idx = blockIdx.y % num_box; 
-	const int box_row_idx = box_idx / box_num_size;
-	const int box_col_idx = box_idx % box_num_size;
+	const int box_row_idx = box_idx / box_num_width;
+	const int box_col_idx = box_idx % box_num_width;
 
 	///反向求的输入width
-	const int in_size = box_in_size * box_num_size; 
-	int in_pixs = in_size * in_size;
-	int pool_pixs = pool_forward_size * pool_forward_size;
+	const int in_height = box_in_height * box_num_height; 
+	const int in_width = box_in_width * box_num_width; 
+	int in_pixs = in_height * in_width;
+	int pool_pixs = out_height * out_width;
 
 	//输出的行列idx,当pooling之后的width小于32时，box_row_idx会等于0
-	int out_row = box_out_size * box_row_idx + threadIdx.y;
-	int out_col = box_out_size * box_col_idx + threadIdx.x;
+	int out_row = box_out_height * box_row_idx + threadIdx.y;
+	int out_col = box_out_width * box_col_idx + threadIdx.x;
 
-	if(out_row < pool_forward_size && out_col < pool_forward_size){
+	if(out_row < out_height && out_col < out_width){
 		//计算本块pooling对应的输入conv块起始位置
 		//本线程对应的pooling值
 		targets += img_idx * num_filters * in_pixs + filt_idx * in_pixs \
-				   + box_row_idx * box_in_size * in_size \
-				   + box_col_idx * box_in_size;
+				   + box_row_idx * box_in_height * in_width \
+				   + box_col_idx * box_in_width;
 		dE_dy_i += img_idx * num_filters * pool_pixs + filt_idx * pool_pixs \
-				   + out_row * pool_forward_size + out_col;
+				   + out_row * out_width + out_col;
 
 		float ele;
-		int interval = pool_forward_size - box_out_size * (box_num_size - 1);
+		int interval_height = out_height - box_out_height * (box_num_height - 1);
+		int interval_width = out_width - box_out_width* (box_num_width - 1);
 		int tmp_row = threadIdx.y;
 		int tmp_col = threadIdx.x;
-		while(tmp_row < box_in_size){
+		while(tmp_row < box_in_height){
 			tmp_col = threadIdx.x;
-			while(tmp_col < box_in_size){
-				result[tmp_row*box_in_size + tmp_col] = 0;
-				tmp_col += interval;
+			while(tmp_col < box_in_width){
+				result[tmp_row*box_in_width + tmp_col] = 0;
+				tmp_col += interval_width;
 			}
-			tmp_row += interval;
+			tmp_row += interval_height;
 		}
 
-		for(int i = 0; i < avg_pool_size; i++){
-			for(int j = 0; j < avg_pool_size; j++){
-				int box_in_row = threadIdx.y * stride + i;
-				int box_in_col = threadIdx.x * stride + j;
-				if(box_in_row < box_in_size && box_in_col < box_in_size){
-					ele = dE_dy_i[0] / (avg_pool_size * avg_pool_size);
-					atomicAdd(result + box_in_row*box_in_size+box_in_col, ele);
+		for(int i = 0; i < filter_height; i++){
+			for(int j = 0; j < filter_width; j++){
+				int box_in_row = threadIdx.y * stride_height + i;
+				int box_in_col = threadIdx.x * stride_width + j;
+				if(box_in_row < box_in_height && box_in_col < box_in_width){
+					ele = dE_dy_i[0] / (filter_height * filter_width);
+					atomicAdd(result + box_in_row*box_in_width+box_in_col, ele);
 					__syncthreads();
 				}
 			}
 		}
 		tmp_row = threadIdx.y;
 		tmp_col = threadIdx.x;
-		while(tmp_row < box_in_size){
+		while(tmp_row < box_in_height){
 			tmp_col = threadIdx.x;
-			while(tmp_col < box_in_size){
-				targets[tmp_row * in_size + tmp_col] = result[tmp_row * box_in_size + tmp_col];
-				tmp_col += interval;
+			while(tmp_col < box_in_width){
+				targets[tmp_row * in_width + tmp_col] \
+					= result[tmp_row * box_in_width + tmp_col];
+				tmp_col += interval_width;
 			}
-			tmp_row += interval;
+			tmp_row += interval_height;
 		}
 	}
 
 }
 
-__global__ void compute_dE_db(const float* dE_dy, float* dE_db_h, \
-		const int conv_forward_size) {
-	extern __shared__ float result[];
-
-	const int idx = threadIdx.x + blockDim.x * threadIdx.y; 
-	const int filt_idx = blockIdx.y;
-	const int img_idx = blockIdx.x;
-	const int num_filters = gridDim.y;
-
-	if(idx == 0)
-		result[0] = 0;
-	//某一张24*24的起始位置，本函数是将这24*24个点全部加起来最后生成一个点
-	const int filt_pixs = conv_forward_size * conv_forward_size;
-	dE_dy += img_idx * num_filters * filt_pixs + filt_idx * filt_pixs + threadIdx.x;
-
-	float ele = dE_dy[0];
-
-	atomicAdd(result, ele);
-	__syncthreads();
-
-	if (idx == 0) {
-		dE_db_h[img_idx * num_filters + filt_idx] = result[0] / filt_pixs;
-	}
-} 
 __global__ void compute_dE_dy(const float* y_j, const int* labels, \
 		float* dE_dy_j, const int width) {
 	const int tx = blockIdx.x;

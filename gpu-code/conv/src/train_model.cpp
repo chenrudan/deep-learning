@@ -42,8 +42,10 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 		_model_component->_num_valid = _load_layer->getNumValid();
 		_model_component->_num_train_each_process = _load_layer->getNumTrain()/(num_process-1);
 		_model_component->_num_valid_each_process = _load_layer->getNumValid()/(num_process-1);
+
 		_model_component->setNumTrainBatch();
 		_model_component->setNumValidBatch();
+
 
 		//将batch数传递给工作进程
 #pragma omp parallel num_threads(num_process-1)
@@ -82,6 +84,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 		_model_component->_minibatch_size = root["minibatch_size"].asInt();
 		Param::setMinibatchSize(_model_component->_minibatch_size);
 		_model_component->_n_push = root["n_push"].asInt();
+
 		_model_component->_n_fetch = root["n_fetch"].asInt();
 		_model_component->_num_epoch = root["num_epoch"].asInt();
 		_model_component->_img_height = root["img_height"].asInt();
@@ -99,7 +102,8 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 		_model_component->_num_layers = root["layer"].size();
 
 		string layer_type, name;
-		int pad, stride, filter_size, filter_channel, num_out, num_in;
+		int pad_height, pad_width, stride_height, stride_width;
+		int	filter_height, filter_width, filter_channel, num_out, num_in;
 		float w_lr, bias_lr, momentum, weight_decay;
 		string p_type;
 		Param* param;
@@ -107,10 +111,13 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 		for (int i = 0; i < _model_component->_num_layers; ++i) {
 			layer_type = root["layer"][i]["type"].asString();
 			name = root["layer"][i]["name"].asString();
-			if (!root["layer"][i]["pad"].isNull()) {
-				pad = root["layer"][i]["pad"].asInt();
-				stride = root["layer"][i]["stride"].asInt();
-				filter_size = root["layer"][i]["filter_size"].asInt();
+			if (!root["layer"][i]["filter_height"].isNull()) {
+				pad_height = root["layer"][i]["pad_height"].asInt();
+				pad_width = root["layer"][i]["pad_width"].asInt();
+				stride_height = root["layer"][i]["stride_height"].asInt();
+				stride_width = root["layer"][i]["stride_width"].asInt();
+				filter_height = root["layer"][i]["filter_height"].asInt();
+				filter_width = root["layer"][i]["filter_width"].asInt();
 			}
 			if (!root["layer"][i]["w_lr"].isNull()) {
 				w_lr = root["layer"][i]["w_lr"].asFloat();
@@ -142,20 +149,23 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 							_model_component->_string_map_layertype[layer_type], \
 							name, w_lr, bias_lr, momentum, weight_decay, \
 							_model_component->_img_height, _model_component->_img_width, \
-							pad, stride, _model_component->_img_channel, filter_size, \
-							filter_channel);
+							pad_height, pad_width, stride_height, stride_width, \
+						   	_model_component->_img_channel, filter_height, \
+							filter_width, filter_channel);
 				} else{
 					param = new ConvParam( \
 							_model_component->_string_map_layertype[layer_type], \
 							name, w_lr, bias_lr, momentum, weight_decay, \
-							pad, stride, filter_size, filter_channel, \
+							pad_height, pad_width, stride_height, stride_width, \
+							filter_height, filter_width, filter_channel, \
 							dynamic_cast<LocalConnectParam*>( \
 								_model_component->_layers_param.back()));
 				}
 			} else if (layer_type == "POOLING") {
 				param = new PoolParam( \
 						_model_component->_string_map_layertype[layer_type], \
-						name, pad, stride, filter_size, 0, \
+						name, pad_height, pad_width, stride_height, stride_width, \
+						filter_height, filter_width, 0, \
 						dynamic_cast<LocalConnectParam*>( \
 							_model_component->_layers_param.at( \
 								_model_component->_layers_param.size() - 2)), \
@@ -248,9 +258,9 @@ void TrainModel<Dtype>::createWBiasForManager() {
 		Param* tp = _model_component->_layers_need_train_param[i];
 		if(tp->getLayerType() == CONVOLUTION){
 			ConvParam* cp = dynamic_cast<ConvParam*>(tp);
-			w = new Matrix<Dtype>(cp->getFilterSize() \
-					*cp->getFilterSize()*cp->getInChannel(), cp->getOutChannel());
-			w_len = cp->getFilterSize()*cp->getFilterSize()\
+			w = new Matrix<Dtype>(cp->getFilterHeight() \
+					*cp->getFilterWidth()*cp->getInChannel(), cp->getOutChannel());
+			w_len = cp->getFilterHeight()*cp->getFilterWidth() \
 					*cp->getInChannel()*cp->getOutChannel();
 			bias = new Matrix<Dtype>(1, cp->getOutChannel());
 			bias_len = cp->getOutChannel();
