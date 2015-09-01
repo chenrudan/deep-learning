@@ -104,7 +104,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 		string layer_type, name;
 		int pad_height, pad_width, stride_height, stride_width;
 		int	filter_height, filter_width, filter_channel, num_out, num_in;
-		float w_lr, bias_lr, momentum, weight_decay;
+		float w_lr, bias_lr, momentum, weight_decay, w_gauss;
 		string p_type;
 		Param* param;
 
@@ -124,6 +124,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 				bias_lr = root["layer"][i]["bias_lr"].asFloat();
 				momentum = root["layer"][i]["momentum"].asFloat();
 				weight_decay = root["layer"][i]["weight_decay"].asFloat();
+				w_gauss = root["layer"][i]["w_gauss"].asFloat();
 			}
 			if (!root["layer"][i]["num_out"].isNull()) {
 				num_out = root["layer"][i]["num_out"].asInt();
@@ -139,15 +140,11 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 			}else{
 				filter_channel = 0;
 			}
-			if (!root["layer"][i]["w_gauss"].isNull()) {
-				_model_component->_w_init_gauss.push_back( \
-						root["layer"][i]["w_gauss"].asFloat());
-			}
 			if (layer_type == "CONVOLUTION") {
 				if (_model_component->_layers_param.size() == 0) {
 					param = new ConvParam( \
 							_model_component->_string_map_layertype[layer_type], \
-							name, w_lr, bias_lr, momentum, weight_decay, \
+							name, w_lr, bias_lr, momentum, weight_decay, w_gauss, \
 							_model_component->_img_height, _model_component->_img_width, \
 							pad_height, pad_width, stride_height, stride_width, \
 						   	_model_component->_img_channel, filter_height, \
@@ -155,7 +152,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 				} else{
 					param = new ConvParam( \
 							_model_component->_string_map_layertype[layer_type], \
-							name, w_lr, bias_lr, momentum, weight_decay, \
+							name, w_lr, bias_lr, momentum, weight_decay, w_gauss, \
 							pad_height, pad_width, stride_height, stride_width, \
 							filter_height, filter_width, filter_channel, \
 							dynamic_cast<LocalConnectParam*>( \
@@ -179,12 +176,12 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 				if (_model_component->_layers_param.size() == 0) {
 					param = new InnerParam( \
 							_model_component->_string_map_layertype[layer_type], \
-							name, w_lr, bias_lr, momentum, weight_decay, \
+							name, w_lr, bias_lr, momentum, weight_decay, w_gauss, \
 							num_in, num_out);
 				}else{
 					param = new InnerParam( \
 							_model_component->_string_map_layertype[layer_type], \
-							name, w_lr, bias_lr, momentum, weight_decay, \
+							name, w_lr, bias_lr, momentum, weight_decay, w_gauss, \
 							num_out, _model_component->_layers_param.back());
 				}
 			} else if(layer_type == "PREDICTOBJECT"){
@@ -363,7 +360,9 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 
 	for (int k = 0; k < _model_component->_num_need_train_layers; ++k) {
 		if (_model_component->_pid == _model_component->_master_pid) {
-			gaussRand(_model_component->_w[k], _model_component->_w_init_gauss[k]);
+			gaussRand(_model_component->_w[k], \
+					dynamic_cast<TrainParam*>( \
+						_model_component->_layers_need_train_param[k])->getWGauss());
 			cudaMemset(_model_component->_bias[k]->getDevData(), 0, \
 					sizeof(float) * _model_component->_bias_len[k]);
 		}

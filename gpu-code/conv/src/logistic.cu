@@ -42,7 +42,7 @@ void Logistic<Dtype>::initCuda() {
 
 template <typename Dtype>
 void Logistic<Dtype>::computeOutput(Matrix<Dtype>* x){
-x->showValue("data");
+//x->showValue("data");
 	this->_y->zeros();
 	x->apply(Matrix<Dtype>::SOFTMAX, this->_y);
 //this->_y->showValue("sigmoid_y");
@@ -82,7 +82,7 @@ double Logistic<Dtype>::computeError(Matrix<int>* labels, int& num_error){
 		result -= correct_probs[i];
 	}
 
-	cout << result << endl;	
+//	cout << result << endl;	
 
 	return result;
 }
@@ -94,7 +94,7 @@ void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<int>* la
 
 //this->_y->reValue(1.0f);
 //labels->reValue(1.0f);
-	this->_y->showValue("yj1");
+//	this->_y->showValue("yj1");
 
 	const int num_thread = DIVUP(this->_fcp->getNumOut(), ADD_BLOCK_SIZE) * ADD_BLOCK_SIZE;
 	compute_dE_dy<<<this->_fcp->getMinibatchSize(), num_thread>>>(this->_y->getDevData(), \

@@ -97,9 +97,10 @@ public:
     virtual ~TrainParam() { }
 
     TrainParam(const float w_lr, const float b_lr, \
-            const float momentum, const float weight_decay) \
+            const float momentum, const float weight_decay, \
+			const float w_gauss) \
 		: _w_lr(w_lr), _b_lr(b_lr), _momentum(momentum), \
-		_weight_decay(w_lr*weight_decay){	
+		_weight_decay(w_lr*weight_decay), _w_gauss(w_gauss){	
 		this->_param_train_type = NEED;
 	}
 
@@ -124,11 +125,15 @@ public:
 	inline float getWeightDecay() {
 		return _weight_decay;
 	}
+	float getWGauss() {
+		return _w_gauss;
+	}
     void printParam(){
         cout << "\nw_lr: " << _w_lr \
 				<< "\nb_lr: " << _b_lr \
 				<< "\nmomentum: " << _momentum \
-				<< "\nweight_decay: " << _weight_decay;
+				<< "\nweight_decay: " << _weight_decay \
+				<< "\nw_gauss: " << _w_gauss ;
     }
 
 protected:
@@ -136,6 +141,7 @@ protected:
     float _b_lr;
     float _momentum;
 	float _weight_decay;
+	float _w_gauss;
 
 };
 
@@ -439,14 +445,14 @@ public:
     ConvParam(const LayerType layer_type, const string name, \
             const float w_lr, \
 			const float b_lr, const float momentum, \
-			const float weight_decay, \
+			const float weight_decay, const float w_gauss, \
             const int in_height, const int in_width, \
             const int pad_height, const int pad_width, \
 			const int stride_height, \
 			const int stride_width, const int in_channel, \
             const int filter_height, const int filter_width, \
 			const int filter_channel) \
-            : TrainParam(w_lr, b_lr, momentum, weight_decay), \
+            : TrainParam(w_lr, b_lr, momentum, weight_decay, w_gauss), \
               LocalConnectParam(layer_type, name, in_height, in_width, \
 		            pad_height, pad_width, stride_height, stride_width, \
 					in_channel, filter_height, \
@@ -454,11 +460,12 @@ public:
 
     ConvParam(const LayerType layer_type, const string name, const float w_lr, \
             const float b_lr, const float momentum, \
-			const float weight_decay, const int pad_height, const int pad_width, \
+			const float weight_decay, const float w_gauss, \
+			const int pad_height, const int pad_width, \
             const int stride_height, const int stride_width, const int filter_height, \
 			const int filter_width, \
             const int filter_channel, LocalConnectParam *lc_par) \
-            : TrainParam(w_lr, b_lr, momentum, weight_decay), \
+            : TrainParam(w_lr, b_lr, momentum, weight_decay, w_gauss), \
               LocalConnectParam(layer_type, name, pad_height, pad_width, stride_height, \
 					  stride_width, \
 		            filter_height, filter_width, filter_channel, lc_par)  {}
@@ -520,16 +527,17 @@ public:
 
     InnerParam(const LayerType layer_type, const string name, \
 		const float w_lr, const float b_lr, const float momentum, \
-		const float weight_decay, \
+		const float weight_decay, const float w_gauss, \
 		const int num_in, const int num_out) \
-        : TrainParam(w_lr, b_lr, momentum, weight_decay),
+        : TrainParam(w_lr, b_lr, momentum, weight_decay, w_gauss),
           FullConnectParam(layer_type, name, num_in, num_out){}
 
     InnerParam(const LayerType layer_type, const string name, \
         const float w_lr, const float b_lr, \
         const float momentum, const float weight_decay, \
+		const float w_gauss, \
         const int num_out, Param* par) \
-        : TrainParam(w_lr, b_lr, momentum, weight_decay),  \
+        : TrainParam(w_lr, b_lr, momentum, weight_decay, w_gauss),  \
           FullConnectParam(layer_type, name, num_out, par) {}
     void printParam(){
         FullConnectParam::printParam();

@@ -21,6 +21,9 @@ public:
 		Dtype *coords, int img_size);
 	void callPythonGetCutObject(string filename, Dtype *data, \
 		int *coords, int img_size);
+	void callPythonRandomShiftImage(Dtype *&data, \
+		const int minibatch_size, const int img_height, \
+		const int img_width);
 
 private:
 };

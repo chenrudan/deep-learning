@@ -8,12 +8,30 @@ using namespace std;
 template <typename Dtype>
 PythonInterface<Dtype>::PythonInterface() {
 	Py_Initialize();
+
 }
 
 template <typename Dtype>
 PythonInterface<Dtype>::~PythonInterface() {
 	Py_Finalize(); 
 }
+
+template <typename Dtype>
+void PythonInterface<Dtype>::callPythonRandomShiftImage(Dtype *&data, \
+		const int minibatch_size, const int img_height, const int img_width){
+	PyRun_SimpleString("import sys");
+	PyRun_SimpleString("sys.path.append('./script/')");
+	PyObject *py_file = PyString_FromString("DIC_img_tools");
+	PyObject *py_module = PyImport_Import(py_file);
+	if (!py_module)
+	{
+		cout << "can't find python file!" << endl;
+		return;				               
+	}
+
+}
+
+
 
 template <typename Dtype>
 void PythonInterface<Dtype>::callPythonGetCutObject(string filename, Dtype *data, \

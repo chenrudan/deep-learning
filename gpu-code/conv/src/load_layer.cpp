@@ -435,8 +435,8 @@ LoadDIC<Dtype>::LoadDIC(int minibatch_size){
 
 	this->_is_base_alloc = false;
 
-	_train_file = "../data/DIC_train_data.bin";
-	_valid_file = "../data/DIC_valid_data.bin";
+	_train_file = "../data/DIC_train_data_augmentation.bin";
+	_valid_file = "../data/DIC_valid_data_augmentation.bin";
 
 	ifstream _fin1, _fin2;
 	_fin1.open(_train_file.c_str(), ifstream::binary);
