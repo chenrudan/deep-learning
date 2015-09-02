@@ -196,19 +196,17 @@ void Matrix<Dtype>::applyRelu(Matrix<Dtype> *target, Matrix<int>* record, \
 		bool direction){
 	const int width = this->_shape[1];
 	const int height = this->_shape[0];
-	const int num_blocks_x = DIVUP(width, ADD_BLOCK_SIZE);
-	assert(num_blocks_x < NUM_BLOCKS_MAX);
-	const int num_blocks_y = max(1, min(DIVUP(height, ADD_BLOCK_SIZE), \
-				NUM_BLOCKS_MAX));
-	dim3 grid_size(num_blocks_x, num_blocks_y, 1); 
-	dim3 block_size(ADD_BLOCK_SIZE, ADD_BLOCK_SIZE, 1);
+	const int length = width*height;
+
+	const int num_blocks = DIVUP(length, 1024);
+	assert(num_blocks < NUM_BLOCKS_MAX);
 
 	if(direction)
-		kRelu<Dtype><<<grid_size, block_size>>>(this->_data_value, \
-				target->getDevData(), record->getDevData(), width, height);	
+		kRelu<Dtype><<<num_blocks, 1024>>>(this->_data_value, \
+				target->getDevData(), record->getDevData(), length);	
 	else
-		kReluBack<Dtype><<<grid_size, block_size>>>(this->_data_value, \
-				target->getDevData(), record->getDevData(), width, height);	
+		kReluBack<Dtype><<<num_blocks, 1024>>>(this->_data_value, \
+				target->getDevData(), record->getDevData(), length);	
 	cudaThreadSynchronize();
 	cudaCheckError();
 }

@@ -53,12 +53,10 @@ __global__ void kDropout(Dtype* gData, Dtype* target, int* record, \
 		curandState *state, const int width, const int height);
 
 template <typename Dtype>
-__global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int width, \
-		const int height);
+__global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int length);
 
 template <typename Dtype>
-__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, const int width, \
-		const int height);
+__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, const int length);
 
 template <typename Dtype>
 __global__ void kDumbSumCols(Dtype* mat, Dtype* vec, const int width, \

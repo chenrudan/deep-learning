@@ -102,7 +102,7 @@ void Logistic<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx, Matrix<int>* la
 	cudaThreadSynchronize();
 	cudaCheckError();
 
-	dE_dx->showValue("dE_dx");
+//	dE_dx->showValue("dE_dx");
 
 }
 

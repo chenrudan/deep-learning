@@ -133,13 +133,10 @@ __global__ void kDropout(Dtype* gData, Dtype* target, int* record, \
 }
 
 template <typename Dtype>
-__global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int width, \
-		const int height) {
-	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
-	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
-	const int idx = idxY * width + idxX;
+__global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int length) {
+	const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if(idxY < height && idxX < width){
+	if(idx < length){
 		if(gData[idx] > 0){
 			target[idx] = gData[idx];
 			record[idx] = 1;
@@ -150,13 +147,10 @@ __global__ void kRelu(Dtype* gData, Dtype* target, int* record, const int width,
 	}
 }
 template <typename Dtype>
-__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, const int width, \
-		const int height) {
-	const int idxY = blockIdx.y * blockDim.y + threadIdx.y;
-	const int idxX = blockIdx.x * blockDim.x + threadIdx.x;
-	const int idx = idxY * width + idxX;
+__global__ void kReluBack(Dtype* gData, Dtype* target, int* record, const int length) {
+	const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if(idxY < height && idxX < width){
+	if(idx < length){
 		if(record[idx] == 1){
 			target[idx] = gData[idx];
 		}else{
