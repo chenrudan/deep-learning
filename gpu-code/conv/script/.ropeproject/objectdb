@@ -3,18 +3,18 @@ ScopeInfo
 q)q}qUinstanceqUdefinedqU/usr/lib/python2.7/os.pyU_Environq‡†…Ubuiltinq	UiterUnone…q
 ‡s}q†bsU/usr/lib/python2.7/os.py}qU_Environ.copyh)q}qhhU/usr/lib/python2.7/os.pyh‡†…(h	Udicth
 h
-ts}q†bsU'/usr/share/pyshared/PIL/ImagePalette.py}qUrawh)q}qUunknown…qh†hhU'/usr/share/pyshared/PIL/ImagePalette.pyUImagePalette‡†s}q†bsU /usr/share/pyshared/PIL/Image.py}q(U
-frombufferh)q}q(h(h	Utupleqh
+ts}q†bsUDIC_img_tools.pyq}qUgetFilesAndLabelOfDirh)q}qUbuiltinUstr†…UbuiltinqUlistqhhUnone…‡‡s}q†bsU /usr/share/pyshared/PIL/Image.py}q(U
+frombufferh)q}q(Uunknown…q(h	Utupleqh
 h
-thUbuiltinUstr†qhUunknown…qhthhU /usr/share/pyshared/PIL/Image.pyUImageq‡†s}q†bU
-fromstringh)q}q(h(h	hh
+thUbuiltinUstr†qhUunknown…qhthhU /usr/share/pyshared/PIL/Image.pyUImageq‡†s}q†bU
+fromstringh)q }q!(h(h	hh
 h
-thhhthhU /usr/share/pyshared/PIL/Image.pyh‡†s}q†bUImage.resizeh)q }q!hhU /usr/share/pyshared/PIL/Image.pyh‡†hh‡hhU /usr/share/pyshared/PIL/Image.pyh‡†s}q"†bU	fromarrayh)q#}q$(hh
-†hhU /usr/share/pyshared/PIL/Image.pyh‡†h
+thhhthhU /usr/share/pyshared/PIL/Image.pyh‡†s}q"†bUImage.resizeh)q#}q$hhU /usr/share/pyshared/PIL/Image.pyh‡†hh‡hhU /usr/share/pyshared/PIL/Image.pyh‡†s}q%†bU	fromarrayh)q&}q'(hh
+†hhU /usr/share/pyshared/PIL/Image.pyh‡†h
 h
-†hhU /usr/share/pyshared/PIL/Image.pyh‡†u}q%†bUnewh)q&}q'(UbuiltinUstr†(UbuiltinUtupleUunknown…q(h(th(‡UinstanceUdefinedU /usr/share/pyshared/PIL/Image.pyUImage‡†h(h	hh
+†hhU /usr/share/pyshared/PIL/Image.pyh‡†u}q(†bUnewh)q)}q*(UbuiltinUstr†(UbuiltinUtupleUunknown…q+h+th+‡UinstanceUdefinedU /usr/share/pyshared/PIL/Image.pyUImage‡†h(h	hh
 h
 th
-‡hhU /usr/share/pyshared/PIL/Image.pyh‡†u}q)†bU
-Image._newh)q*}q+(hhU /usr/share/pyshared/PIL/Image.pyh‡†h
-†hhU /usr/share/pyshared/PIL/Image.pyh‡†hhU /usr/share/pyshared/PIL/Image.pyh‡†h†hhU /usr/share/pyshared/PIL/Image.pyh‡†u}q,†buUDIC_img_tools.pyq-}q.UgetFilesAndLabelOfDirh)q/}q0UbuiltinUstr†…Ubuiltinq1Ulistq2h1h2Unone…‡‡s}q3†bsu.
+‡hhU /usr/share/pyshared/PIL/Image.pyh‡†u}q,†bU
+Image._newh)q-}q.(hhU /usr/share/pyshared/PIL/Image.pyh‡†h
+†hhU /usr/share/pyshared/PIL/Image.pyh‡†hhU /usr/share/pyshared/PIL/Image.pyh‡†h†hhU /usr/share/pyshared/PIL/Image.pyh‡†u}q/†buU'/usr/share/pyshared/PIL/ImagePalette.py}q0Urawh)q1}q2hh†hhU'/usr/share/pyshared/PIL/ImagePalette.pyUImagePalette‡†s}q3†bsu.

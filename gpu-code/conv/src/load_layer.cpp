@@ -436,7 +436,7 @@ LoadDIC<Dtype>::LoadDIC(int minibatch_size){
 	this->_is_base_alloc = false;
 
 	_train_file = "../data/DIC_train_data_augmentation.bin";
-	_valid_file = "../data/DIC_valid_data_augmentation.bin";
+	_valid_file = "../data/DIC_valid_data.bin";
 
 	ifstream _fin1, _fin2;
 	_fin1.open(_train_file.c_str(), ifstream::binary);
@@ -466,6 +466,8 @@ LoadDIC<Dtype>::LoadDIC(int minibatch_size){
 
 	this->_train_pixel = new Dtype[minibatch_size*this->_img_sqrt*this->_img_channel];
 	this->_train_label = new int[minibatch_size];
+	this->_valid_pixel = new Dtype[minibatch_size*this->_img_sqrt*this->_img_channel];
+	this->_valid_label = new int[minibatch_size];
 
 	_fin1.close();
 	_fin2.close();
@@ -475,6 +477,8 @@ template <typename Dtype>
 LoadDIC<Dtype>::~LoadDIC(){
 	delete[] this->_train_pixel;
 	delete[] this->_train_label;
+	delete[] this->_valid_pixel;
+	delete[] this->_valid_label;
 }
 
 template <typename Dtype>
@@ -491,10 +495,10 @@ template <typename Dtype>
 void LoadDIC<Dtype>::loadValidOneBatch(int batch_idx, \
 		int num_process, int pid, Dtype* &mini_pixel, \
 		int* &mini_label){
-	loadBinary(_valid_file, this->_train_pixel, this->_train_label, \
+	loadBinary(_valid_file, this->_valid_pixel, this->_valid_label, \
 			batch_idx, num_process, pid);
-	mini_pixel = this->_train_pixel;
-	mini_label = this->_train_label;
+	mini_pixel = this->_valid_pixel;
+	mini_label = this->_valid_label;
 }
 
 

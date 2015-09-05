@@ -102,6 +102,11 @@ void TrainClassification<Dtype>::train() {
 		this->_likelihood = 0;
 		this->_error = 0;
 
+		Logistic<Dtype> *last_layer = dynamic_cast<Logistic<Dtype>* >( \
+					this->_model_component->_layers[this->_model_component->_num_layers-1]);
+		last_layer->setRecordToZero();
+
+
 		for(int batch_idx = 0; batch_idx < this->_model_component->_num_train_batch; \
 				batch_idx++){
 			if((epoch_idx == this->_model_component->_num_epoch - 1 \
@@ -116,10 +121,11 @@ void TrainClassification<Dtype>::train() {
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
 			this->_model_component->_send_recv_label[0]->dataFrom();
 
+			/*
 			if(batch_idx == this->_model_component->_num_train_batch-1){
 				this->_model_component->_mini_data[0]->savePars("snapshot/input_snap/mini_data.bin");
 				this->_model_component->_mini_label[0]->savePars("snapshot/input_snap/mini_label.bin");
-			}
+			}*/
 
 			this->forwardPropagate();
 			forwardLastLayer();
@@ -145,6 +151,8 @@ void TrainClassification<Dtype>::train() {
 				cout << "classification training accuarcy: " << 1-(float)this->_error/ \
 					(this->_model_component->_num_train_batch \
 					 *this->_model_component->getMinibatchSize()) << endl;
+				Matrix<int>* train_record = last_layer->getResultRecord();
+				train_record->showValue("train record");
 
 				this->_likelihood = 0;
 				this->_error = 0;
@@ -152,9 +160,7 @@ void TrainClassification<Dtype>::train() {
 				this->_model_component->_y_for_worker[0] = this->_model_component->_mini_data[1];
 				this->_model_component->_mini_label_for_compute \
 						= this->_model_component->_mini_label[1];
-
-				Logistic<Dtype> *last_layer = dynamic_cast<Logistic<Dtype>* >( \
-						this->_model_component->_layers[this->_model_component->_num_layers-1]);
+				
 				last_layer->setRecordToZero();
 				
 				for(int valid_idx = 0; \
@@ -172,6 +178,8 @@ void TrainClassification<Dtype>::train() {
 					this->_model_component->_send_recv_pixel[1]->dataFrom();
 					this->_model_component->_send_recv_label[1]->dataFrom();
 
+					this->_model_component->_mini_data[1]->savePars("snapshot/input_snap/mini_data.bin");
+					this->_model_component->_mini_label[1]->savePars("snapshot/input_snap/mini_label.bin");
 					this->forwardPropagate();
 					forwardLastLayer();
 
@@ -187,12 +195,12 @@ void TrainClassification<Dtype>::train() {
 		
 			}
 		}
-/*
-		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
-				this->_model_component->_w[i]->showValue( \
-						this->_model_component->_layers_need_train_param[i]->getName()+"_w");
-		}
-*/
+
+	//	for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
+	//			this->_model_component->_w[i]->showValue( \
+	//					this->_model_component->_layers_need_train_param[i]->getName()+"_w");
+	//	}
+
 //		if(this->_is_stop == false)
 //			earlyStopping(epoch_idx);
 

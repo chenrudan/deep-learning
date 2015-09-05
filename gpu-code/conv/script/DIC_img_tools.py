@@ -106,9 +106,9 @@ def convertDICimgToBinary():
     DIC_train_save = open('DIC_train_data.bin', 'w')
     DIC_valid_save = open('DIC_valid_data.bin', 'w')
 
-    packed_train_data = struct.pack('i', len(img_absolute_path)*num_trans \
-                                    -num_valid_each_class*num_class*num_trans)
-    packed_valid_data = struct.pack('i', num_valid_each_class*num_class*num_trans)
+    packed_train_data = struct.pack('i', num_trans*(len(img_absolute_path) \
+                                    -num_valid_each_class*num_class))
+    packed_valid_data = struct.pack('i', num_valid_each_class*num_class)
 
     packed_train_data = packed_train_data + struct.pack('iii', img_channel, \
                                     img_absolute_width, img_absolute_height)
@@ -123,6 +123,8 @@ def convertDICimgToBinary():
     train_list = []
     valid_list = []
 
+    num_trans = 1
+
     for i in range(0, len(img_absolute_path)):
  #   for i in range(0, 30):
         print img_absolute_path[i]
@@ -130,6 +132,11 @@ def convertDICimgToBinary():
 
         print 'this image id is: ' + str(i)
         print 'this image label is: ' + str(img_labels[i])
+
+        #需要保存的是valid集，不扩大数据集
+        if img_labels[i] != last_label:
+            num_trans = 1
+
         for j in range(0, num_trans):
             img_trans = transformImg(img, j)
 
@@ -162,32 +169,32 @@ def convertDICimgToBinary():
 
             if img_labels[i] == last_label and save_valid_time < 2:
                 valid_list.append(tmp)
-                print "valid image idx: " + str(i) + "      transform idx: " + str(j)
-                if j == 19:
-                    save_valid_time = save_valid_time + 1
+                print "valid image idx: " + str(i) + "  transform idx: " + str(j)
+                save_valid_time = save_valid_time + 1
             else:
-                print "train image idx: " + str(i) + "      transform idx: " + str(j)
+                print "train image idx: " + str(i) + "  transform idx: " + str(j)
                 train_list.append(tmp)
+
+            #要保存训练集，需要对数据集进行扩大
+            if save_valid_time == 2:
+                num_trans = 20
+
 
 
     print len(train_list)
     print len(valid_list)
-  #  print valid_list
 
     random.shuffle(train_list)
-    random.shuffle(valid_list)
-#    print train_list
 
-
-    for i in range(0, num_valid_each_class*num_trans*num_class):
+    for i in range(0, num_valid_each_class*num_class):
         packed_valid_data = packedLabelAndPixel(packed_valid_data, \
                         valid_list[i][0], array_len, valid_list[i][1])
         if len(packed_valid_data) > 268000000:
             DIC_valid_save.write(packed_valid_data)
             packed_valid_data = ''
 
-    for i in range(0, num_trans*len(img_absolute_path) \
-                   - num_valid_each_class*num_trans*num_class):
+    for i in range(0, num_trans*(len(img_absolute_path) \
+                   - num_valid_each_class*num_class)):
         packed_train_data = packedLabelAndPixel(packed_train_data, \
                         train_list[i][0], array_len, train_list[i][1])
         if len(packed_train_data) > 268000000:
