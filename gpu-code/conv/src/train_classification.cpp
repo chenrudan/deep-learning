@@ -196,10 +196,15 @@ void TrainClassification<Dtype>::train() {
 			}
 		}
 
-	//	for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
-	//			this->_model_component->_w[i]->showValue( \
-	//					this->_model_component->_layers_need_train_param[i]->getName()+"_w");
-	//	}
+		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
+			if(i==3){
+			//	this->_model_component->_w[i]->showValue( \
+						this->_model_component->_layers_need_train_param[i]->getName()+"_w");
+				this->_model_component->_y_needed_train[i]->showValue( \
+						this->_model_component->_layers_need_train_param[i]->getName()+"_y");
+
+			}
+		}
 
 //		if(this->_is_stop == false)
 //			earlyStopping(epoch_idx);
