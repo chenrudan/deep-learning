@@ -55,7 +55,9 @@ public:
 		const int num_test, const int img_size, const int img_channel);
 	virtual ~LoadLayer();
 
-	virtual void loadBinary(string filename, Dtype* &pixel_ptr, int* &label_ptr) {}
+	virtual void loadBinary(string filenmae, Dtype* pixel_ptr, \
+		int* label_ptr, int batch_idx, \
+		int num_process, int pid) {}
 
 	void meanOneImg(Dtype* pixel_ptr, int process_len);
 	void stdOneImg(Dtype* pixel_ptr, int process_len);
@@ -158,6 +160,7 @@ public:
 
 	~LoadCifar10() {}
 
+	using LoadLayer<Dtype>::loadBinary;
 	void loadBinary(string filename, Dtype* &pixel_ptr, int* &label_ptr);
 	void loadTrainOneBatch(int batch_idx, int num_process, int pid, \
 				Dtype* &mini_pixel, int* &mini_label);
@@ -211,11 +214,10 @@ template <typename Dtype>
 class LoadDIC : public LoadLayer<Dtype> {
 
 public: 
-	LoadDIC(int minibatch);
+	LoadDIC(int minibatch, string train_file, string valid_file);
 
 	~LoadDIC();
 
-	using LoadLayer<Dtype>::loadBinary;
 	void loadBinary(string filenmae, Dtype* pixel_ptr, \
 		int* label_ptr, int batch_idx, \
 		int num_process, int pid);
@@ -227,12 +229,32 @@ public:
 		int num_process, int pid, Dtype* &mini_pixel, \
 		int* &mini_label);
 
-private:
+protected:
 	int _minibatch_size;
 	string _train_file;
 	string _valid_file;
 
 };
+
+template <typename Dtype>
+class LoadDICSegment : public LoadDIC<Dtype> {
+
+public: 
+	LoadDICSegment(int minibatch, string train_file, string valid_file) \
+		: LoadDIC<Dtype>(minibatch, train_file, valid_file) {}
+
+	~LoadDICSegment() {}
+
+	void loadBinary(string filenmae, Dtype* pixel_ptr, \
+		int* label_ptr, int batch_idx, \
+		int num_process, int pid);
+private:
+	int* _ori_img_label;
+	int* _ori_img_idx;
+	
+};
+
+
 
 
 

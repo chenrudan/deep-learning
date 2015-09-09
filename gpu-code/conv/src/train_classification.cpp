@@ -13,7 +13,7 @@ using namespace std;
 template <typename Dtype>
 void TrainClassification<Dtype>::createPixelAndLabel(){
 	int times = 0;
-	if (this->_model_component->_pid == 0) 
+	if (this->_model_component->_pid == this->_model_component->_master_pid) 
 		times = (this->_model_component->_num_process - 1);
 	else
 		times = 1;
@@ -27,13 +27,15 @@ void TrainClassification<Dtype>::createPixelAndLabel(){
 }
 
 template <typename Dtype>
-void TrainClassification<Dtype>::parseImgBinary(int num_process){
+void TrainClassification<Dtype>::parseImgBinary(int num_process, \
+		string train_file, string valid_file){
 	this->_model_component->_num_process = num_process;
 
 	if(this->_model_component->_pid == this->_model_component->_master_pid){
-		this->_load_layer = new LoadDIC<Dtype>(this->_model_component->_minibatch_size);
+		this->_load_layer = new LoadDICSegment<Dtype>(this->_model_component->_minibatch_size, \
+				train_file, valid_file);
 	}
-	TrainModel<Dtype>::parseImgBinary(num_process);
+	TrainModel<Dtype>::parseImgBinary(num_process, train_file, valid_file);
 }
 
 template <typename Dtype>
@@ -61,7 +63,7 @@ void TrainClassification<Dtype>::createMPIDist() {
 	TrainModel<Dtype>::createMPIDist();
 
 	int num_trans;
-	if(this->_model_component->_pid == 0)
+	if(this->_model_component->_pid == this->_model_component->_master_pid)
 		num_trans = this->_model_component->_num_process - 1;
 	else
 		num_trans = 1;
@@ -72,7 +74,7 @@ void TrainClassification<Dtype>::createMPIDist() {
 
 	for(int i = 0; i < num_trans; i++){
 		int trans_pid = 0;
-		if(this->_model_component->_pid == 0)
+		if(this->_model_component->_pid == this->_model_component->_master_pid)
 			trans_pid = i+1;
 
 		send_label[i*2] = new MPIDistribute<int>( \
@@ -121,12 +123,13 @@ void TrainClassification<Dtype>::train() {
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
 			this->_model_component->_send_recv_label[0]->dataFrom();
 
-			/*
+	/*	
+			this->_model_component->_mini_data[0]->showValue("minidata");
 			if(batch_idx == this->_model_component->_num_train_batch-1){
 				this->_model_component->_mini_data[0]->savePars("snapshot/input_snap/mini_data.bin");
 				this->_model_component->_mini_label[0]->savePars("snapshot/input_snap/mini_label.bin");
-			}*/
-
+			}
+*/
 			this->forwardPropagate();
 			forwardLastLayer();
 			backwardLastLayer();
@@ -178,8 +181,8 @@ void TrainClassification<Dtype>::train() {
 					this->_model_component->_send_recv_pixel[1]->dataFrom();
 					this->_model_component->_send_recv_label[1]->dataFrom();
 
-					this->_model_component->_mini_data[1]->savePars("snapshot/input_snap/mini_data.bin");
-					this->_model_component->_mini_label[1]->savePars("snapshot/input_snap/mini_label.bin");
+			//		this->_model_component->_mini_data[1]->savePars("snapshot/input_snap/mini_data.bin");
+			//		this->_model_component->_mini_label[1]->savePars("snapshot/input_snap/mini_label.bin");
 					this->forwardPropagate();
 					forwardLastLayer();
 
@@ -197,25 +200,26 @@ void TrainClassification<Dtype>::train() {
 		}
 
 		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
-			if(i==3){
-			//	this->_model_component->_w[i]->showValue( \
+			if(true){
+				this->_model_component->_w[i]->showValue( \
 						this->_model_component->_layers_need_train_param[i]->getName()+"_w");
-				this->_model_component->_y_needed_train[i]->showValue( \
+	//			this->_model_component->_y_needed_train[i]->showValue( \
 						this->_model_component->_layers_need_train_param[i]->getName()+"_y");
 
 			}
 		}
+		
 
 //		if(this->_is_stop == false)
 //			earlyStopping(epoch_idx);
 
-/*		if((epoch_idx+1) % 5 == 0 ){
+		if((epoch_idx+1) == 10 ){
 			for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
 				dynamic_cast<TrainParam*>( \
-					this->_model_component->_layers_need_train_param[i])->lrMultiScale(0.8);
+					this->_model_component->_layers_need_train_param[i])->lrMultiScale(0.1);
 			}
 		}
-*/
+
 		if(this->_model_component->_pid == 1){
 			t = clock() - t;
 			cout << ((float)t/CLOCKS_PER_SEC) << "s.\n";
@@ -244,15 +248,21 @@ void TrainClassification<Dtype>::sendAndRecvForManager() {
 			int pid = tid / 2 + 1 + this->_model_component->_master_pid;   //计算出对应的进程ID
 			int type_id = tid % 2;   //计算是train还是valid
 			do{
-				if(type_id == 0)
-					this->_load_layer->loadTrainOneBatch(this->_model_component->_send_recv_pixel[tid]->getFlag()+1, \
-								num_trans, pid-1, h_mini_pixel, h_mini_label);
+				if(type_id == this->_model_component->_master_pid)
+					this->_load_layer->loadTrainOneBatch( \
+						this->_model_component->_send_recv_pixel[tid]->getFlag()+1, \
+						num_trans, pid-1-this->_model_component->_master_pid, \
+						h_mini_pixel, h_mini_label);
 				else
-					this->_load_layer->loadValidOneBatch(this->_model_component->_send_recv_pixel[tid]->getFlag()+1, \
-								num_trans, pid-1, h_mini_pixel, h_mini_label);
+					this->_load_layer->loadValidOneBatch( \
+						this->_model_component->_send_recv_pixel[tid]->getFlag()+1, \
+						num_trans, pid-1-this->_model_component->_master_pid, \
+						h_mini_pixel, h_mini_label);
 				
-				this->_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, pixel_len);
-				this->_model_component->_mini_label[tid]->copyFromHost(h_mini_label, label_len);
+				this->_model_component->_mini_data[tid]->copyFromHost(h_mini_pixel, \
+						pixel_len);
+				this->_model_component->_mini_label[tid]->copyFromHost(h_mini_label, \
+						label_len);
 
 				this->_model_component->_send_recv_pixel[tid]->receviceFlag();
 				this->_model_component->_send_recv_label[tid]->setFlag( \
@@ -260,7 +270,7 @@ void TrainClassification<Dtype>::sendAndRecvForManager() {
 				this->_model_component->_send_recv_pixel[tid]->dataTo();
 				this->_model_component->_send_recv_label[tid]->dataTo();
 
-				if(type_id == 0){
+				if(type_id == this->_model_component->_master_pid){
 				   if(this->_model_component->_send_recv_pixel[tid]->getFlag() \
 						== this->_model_component->_num_train_batch-1){
 					this->_model_component->_send_recv_pixel[tid]->setFlag(-1);
@@ -273,14 +283,16 @@ void TrainClassification<Dtype>::sendAndRecvForManager() {
 						this->_model_component->_send_recv_label[tid]->setFlag(-1);
 					}
 				}
-			}while(this->_model_component->_send_recv_pixel[tid]->getFlag() != PROCESS_END);
+			}while(this->_model_component->_send_recv_pixel[tid]->getFlag() \
+					!= PROCESS_END);
 
 		}else{
 			tid -= 2*num_trans;
 
 			do{
 				this->_model_component->_send_recv_w[tid]->receviceFlag();
-				this->_model_component->_send_recv_bias[tid]->setFlag(this->_model_component->_send_recv_w[tid]->getFlag());
+				this->_model_component->_send_recv_bias[tid]->setFlag( \
+						this->_model_component->_send_recv_w[tid]->getFlag());
 				//偶数是子进程向0号请求，奇数是子进程发送给0号
 				if(this->_model_component->_send_recv_w[tid]->getFlag() % 2 == 0){
 					this->_model_component->_send_recv_w[tid]->dataTo();
@@ -289,7 +301,8 @@ void TrainClassification<Dtype>::sendAndRecvForManager() {
 					this->_model_component->_send_recv_w[tid]->dataFrom();
 					this->_model_component->_send_recv_bias[tid]->dataFrom();
 				}
-			}while(this->_model_component->_send_recv_w[tid]->getFlag() != PROCESS_END);
+			}while(this->_model_component->_send_recv_w[tid]->getFlag() \
+					!= PROCESS_END);
 		}
 	}
 }	

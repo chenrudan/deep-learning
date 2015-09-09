@@ -35,7 +35,7 @@ TrainModel<Dtype>::~TrainModel() {
 }
 
 template <typename Dtype>
-void TrainModel<Dtype>::parseImgBinary(int num_process){
+void TrainModel<Dtype>::parseImgBinary(int num_process, string train_file, string valid_file){
 
 	if(_model_component->_pid == _model_component->_master_pid){
 		_model_component->_num_train = _load_layer->getNumTrain();
@@ -62,11 +62,11 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 		}
 	}else{
 		MPIDistribute<int> *recv_train = new MPIDistribute<int>(1, \
-				_model_component->_pid, 0, MPI_INT, \
+				_model_component->_pid, _model_component->_master_pid, MPI_INT, \
 				&_model_component->_num_train_batch);
 		MPIDistribute<int> *recv_valid = new MPIDistribute<int>(1, \
 				_model_component->_pid+num_process, \
-				0, MPI_INT, &_model_component->_num_valid_batch);
+				_model_component->_master_pid, MPI_INT, &_model_component->_num_valid_batch);
 		recv_train->dataFrom();
 		recv_valid->dataFrom();
 		delete recv_train;
@@ -376,20 +376,6 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 		bcast_bias->bcast();
 		delete bcast_w;
 		delete bcast_bias;
-/*
-
-			for(int i = 0; i < _model_component->_num_process-1; i++){
-				_model_component->_send_recv_w[i \
-					*_model_component->_num_need_train_layers+k]->dataTo();
-				_model_component->_send_recv_bias[i \
-					*_model_component->_num_need_train_layers+k]->dataTo();
-			}
-		}else{
-			_model_component->_send_recv_w[(_model_component->_pid-1) \
-				*_model_component->_num_need_train_layers+k]->dataFrom();
-			_model_component->_send_recv_bias[(_model_component->_pid-1) \
-				*_model_component->_num_need_train_layers+k]->dataFrom();
-		}*/
 	}
 }
 

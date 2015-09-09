@@ -77,10 +77,10 @@ int main(int argc, char** argv){
 
 
 	TrainClassification<float> *DIC_model = new TrainClassification<float>(0, pid);
-//	TrainModel<float> *DIC_model = new TrainModel<float>(0, pid);
 
-	DIC_model->parseNetJson("script/DIC.json");
-	DIC_model->parseImgBinary(num_process);
+	DIC_model->parseNetJson("script/DIC_seg_64.json");
+	DIC_model->parseImgBinary(num_process, "../data/DIC_seg_train_320.bin", \
+			"../data/DIC_seg_valid_320.bin");
 
 	if(pid == 0){ 
 		managerNode(DIC_model);

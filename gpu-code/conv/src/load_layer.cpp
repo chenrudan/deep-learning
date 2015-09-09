@@ -431,12 +431,12 @@ void LoadVOC<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
 
 
 template <typename Dtype>
-LoadDIC<Dtype>::LoadDIC(int minibatch_size){
+LoadDIC<Dtype>::LoadDIC(int minibatch_size, string train_file, string valid_file){
 
 	this->_is_base_alloc = false;
 
-	_train_file = "../data/DIC_train_data_augmentation.bin";
-	_valid_file = "../data/DIC_valid_data.bin";
+	_train_file = train_file;
+	_valid_file = valid_file;
 
 	ifstream _fin1, _fin2;
 	_fin1.open(_train_file.c_str(), ifstream::binary);
@@ -453,9 +453,6 @@ LoadDIC<Dtype>::LoadDIC(int minibatch_size){
 	_fin1.read((char*)&this->_img_channel, sizeof(int));
 	_fin1.read((char*)&this->_img_width, sizeof(int));
 	_fin1.read((char*)&this->_img_height, sizeof(int));
-
-	//将valid集偏移到数据的地方统一方法处理
-	_fin2.seekg(3*sizeof(int), _fin2.cur);
 
 	this->_img_sqrt = this->_img_width * this->_img_height;
 
@@ -536,6 +533,37 @@ void LoadDIC<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 }
 
 
+template <typename Dtype>
+void LoadDICSegment<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
+		int* label_ptr, int batch_idx, \
+		int num_process, int pid){
+
+	ifstream fin(filename.c_str(), ifstream::binary);		
+
+	fin.seekg(4*sizeof(int), fin.beg);
+	int offset = batch_idx*num_process*this->_minibatch_size \
+				 + pid*this->_minibatch_size; 
+	//第一个int是对应原图id，第二个int是对应原图label，第三个是seg之后的本图label
+	fin.seekg(sizeof(int)*offset*3 \
+			+ offset*this->_img_channel*this->_img_sqrt*sizeof(Dtype), \
+			fin.cur);
+
+	for(int i = 0; i < this->_minibatch_size; i++){
+		fin.seekg(sizeof(int)*2, fin.cur);
+
+		fin.read((char*)&(label_ptr[i]), sizeof(int));
+
+		//然后是像素数据
+		for(int j = 0; j < this->_img_channel; j++){
+			for(int k = 0; k < this->_img_sqrt; k++){
+				fin.read((char*)&pixel_ptr[k], sizeof(Dtype));
+			}
+			if(i != this->_minibatch_size - 1 || j != this->_img_channel - 1)
+				pixel_ptr += this->_img_sqrt;
+		}
+	}
+	fin.close();
+}
 
 
 

@@ -1,0 +1,137 @@
+{
+	"name": "CIFAR10net",
+	"minibatch_size": 10,
+	"n_push": 200,
+	"n_fetch": 201,
+	"num_epoch": 300,
+	"img_height": 320,
+	"img_width": 320,
+	"img_channel": 1,
+	"layer":
+	[
+		{
+			"type": "CONVOLUTION",
+			"name": "conv1",
+			"pad_height": 2,
+			"pad_width": 2,
+			"stride_height": 1,
+			"stride_width": 1,
+			"filter_height": 5,
+			"filter_width": 5,
+			"filter_channel": 8,
+			"w_lr": 0.01,
+			"bias_lr": 0.02,
+			"momentum": 0.9,
+			"weight_decay": 0,
+			"w_gauss": 0.01
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu1"
+		},
+		{
+			"type": "POOLING",
+			"name": "pool1",
+			"pool_type": "AVG_POOLING",
+			"pad_height": 0,
+			"pad_width": 0,
+			"stride_height": 2,
+			"stride_width": 2,
+			"filter_height": 3,
+			"filter_width": 3
+		},
+		{
+			"type": "CONVOLUTION",
+			"name": "conv2",
+			"pad_height": 2,
+			"pad_width": 2,
+			"stride_height": 1,
+			"stride_width": 1,
+			"filter_height": 5,
+			"filter_width": 5,
+			"filter_channel": 16,
+			"w_lr": 0.01,
+			"bias_lr": 0.02,
+			"momentum": 0.9,
+			"weight_decay": 0,
+			"w_gauss": 0.01
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu2"
+		},
+		{
+			"type": "POOLING",
+			"name": "pool2",
+			"pool_type": "AVG_POOLING",
+			"pad_height": 0,
+			"pad_width": 0,
+			"stride_height": 2,
+			"stride_width": 2,
+			"filter_height": 3,
+			"filter_width": 3
+		},
+		{
+			"type": "CONVOLUTION",
+			"name": "conv3",
+			"pad_height": 2,
+			"pad_width": 2,
+			"stride_height": 1,
+			"stride_width": 1,
+			"filter_height": 5,
+			"filter_width": 5,
+			"filter_channel": 32,
+			"w_lr": 0.01,
+			"bias_lr": 0.02,
+			"momentum": 0.9,
+			"weight_decay": 0,
+			"w_gauss": 0.01
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu3"
+		},
+		{
+			"type": "POOLING",
+			"name": "pool3",
+			"pool_type": "AVG_POOLING",
+			"pad_height": 0,
+			"pad_width": 0,
+			"stride_height": 2,
+			"stride_width": 2,
+			"filter_height": 3,
+			"filter_width": 3
+		},
+		{
+			"type": "INNERPRODUCT",
+			"name": "inner1",
+			"num_out": 256,
+			"w_lr": 0.01,
+			"bias_lr": 0.02,
+			"momentum": 0.9,
+			"weight_decay": 0,
+			"w_gauss": 0.01
+		},
+		{
+			"type": "SIGMOID",
+			"name": "relu6"
+		},
+		{
+			"type": "INNERPRODUCT",
+			"name": "inner3",
+			"num_out": 4,
+			"w_lr": 0.01,
+			"bias_lr": 0.02,
+			"momentum": 0.9,
+			"weight_decay": 0,
+			"w_gauss": 0.01
+		},
+		{
+			"type": "SOFTMAX",
+			"name": "softmax"
+		}
+
+	]
+}
+
+

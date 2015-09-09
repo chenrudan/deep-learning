@@ -21,7 +21,7 @@ public:
     ~TrainClassification() {}
 
     void createPixelAndLabel();
-	void parseImgBinary(int num_process);
+	void parseImgBinary(int num_process, string train_file, string valid_file);
 
 	void forwardLastLayer();
 	void backwardLastLayer();

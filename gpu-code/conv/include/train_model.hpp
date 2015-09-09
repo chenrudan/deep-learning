@@ -34,7 +34,7 @@ public:
     TrainModel(const int master_pid, const int pid);
     virtual ~TrainModel();
 
-    virtual void parseImgBinary(int num_process);
+    virtual void parseImgBinary(int num_process, string train_file, string valid_file);
     void parseNetJson(string json_file);
 
     void createLayerForWorker();
