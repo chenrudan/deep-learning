@@ -31,7 +31,7 @@ void managerNode(TrainClassification<float> *model){
 	cout << "CPU number: " << omp_get_num_procs() << endl;  
 }
 
-void detectionNode(TrainClassification<float> *model){
+void classifyNode(TrainClassification<float> *model){
 
 	cout << "Initialize layers...\n";
 
@@ -75,21 +75,33 @@ int main(int argc, char** argv){
 	cudaGetDeviceCount(&num_gpu);
 	cudaSetDevice(pid % num_gpu);
 
+	int num_network = num_process/2;
+	TrainClassification<float> *DIC_model[num_network];
 
-	TrainClassification<float> *DIC_model = new TrainClassification<float>(0, pid);
+	string network_json[] = {"script/DIC_seg_32.json", "script/DIC_seg_64.json", \
+					"script/DIC_seg_96.json", "script/DIC_seg_160.json", \
+					"script/DIC_seg_320.json"};
+	string train_file[] = {"../data/DIC_seg_train_32.bin", "../data/DIC_seg_train_64.bin", \
+					"../data/DIC_seg_train_96.json", "script/DIC_seg_train_160.json", \
+					"../data/DIC_seg_train_320.json"};
+	string valid_file[] = {"../data/DIC_seg_valid_32.bin", "../data/DIC_seg_valid_64.bin", \
+					"../data/DIC_seg_valid_96.json", "script/DIC_seg_valid_160.json", \
+					"../data/DIC_seg_valid_320.json"};
 
-	DIC_model->parseNetJson("script/DIC_seg_64.json");
-	DIC_model->parseImgBinary(num_process, "../data/DIC_seg_train_320.bin", \
-			"../data/DIC_seg_valid_320.bin");
+	DIC_model[pid/2] = new TrainClassification<float>((pid/2)*2, pid);
+	cout << network_json << endl;
+	DIC_model[pid/2]->parseNetJson(network_json[pid/2]);
+	DIC_model[pid/2]->parseImgBinary(num_process, train_file[pid/2], valid_file[pid/2]);
 
-	if(pid == 0){ 
-		managerNode(DIC_model);
+	if(pid % 2 == 0){ 
+		managerNode(DIC_model[pid/2]);
 	}   
 	else{
-		detectionNode(DIC_model);
+		classifyNode(DIC_model[pid/2]);
 	}
 	 	
-	delete DIC_model;
+	delete DIC_model[pid/2];
+
 	MPI_Finalize();
 
 

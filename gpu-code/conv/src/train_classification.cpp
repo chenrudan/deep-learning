@@ -199,7 +199,7 @@ void TrainClassification<Dtype>::train() {
 			}
 		}
 
-		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
+/*		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
 			if(true){
 				this->_model_component->_w[i]->showValue( \
 						this->_model_component->_layers_need_train_param[i]->getName()+"_w");
@@ -208,7 +208,7 @@ void TrainClassification<Dtype>::train() {
 
 			}
 		}
-		
+*/		
 
 //		if(this->_is_stop == false)
 //			earlyStopping(epoch_idx);

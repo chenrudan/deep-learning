@@ -4,8 +4,8 @@
 	"n_push": 200,
 	"n_fetch": 201,
 	"num_epoch": 300,
-	"img_height": 320,
-	"img_width": 320,
+	"img_height": 64,
+	"img_width": 64,
 	"img_channel": 1,
 	"layer":
 	[

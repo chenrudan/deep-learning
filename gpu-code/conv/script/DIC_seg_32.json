@@ -19,8 +19,8 @@
 			"filter_height": 5,
 			"filter_width": 5,
 			"filter_channel": 8,
-			"w_lr": 0.001,
-			"bias_lr": 0.002,
+			"w_lr": 0.01,
+			"bias_lr": 0.02,
 			"momentum": 0.9,
 			"weight_decay": 0,
 			"w_gauss": 0.01
@@ -115,6 +115,10 @@
 		{
 			"type": "SIGMOID",
 			"name": "relu6"
+		},
+		{
+			"type": "DROPOUT",
+			"name": "drop1"
 		},
 		{
 			"type": "INNERPRODUCT",
