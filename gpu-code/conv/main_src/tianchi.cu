@@ -8,7 +8,7 @@
 #include <cmath>
 #include <omp.h>
 #include "mpi.h"
-#include "train_classification.hpp"
+#include "train_recommendation.hpp"
 #include "convnet.hpp"
 
 using namespace std;
@@ -76,11 +76,10 @@ int main(int argc, char** argv){
 	cudaSetDevice(pid % num_gpu);
 
 
-	TrainClassification<float> *voc_model = new TrainClassification<float>(0, pid);
-//	TrainModel<float> *voc_model = new TrainModel<float>(0, pid);
+	TrainRecommendation<float> *voc_model = new TrainRecommendation<float>(0, pid);
 
-	voc_model->parseNetJson("script/cifar10.json");
-	voc_model->parseImgBinary(num_process, "", "");
+	voc_model->parseNetJson("script/tianchi.json");
+	voc_model->parseImgBinary(num_process, "../data/tianchi_img.bin", "../data/dim_fashion_matches.bin");
 
 	if(pid == 0){ 
 		managerNode(voc_model);

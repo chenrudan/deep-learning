@@ -42,6 +42,19 @@ void gaussRand(Matrix<float>* nvMat, float var, float mean){
 	delete a;
 }
 
+void gaussRand(float *w, int length, float var, float mean){
+	// std::default_random_engine generator;
+	//  std::normal_distribution<float> distribution(mean, var);
+
+	for(int i = 0; i < length; i++){
+		//        float k = distribution(generator);
+		if(var == 0)
+			w[i] = 0.0f;
+		else
+			w[i] = gaussGen(var, mean); 
+	} 
+}
+
 float gaussGen(float var, float mean)
 {
 	static float V1, V2, S;

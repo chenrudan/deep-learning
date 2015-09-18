@@ -32,8 +32,9 @@ void TrainClassification<Dtype>::parseImgBinary(int num_process, \
 	this->_model_component->_num_process = num_process;
 
 	if(this->_model_component->_pid == this->_model_component->_master_pid){
-		this->_load_layer = new LoadDICSegment<Dtype>(this->_model_component->_minibatch_size, \
+	//	this->_load_layer = new LoadDICSegment<Dtype>(this->_model_component->_minibatch_size, \
 				train_file, valid_file);
+		this->_load_layer = new LoadCifar10<Dtype>(this->_model_component->_minibatch_size);
 	}
 	TrainModel<Dtype>::parseImgBinary(num_process, train_file, valid_file);
 }

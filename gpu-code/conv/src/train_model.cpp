@@ -16,6 +16,7 @@
 #include "pooling_layer.hpp"
 #include "dropout_layer.hpp"
 #include "predict_object_layer.hpp"
+#include "recommendation_layer.hpp"
 
 using namespace std;
 
@@ -188,6 +189,10 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 				param = new FullConnectParam( \
 						_model_component->_string_map_layertype[layer_type], \
 						name, 0, _model_component->_layers_param.back());
+			} else if(layer_type == "RECOMMENDATION"){
+				param = new FullConnectParam( \
+						_model_component->_string_map_layertype[layer_type], \
+						name, num_out, _model_component->_layers_param.back());
 			}
 			if(_model_component->_pid == _model_component->_master_pid + 1)
 				param->printParam();
@@ -233,6 +238,8 @@ void TrainModel<Dtype>::createLayerForWorker(){
 				layer = new InnerProductLayer<Dtype>(dynamic_cast<InnerParam*>(fcp));
 			} else if (param->getLayerType() == PREDICTOBJECT ) {
 				layer = new PredictObjectLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
+			} else if (param->getLayerType() == RECOMMENDATION ) {
+				layer = new RecommendationLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
 			}
 		}catch(int e){
 			cout << "dynamic point is null\n";
@@ -381,7 +388,7 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 
 template <typename Dtype>
 void TrainModel<Dtype>::forwardPropagate(){
-	for (int k = 0; k < _model_component->_num_layers-1; ++k) {
+	for (int k = 0; k < _model_component->_num_layers-2; ++k) {
 		_model_component->_layers[k]->computeOutput(\
 				_model_component->_y_for_worker[k]);
 	}

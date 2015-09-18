@@ -9,38 +9,12 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
+#include<map>
 #include<stdlib.h>
 
 #define MAX_OBJECT_NUM 24
 
 using namespace std;
-
-/// \brief 数据的基本保存单元，一张图片会产生这样的一个对象，但是数据不是它们读取的，它们只保存指针
-template <typename Dtype>
-class ImgData {
-
-public:
-	ImgData() {}
-	ImgData(Dtype* pixel, int* label, const int pixel_len) \
-		: _pixel(pixel), _label(label), _pixel_len(pixel_len) {}
-	~ImgData() {}
-
-
-	Dtype* getPixel(){
-		return _pixel;
-	}
-	int* getLabel(){
-		return _label;
-	}
-
-	void swap(const ImgData&);
-protected:
-	int _pixel_len;
-	Dtype* _pixel;
-	int* _label;
-};
-
-
 
 /// \brief 执行下载数据行为的类
 ///
@@ -128,26 +102,6 @@ protected:
 
 	bool _is_base_alloc;
 
-};
-
-
-template <typename Dtype>
-class LoadParticle : public LoadLayer<Dtype> {
-
-public:
-	LoadParticle();
-	~LoadParticle();
-
-	using LoadLayer<Dtype>::loadBinary;
-	void loadBinary(string filename, Dtype* &pixel_ptr, \
-			int* &label_ptr, int fixed_label);
-	void shuffleComb();
-
-private:
-
-	Dtype* _all_pixel, *_all_pixel_ptr;
-	int* _all_label, *_all_label_ptr;
-	vector<ImgData<Dtype> > _all_comb;
 };
 
 
@@ -255,6 +209,35 @@ private:
 };
 
 
+template <typename Dtype>
+class LoadTianchi : public LoadLayer<Dtype> {
+
+public: 
+	//img_file内是所有图片，matches分成训练集和验证集，后续加入测试集
+	LoadTianchi(int minibatch, string img_file, string matches);
+
+	~LoadTianchi();
+
+	void loadBinary(string filenmae, Dtype* pixel_ptr, \
+		int* label_ptr, int batch_idx, \
+		int num_process, int pid);
+	
+	void loadTrainOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label);
+	void loadValidOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label);
+
+protected:
+	int _minibatch_size;
+	string _img_file;
+	string _matches_file;
+	map<int, int> _img_idx_pos;
+	int _num_matches_train;
+	int _num_matches_valid;
+	int _matches_batch_size;
+};
 
 
 

@@ -4,8 +4,8 @@
 	"n_push": 200,
 	"n_fetch": 201,
 	"num_epoch": 300,
-	"img_height": 32,
-	"img_width": 32,
+	"img_height": 160,
+	"img_width": 160,
 	"img_channel": 3,
 	"layer":
 	[
@@ -14,11 +14,11 @@
 			"name": "conv1",
 			"pad_height": 2,
 			"pad_width": 2,
-			"stride_height": 1,
-			"stride_width": 1,
+			"stride_height": 2,
+			"stride_width": 2,
 			"filter_height": 5,
 			"filter_width": 5,
-			"filter_channel": 16,
+			"filter_channel": 8,
 			"w_lr": 0.001,
 			"bias_lr": 0.002,
 			"momentum": 0.9,
@@ -45,16 +45,16 @@
 			"name": "conv2",
 			"pad_height": 2,
 			"pad_width": 2,
-			"stride_height": 1,
-			"stride_width": 1,
+			"stride_height": 2,
+			"stride_width": 2,
 			"filter_height": 5,
 			"filter_width": 5,
-			"filter_channel": 32,
+			"filter_channel": 16,
 			"w_lr": 0.001,
 			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.001
 		},
 		{
 			"type": "RECTIFIED",
@@ -80,12 +80,12 @@
 			"stride_width": 1,
 			"filter_height": 5,
 			"filter_width": 5,
-			"filter_channel": 64,
+			"filter_channel": 32,
 			"w_lr": 0.001,
 			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.001
 		},
 		{
 			"type": "RECTIFIED",
@@ -107,7 +107,7 @@
 			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.001
 		},
 		{
 			"type": "SIGMOID",
@@ -116,16 +116,17 @@
 		{
 			"type": "INNERPRODUCT",
 			"name": "inner2",
-			"num_out": 10,
+			"num_out": 128,
 			"w_lr": 0.001,
 			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0,
-			"w_gauss": 0.01
+			"w_gauss": 0.001
 		},
 		{
-			"type": "SOFTMAX",
-			"name": "softmax"
+			"type": "RECOMMENDATION",
+			"name": "recommend",
+			"num_out": 64
 		}
 
 	]

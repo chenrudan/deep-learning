@@ -19,6 +19,8 @@ void gaussRand(Matrix<float>* nvMat, float var = 1, \
 
 float gaussGen(float var, float mean);
 
+void gaussRand(float *w, int length, float var = 1, float mean = 0);
+
 void readData(Matrix<float>* nvData, string filename, \
             bool isData, int addZerosInFront = 0);
 

@@ -31,6 +31,9 @@ friend class TrainDetection;
 template<typename F>
 friend class TrainClassification;
 
+template<typename G>
+friend class TrainRecommendation;
+
 private:
 
     int _num_process;

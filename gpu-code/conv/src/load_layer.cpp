@@ -11,114 +11,6 @@
 using namespace std;
 
 template <typename Dtype>
-LoadParticle<Dtype>::LoadParticle(){
-
-	this->_is_base_alloc = false;
-
-	ifstream fin1("../data/particle/manual-tutorial-positive-s60-t4-b.bin", \
-			ifstream::binary);
-	ifstream fin2("../data/particle/manual-tutorial-negative-s60-t4-b.bin", \
-			ifstream::binary);
-	int num_pos, num_neg;
-	fin1.read((char*)&num_pos, sizeof(int));
-	fin2.read((char*)&num_neg, sizeof(int));
-	num_neg = 1099;
-	fin1.read((char*)&this->_img_size, sizeof(int));
-
-	this->_img_channel = 1;
-
-	cout << num_pos << ":" << num_neg << ":" << this->_img_size \
-		<< ":" << this->_img_channel << endl;
-
-	this->_num_train = ceil(((num_neg + num_pos) * 9.0) / 10);
-	this->_num_valid = num_neg + num_pos - this->_num_train;
-	this->_img_sqrt = this->_img_size * this->_img_size;
-
-	cout << this->_num_train << ":" << this->_num_valid << endl;
-
-	/// 将全部的数据都读进来，然后再处理
-	_all_pixel = new Dtype[(num_neg + num_pos) * this->_img_sqrt \
-				 * this->_img_channel];
-	_all_label = new int[num_neg + num_pos];
-
-	_all_pixel_ptr = _all_pixel;
-	_all_label_ptr = _all_label;
-
-	fin1.close();
-	fin2.close();
-
-	loadBinary("../data/particle/manual-tutorial-positive-s60-t4-b.bin", \
-			_all_pixel_ptr, _all_label_ptr, 1);
-	loadBinary("../data/particle/manual-tutorial-negative-s60-t4-b.bin", \
-			_all_pixel_ptr, _all_label_ptr, 0);
-
-	shuffleComb();
-
-	this->_train_pixel = _all_comb[0].getPixel();
-	this->_train_label = _all_comb[0].getLabel();
-	this->_valid_pixel = _all_comb[this->_num_train].getPixel();
-	this->_valid_label = _all_comb[this->_num_train].getLabel();
-
-}
-
-template <typename Dtype>
-void LoadParticle<Dtype>::shuffleComb(){
-	int all_num = this->_num_train + this->_num_valid;
-	for(int i = 0; i < all_num; i++){
-		int rand_idx1 = rand() % (all_num - 1);
-		_all_comb[i].swap(_all_comb[rand_idx1]);	
-	}
-}
-
-
-template <typename Dtype>
-LoadParticle<Dtype>::~LoadParticle(){
-	delete[] _all_pixel;
-	delete[] _all_label;
-}
-
-template <typename Dtype>
-void LoadParticle<Dtype>::loadBinary(string filename, Dtype* &pixel_ptr, \
-		int* &label_ptr, int fixed_label){
-	ifstream fin(filename.c_str(), ifstream::binary);
-	if(!fin.is_open()){
-		cout << "open file failed\n";
-		exit(EXIT_FAILURE);
-	}
-	unsigned char tmp;
-	char buf;
-	int num = 1099;
-	//	fin.read((char*)&num, 4);
-	fin.seekg(2*sizeof(int), fin.cur);
-
-	for(int i = 0; i < num; i++){
-		/// 将指针加入容器内
-		ImgData<Dtype> my_img = ImgData<Dtype>(pixel_ptr, label_ptr, \
-				this->_img_channel * this->_img_sqrt);
-		_all_comb.push_back(my_img);
-		fin.seekg(2*sizeof(int), fin.cur);
-
-		for(int j = 0; j < this->_img_channel; j++){
-			for(int k = 0; k < this->_img_sqrt; k++){
-				fin.read(&buf, 1);
-				tmp = buf;
-				pixel_ptr[k] = (int)tmp;
-			}
-			meanOneImg(pixel_ptr, this->_img_sqrt);
-			stdOneImg(pixel_ptr, this->_img_sqrt);
-			if(i != num - 1 || j != this->_img_channel - 1){
-				pixel_ptr += this->_img_sqrt;
-			}
-		}
-		if(i != num - 1){
-			*label_ptr = fixed_label;
-			label_ptr++;
-		}
-	}
-	fin.close();
-}
-
-template <typename Dtype>
 void LoadLayer<Dtype>::meanOneImg(Dtype* pixel_ptr, int process_len){
 	Dtype avg = 0;
 	for(int i = 0; i < process_len; i++){
@@ -145,19 +37,6 @@ void LoadLayer<Dtype>::stdOneImg(Dtype* pixel_ptr, int process_len){
 	}
 }
 
-template <typename Dtype>
-void ImgData<Dtype>::swap(const ImgData<Dtype>& new_img){
-	Dtype* tmp = new Dtype[_pixel_len];
-	memcpy(tmp, new_img._pixel, sizeof(Dtype) * _pixel_len);
-	memcpy(new_img._pixel, _pixel, sizeof(Dtype) * _pixel_len);
-	memcpy(_pixel, tmp, sizeof(Dtype) * _pixel_len);
-
-	memcpy(tmp, new_img._label, sizeof(Dtype));
-	memcpy(new_img._label, _label, sizeof(Dtype));
-	memcpy(_label, tmp, sizeof(Dtype));
-
-	delete[] tmp;
-}
 
 template <typename Dtype>
 LoadLayer<Dtype>::LoadLayer(const int num_train, const int num_valid, \
@@ -209,7 +88,7 @@ LoadLayer<Dtype>::~LoadLayer(){
 
 template <typename Dtype>
 LoadCifar10<Dtype>::LoadCifar10(const int minibatch_size) : \
-	LoadLayer<Dtype>(50000, 10000, 0, 32, 1){
+	LoadLayer<Dtype>(50000, 10000, 0, 32, 3){
 
 	_minibatch_size = minibatch_size;
 
@@ -218,11 +97,11 @@ LoadCifar10<Dtype>::LoadCifar10(const int minibatch_size) : \
 			stringstream ss;
 			ss << i;
 			ss >> s;
-			string filename = "../data/cifar-10-batches-bin/gray/data_batch_"+s+"_gray.bin";
+			string filename = "../data/cifar-10-batches-bin/data_batch_"+s+".bin";
 			loadBinary(filename, this->_train_pixel_ptr, \
 					this->_train_label_ptr);
 		}
-		loadBinary("../data/cifar-10-batches-bin/gray/test_batch_gray.bin", \
+		loadBinary("../data/cifar-10-batches-bin/test_batch.bin", \
 				this->_valid_pixel_ptr, this->_valid_label_ptr);
 
 }
@@ -276,7 +155,7 @@ void LoadCifar10<Dtype>::loadBinary(string filename, \
 				pixel_ptr[k] = (int)tmp;
 			}
 			this->meanOneImg(pixel_ptr, this->_img_sqrt);
-			//	stdOneImg(pixel_ptr, this->_img_sqrt);
+			this->stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != num - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
 
@@ -566,9 +445,157 @@ void LoadDICSegment<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 }
 
 
+template <typename Dtype>
+LoadTianchi<Dtype>::LoadTianchi(int minibatch, string img_file, string matches_file){
+	this->_is_base_alloc = false;
+	
+	//img_file里面包含了它的id和pixel
+	_img_file = img_file;
+	_matches_file = matches_file;
+
+	ifstream fin1, fin2;
+	fin1.open(_img_file.c_str(), ifstream::binary);
+	fin2.open(_matches_file.c_str(), ifstream::binary);
+
+	if(!fin1.is_open() || !fin2.is_open()){
+		cout << "open original data file failed\n";
+		exit(EXIT_FAILURE);
+	}
+
+	int num_s_matches = 0;
+	int num_c_matches = 0;
+	int num_matches = 0;
+	fin2.read((char*)&num_s_matches, sizeof(int));
+	fin2.read((char*)&num_c_matches, sizeof(int));
+	num_matches = num_s_matches + num_c_matches;
+	
+	_num_matches_train = num_matches * 9 / 10;
+	_num_matches_valid = num_matches / 10;
+
+	this->_num_train = _num_matches_train*2;
+	this->_num_valid = _num_matches_valid*2;
+
+	int num_img = 0;
+	fin1.read((char*)&num_img, sizeof(int));
+	fin1.read((char*)&this->_img_channel, sizeof(int));
+	fin1.read((char*)&this->_img_width, sizeof(int));
+	fin1.read((char*)&this->_img_height, sizeof(int));
+
+	this->_img_sqrt = this->_img_width * this->_img_height;
+	cout << num_matches << ":" << this->_num_train << ":" << this->_num_valid \
+		<< ":" << this->_img_channel \
+		<< ":" << this->_img_height << ":" << this->_img_width << endl; 
+	_minibatch_size = minibatch;
+	_matches_batch_size = minibatch / 2 ;
+
+	this->_train_pixel = new Dtype[minibatch*this->_img_sqrt*this->_img_channel];
+	this->_train_label = new int[_matches_batch_size];
+	this->_valid_pixel = new Dtype[minibatch*this->_img_sqrt*this->_img_channel];
+	this->_valid_label = new int[_matches_batch_size];
+
+	for(int i=0; i < num_img; i++){
+		int tmp = 0;
+		fin1.read((char*)&tmp, sizeof(int));
+		_img_idx_pos.insert(pair<int, int>(tmp, i));
+		fin1.seekg(sizeof(char)*this->_img_sqrt*this->_img_channel, fin1.cur);
+	}
+	fin1.close();
+	fin2.close();
+}
+
+template <typename Dtype>
+LoadTianchi<Dtype>::~LoadTianchi(){
+	delete[] this->_train_pixel;
+	delete[] this->_train_label;
+	delete[] this->_valid_pixel;
+	delete[] this->_valid_label;
+}
 
 
+template <typename Dtype>
+void LoadTianchi<Dtype>::loadTrainOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label){
+	loadBinary("1", this->_train_pixel, \
+			this->_train_label, batch_idx, num_process, pid);
+	mini_pixel = this->_train_pixel;
+	mini_label = this->_train_label;
+}
 
+template <typename Dtype>
+void LoadTianchi<Dtype>::loadValidOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel, \
+		int* &mini_label){
+	loadBinary("0", this->_valid_pixel, this->_valid_label, \
+			batch_idx, num_process, pid);
+	mini_pixel = this->_valid_pixel;
+	mini_label = this->_valid_label;
+}
+
+
+//之前的数据集传引用是因为要读全部的数据，所以要留下读取的位置，而本次中
+//一次只读取一个minibatch的数据
+template <typename Dtype>
+void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
+		int* label_ptr, int batch_idx, \
+		int num_process, int pid){
+	
+	ifstream fin1(_img_file.c_str(), ifstream::binary);
+	ifstream fin2(_matches_file.c_str(), ifstream::binary);
+
+	int matches_offset = batch_idx*num_process*_matches_batch_size \
+				 + pid*_matches_batch_size; 
+	if(filename == "0")
+		matches_offset += _num_matches_train;
+	
+	fin2.seekg(sizeof(int)*(3*matches_offset+2), fin2.beg);
+
+	for(int i = 0; i < _matches_batch_size; i++){
+
+		//分类、第一张图id、第二张图id
+		int img1_idx, img2_idx;
+		fin2.read((char*)&(label_ptr[i]), sizeof(int));
+		fin2.read((char*)&img1_idx, sizeof(int));
+		fin2.read((char*)&img2_idx, sizeof(int));
+
+		int img1_pos, img2_pos;
+		img1_pos = _img_idx_pos.find(img1_idx)->second;
+		img2_pos = _img_idx_pos.find(img2_idx)->second;
+
+		fin1.seekg(4*sizeof(int)+img1_pos*(sizeof(int) \
+					+sizeof(char)*this->_img_channel*this->_img_sqrt), fin1.beg);
+		//然后是像素数据
+		unsigned char tmp;
+		char buf;
+		for(int j = 0; j < this->_img_channel; j++){
+			for(int k = 0; k < this->_img_sqrt; k++){
+				fin1.read(&buf, 1);
+				tmp = buf;
+				pixel_ptr[k] = (int)tmp;
+			}
+			this->meanOneImg(pixel_ptr, this->_img_sqrt);
+	//		this->stdOneImg(pixel_ptr, this->_img_sqrt);
+			pixel_ptr += this->_img_sqrt;
+		}
+
+		fin1.seekg(4*sizeof(int)+img2_pos*(sizeof(int) \
+					+sizeof(char)*this->_img_channel*this->_img_sqrt), fin1.beg);
+		for(int j = 0; j < this->_img_channel; j++){
+			for(int k = 0; k < this->_img_sqrt; k++){
+				fin1.read(&buf, 1);
+				tmp = buf;
+				pixel_ptr[k] = (int)tmp;
+			}
+			this->meanOneImg(pixel_ptr, this->_img_sqrt);
+//			this->stdOneImg(pixel_ptr, this->_img_sqrt);
+			if(i != _minibatch_size - 1 || j != this->_img_channel - 1)
+				pixel_ptr += this->_img_sqrt;
+		}
+
+	}
+	fin1.close();
+	fin2.close();
+}
 
 
 
