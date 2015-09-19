@@ -587,7 +587,7 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 				pixel_ptr[k] = (int)tmp;
 			}
 			this->meanOneImg(pixel_ptr, this->_img_sqrt);
-//			this->stdOneImg(pixel_ptr, this->_img_sqrt);
+	//		this->stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != _minibatch_size - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
 		}

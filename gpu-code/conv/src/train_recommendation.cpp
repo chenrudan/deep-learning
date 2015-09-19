@@ -27,7 +27,7 @@ void TrainRecommendation<Dtype>::forwardLastLayer(){
 
 	this->_likelihood += dynamic_cast<RecommendationLayer<Dtype>* >( \
 			this->_model_component->_layers[this->_model_component->_num_layers-1]) \
-				   ->computeError(this->_model_component->_y_for_worker[this->_model_component->_num_layers-1], \
+				   ->computeError(this->_model_component->_y_for_worker[this->_model_component->_num_layers-2], \
 						   this->_model_component->_mini_label_for_compute);
 }
 
@@ -69,11 +69,11 @@ void TrainRecommendation<Dtype>::train() {
 
 	cout << batch_idx << "\n";
 	
-/*			if(batch_idx == 10){
-				this->_model_component->_mini_data[0]->savePars("snapshot/input_snap/mini_data.bin");
-				this->_model_component->_mini_label[0]->savePars("snapshot/input_snap/mini_label.bin");
-			}
-*/
+	//		if(batch_idx == 4){
+	//			this->_model_component->_mini_data[0]->savePars("snapshot/input_snap/mini_data.bin");
+	//			this->_model_component->_mini_label[0]->savePars("snapshot/input_snap/mini_label.bin");
+	//		}
+
 			this->forwardPropagate();
 			forwardLastLayer();
 			backwardLastLayer();
@@ -126,18 +126,19 @@ void TrainRecommendation<Dtype>::train() {
 				cout << "validation likelihood: " << this->_likelihood << endl;
 		
 			}
-		}
-
-/*		for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
-			if(true){
-				this->_model_component->_w[i]->showValue( \
-						this->_model_component->_layers_need_train_param[i]->getName()+"_w");
+/*
+			for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
+				if(true){
+					this->_model_component->_w[i]->showValue( \
+							this->_model_component->_layers_need_train_param[i]->getName()+"_w");
 	//			this->_model_component->_y_needed_train[i]->showValue( \
 						this->_model_component->_layers_need_train_param[i]->getName()+"_y");
 
+				}
 			}
+*/
 		}
-*/		
+		
 
 //		if(this->_is_stop == false)
 //			earlyStopping(epoch_idx);

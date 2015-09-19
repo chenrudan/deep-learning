@@ -19,11 +19,11 @@
 			"filter_height": 5,
 			"filter_width": 5,
 			"filter_channel": 8,
-			"w_lr": 0.001,
-			"bias_lr": 0.002,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0002,
 			"momentum": 0.9,
-			"weight_decay": 0,
-			"w_gauss": 0.001
+			"weight_decay": 0.004,
+			"w_gauss": 0.01
 		},
 		{
 			"type": "RECTIFIED",
@@ -50,11 +50,11 @@
 			"filter_height": 5,
 			"filter_width": 5,
 			"filter_channel": 16,
-			"w_lr": 0.001,
-			"bias_lr": 0.002,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0002,
 			"momentum": 0.9,
-			"weight_decay": 0,
-			"w_gauss": 0.001
+			"weight_decay": 0.004,
+			"w_gauss": 0.01
 		},
 		{
 			"type": "RECTIFIED",
@@ -81,11 +81,11 @@
 			"filter_height": 5,
 			"filter_width": 5,
 			"filter_channel": 32,
-			"w_lr": 0.001,
-			"bias_lr": 0.002,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0002,
 			"momentum": 0.9,
-			"weight_decay": 0,
-			"w_gauss": 0.001
+			"weight_decay": 0.004,
+			"w_gauss": 0.01
 		},
 		{
 			"type": "RECTIFIED",
@@ -103,25 +103,25 @@
 			"type": "INNERPRODUCT",
 			"name": "inner1",
 			"num_out": 256,
-			"w_lr": 0.001,
-			"bias_lr": 0.002,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0002,
 			"momentum": 0.9,
-			"weight_decay": 0,
-			"w_gauss": 0.001
+			"weight_decay": 0.004,
+			"w_gauss": 0.1
 		},
 		{
-			"type": "SIGMOID",
+			"type": "RECTIFIED",
 			"name": "relu4"
 		},
 		{
 			"type": "INNERPRODUCT",
 			"name": "inner2",
 			"num_out": 128,
-			"w_lr": 0.001,
-			"bias_lr": 0.002,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0002,
 			"momentum": 0.9,
-			"weight_decay": 0,
-			"w_gauss": 0.001
+			"weight_decay": 0.004,
+			"w_gauss": 0.01
 		},
 		{
 			"type": "RECOMMENDATION",

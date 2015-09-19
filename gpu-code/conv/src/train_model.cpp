@@ -388,7 +388,7 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 
 template <typename Dtype>
 void TrainModel<Dtype>::forwardPropagate(){
-	for (int k = 0; k < _model_component->_num_layers-2; ++k) {
+	for (int k = 0; k < _model_component->_num_layers-1; ++k) {
 		_model_component->_layers[k]->computeOutput(\
 				_model_component->_y_for_worker[k]);
 	}

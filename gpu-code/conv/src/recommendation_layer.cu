@@ -33,25 +33,19 @@ void RecommendationLayer<Dtype>::initCuda() {
 
 	h_labels = new int[_fcp->getMinibatchSize()];
 
-//	gaussRand(w_CPU, _fcp->getNumIn()*_fcp->getNumOut(), 0.01);
-	for(int i=0; i < _fcp->getNumIn()*_fcp->getNumOut(); i++){
-		w_CPU[i] = 1;
-	}
+	gaussRand(w_CPU, _fcp->getNumIn()*_fcp->getNumOut(), 0.2);
 }
 
 template <typename Dtype>
 double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 		Matrix<int>* labels){ 
-	x->reValue(_fcp->getNumIn(), true);
-	x->showValue("data");
+//	x->reValue(_fcp->getNumIn(), true);
+//	x->showValue("data");
 
 	x->copyToHost(x_CPU, x->getNumEles());
 	labels->copyToHost(h_labels, labels->getNumEles());
 	
-	memset(y_CPU, 0, _fcp->getMinibatchSize()/2);
-	for(int i=0; i < _fcp->getNumIn()*_fcp->getNumOut(); i++){
-		w_CPU[i] = 1;
-	}
+	memset(y_CPU, 0, (_fcp->getMinibatchSize()/2)*sizeof(int));
 	
 	double result = 0;
 	for(int i=0; i < _fcp->getMinibatchSize()/2; i++){
@@ -73,11 +67,11 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 		}else{
 			cout << "match label not correct\n";
 		}
-		cout << "y_cpu: "<< y_CPU[i] << endl;
-		//result -= log(y_CPU[i]);
+		cout << h_labels[i] << ",   y_cpu: "<< y_CPU[i] << endl;
+		if(y_CPU[i] != 0)
+			result -= log(y_CPU[i]);
 	}
 	cout << result << endl;
-	cout << "\n";
 	
 	return result;
 
@@ -86,16 +80,21 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 template <typename Dtype>
 void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	
-	memset(dE_dw_CPU, 0, _fcp->getNumIn()*_fcp->getNumOut());
+	memset(dE_dw_CPU, 0, _fcp->getNumIn()*_fcp->getNumOut()*sizeof(Dtype));
 	for(int i=0; i < _fcp->getMinibatchSize()/2; i++){
 		if(h_labels[i] == 0){
 			for(int j=0; j < dE_dx->getNumCols(); j++){
-				dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
-					= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+				if(y_CPU[i] < 0.0001){
+					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
+					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
+				}else{
+					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
+						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
 							- x_CPU[i*2*dE_dx->getNumCols() + j]) / pow(y_CPU[i],2);
-				dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
-					= (x_CPU[i*2*dE_dx->getNumCols() + j] \
+					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
+						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
 							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j]) / pow(y_CPU[i],2);
+				}
 			}
 		}else if(h_labels[i] == 1){
 			for(int j=0; j < _fcp->getNumIn(); j++){
@@ -103,13 +102,17 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 				for(int k=0; k < _fcp->getNumOut(); k++){
 					tmp += pow(w_CPU[j*_fcp->getNumOut()+k], 2);
 				}
-				dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
-					= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+				if(y_CPU[i] < 0.0001){
+					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
+					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
+				}else{
+					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
+						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
 							- x_CPU[i*2*dE_dx->getNumCols() + j])*tmp / pow(y_CPU[i],2);
-				dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
-					= (x_CPU[i*2*dE_dx->getNumCols() + j] \
+					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
+						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
 							- x_CPU[(i*2+1)*dE_dx->getNumCols()+j])*tmp / pow(y_CPU[i],2);
-				
+				}
 			}
 		}
 	
@@ -118,20 +121,28 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 			
 			for(int k=0; k < _fcp->getNumOut(); k++){
 				for(int j=0; j < _fcp->getNumIn(); j++){
-					dE_dw_CPU[j*_fcp->getNumOut()+k] += -pow(x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
-						- x_CPU[i*2*dE_dx->getNumCols() + j], 2) \
-						*w_CPU[j*_fcp->getNumOut()+k] / pow(y_CPU[i], 2);
+					if(y_CPU[i] < 0.0001){
+						dE_dw_CPU[j*_fcp->getNumOut()+k] += 0;
+					}else{
+						dE_dw_CPU[j*_fcp->getNumOut()+k] += -pow(x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+							- x_CPU[i*2*dE_dx->getNumCols() + j], 2) \
+							*w_CPU[j*_fcp->getNumOut()+k] / pow(y_CPU[i], 2);
+					}
 				}
 			}
 		}
 	}
+//	cout << "-------------dedw_cpu-----------\n";
 	for(int k=0; k < _fcp->getNumOut(); k++){
 		for(int j=0; j < _fcp->getNumIn(); j++){
-			w_CPU[j*_fcp->getNumOut()+k] -= 0.001*dE_dw_CPU[j*_fcp->getNumOut()+k];
+//			cout << w_CPU[j*_fcp->getNumOut()+k] << ":";
+			w_CPU[j*_fcp->getNumOut()+k] -= 0.0002*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
+//			cout << w_CPU[j*_fcp->getNumOut()+k] << "\t";
 		}
+//		cout << endl;
 	}
 
-	dE_dx->copyFromHost(dE_dx_CPU, dE_dx->getNumEles());
+//	dE_dx->copyFromHost(dE_dx_CPU, dE_dx->getNumEles());
 
 
 //dE_dx->showValue("Recommendation_dedx");
