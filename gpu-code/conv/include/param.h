@@ -38,7 +38,8 @@ typedef enum LAYER_TYPE {
     SOFTMAX = 5,
     DROPOUT = 6,
 	PREDICTOBJECT = 7,
-	RECOMMENDATION = 8
+	RECOMMENDSUBSTITUE = 8,
+	RECOMMENDCOMPATIBLE = 9
 } LayerType;
 
 /// \brief 实现了每一层的参数

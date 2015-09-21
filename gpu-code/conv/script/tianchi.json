@@ -14,8 +14,8 @@
 			"name": "conv1",
 			"pad_height": 2,
 			"pad_width": 2,
-			"stride_height": 2,
-			"stride_width": 2,
+			"stride_height": 1,
+			"stride_width": 1,
 			"filter_height": 5,
 			"filter_width": 5,
 			"filter_channel": 8,
@@ -45,8 +45,8 @@
 			"name": "conv2",
 			"pad_height": 2,
 			"pad_width": 2,
-			"stride_height": 2,
-			"stride_width": 2,
+			"stride_height": 1,
+			"stride_width": 1,
 			"filter_height": 5,
 			"filter_width": 5,
 			"filter_channel": 16,
@@ -95,14 +95,17 @@
 			"type": "POOLING",
 			"name": "pool3",
 			"pool_type": "AVG_POOLING",
-			"pad": 0,
-			"stride": 2,
-			"filter_size": 3
+			"pad_height": 0,
+			"pad_width": 0,
+			"stride_height": 2,
+			"stride_width": 2,
+			"filter_height": 3,
+			"filter_width": 3
 		},
 		{
 			"type": "INNERPRODUCT",
 			"name": "inner1",
-			"num_out": 256,
+			"num_out": 2048,
 			"w_lr": 0.0001,
 			"bias_lr": 0.0002,
 			"momentum": 0.9,
@@ -116,6 +119,20 @@
 		{
 			"type": "INNERPRODUCT",
 			"name": "inner2",
+			"num_out": 512,
+			"w_lr": 0.0001,
+			"bias_lr": 0.0002,
+			"momentum": 0.9,
+			"weight_decay": 0.004,
+			"w_gauss": 0.1
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "relu5"
+		},
+		{
+			"type": "INNERPRODUCT",
+			"name": "inner3",
 			"num_out": 128,
 			"w_lr": 0.0001,
 			"bias_lr": 0.0002,
@@ -124,11 +141,10 @@
 			"w_gauss": 0.01
 		},
 		{
-			"type": "RECOMMENDATION",
+			"type": "RECOMMENDSUBSTITUE",
 			"name": "recommend",
 			"num_out": 64
 		}
-
 	]
 }
 

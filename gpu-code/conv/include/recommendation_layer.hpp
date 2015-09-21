@@ -28,6 +28,7 @@ private:
 	Dtype* w_CPU;
 	Dtype* dE_dw_CPU;
 	int *h_labels;
+	bool _is_compatible;
 };
 
 

@@ -10,6 +10,10 @@ template <typename Dtype>
 RecommendationLayer<Dtype>::RecommendationLayer(FullConnectParam* fcp){
 
 	this->_fcp           = fcp;
+	if(_fcp->getLayerType() == RECOMMENDCOMPATIBLE)
+		_is_compatible = true;
+	else
+		_is_compatible = false;
 }
 
 template <typename Dtype>
@@ -17,8 +21,10 @@ RecommendationLayer<Dtype>::~RecommendationLayer() {
 	delete[] y_CPU;
 	delete[] x_CPU;
 	delete[] dE_dx_CPU;
-	delete[] w_CPU;
-	delete[] dE_dw_CPU;
+	if(_is_compatible){
+		delete[] w_CPU;
+		delete[] dE_dw_CPU;
+	}
 	delete[] h_labels;
 }
 
@@ -28,12 +34,14 @@ void RecommendationLayer<Dtype>::initCuda() {
 	y_CPU             = new Dtype[_fcp->getMinibatchSize()/2];
 	x_CPU 				= new Dtype[_fcp->getMinibatchSize()*_fcp->getNumIn()];
 	dE_dx_CPU 				= new Dtype[_fcp->getMinibatchSize()*_fcp->getNumIn()];
-	w_CPU				= new Dtype[_fcp->getNumIn()*_fcp->getNumOut()];
-	dE_dw_CPU				= new Dtype[_fcp->getNumIn()*_fcp->getNumOut()];
+	if(_is_compatible){
+		w_CPU				= new Dtype[_fcp->getNumIn()*_fcp->getNumOut()];
+		dE_dw_CPU				= new Dtype[_fcp->getNumIn()*_fcp->getNumOut()];
+		gaussRand(w_CPU, _fcp->getNumIn()*_fcp->getNumOut(), 0.1);
+	}
 
 	h_labels = new int[_fcp->getMinibatchSize()];
 
-	gaussRand(w_CPU, _fcp->getNumIn()*_fcp->getNumOut(), 0.2);
 }
 
 template <typename Dtype>
@@ -43,18 +51,18 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 //	x->showValue("data");
 
 	x->copyToHost(x_CPU, x->getNumEles());
-	labels->copyToHost(h_labels, labels->getNumEles());
+//	labels->copyToHost(h_labels, labels->getNumEles());
 	
 	memset(y_CPU, 0, (_fcp->getMinibatchSize()/2)*sizeof(int));
 	
 	double result = 0;
 	for(int i=0; i < _fcp->getMinibatchSize()/2; i++){
-		if(h_labels[i] == 0){
+		if(!_is_compatible){
 			for(int j=0; j < x->getNumCols(); j++){
 				y_CPU[i] += pow(x_CPU[i*2*x->getNumCols() + j] \
 						- x_CPU[(i*2+1)*x->getNumCols() + j], 2); 
 			}	
-		}else if(h_labels[i] == 1){
+		}else{
 			for(int k=0; k < _fcp->getNumOut(); k++){
 				Dtype ele = 0;
 				for(int j=0; j < _fcp->getNumIn(); j++){
@@ -64,10 +72,8 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 				}
 				y_CPU[i] += pow(ele, 2);
 			}
-		}else{
-			cout << "match label not correct\n";
 		}
-		cout << h_labels[i] << ",   y_cpu: "<< y_CPU[i] << endl;
+	//	cout << h_labels[i] << ",   y_cpu: "<< y_CPU[i] << endl;
 		if(y_CPU[i] != 0)
 			result -= log(y_CPU[i]);
 	}
@@ -80,9 +86,10 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 template <typename Dtype>
 void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	
-	memset(dE_dw_CPU, 0, _fcp->getNumIn()*_fcp->getNumOut()*sizeof(Dtype));
+	if(_is_compatible)
+		memset(dE_dw_CPU, 0, _fcp->getNumIn()*_fcp->getNumOut()*sizeof(Dtype));
 	for(int i=0; i < _fcp->getMinibatchSize()/2; i++){
-		if(h_labels[i] == 0){
+		if(!_is_compatible){
 			for(int j=0; j < dE_dx->getNumCols(); j++){
 				if(y_CPU[i] < 0.0001){
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
@@ -96,7 +103,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j]) / pow(y_CPU[i],2);
 				}
 			}
-		}else if(h_labels[i] == 1){
+		}else{
 			for(int j=0; j < _fcp->getNumIn(); j++){
 				Dtype tmp = 0;
 				for(int k=0; k < _fcp->getNumOut(); k++){
@@ -115,9 +122,8 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 				}
 			}
 		}
-	
 
-		if(h_labels[i] == 1){
+		if(_is_compatible){
 			
 			for(int k=0; k < _fcp->getNumOut(); k++){
 				for(int j=0; j < _fcp->getNumIn(); j++){
@@ -133,16 +139,18 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		}
 	}
 //	cout << "-------------dedw_cpu-----------\n";
-	for(int k=0; k < _fcp->getNumOut(); k++){
-		for(int j=0; j < _fcp->getNumIn(); j++){
+	if(_is_compatible){
+		for(int k=0; k < _fcp->getNumOut(); k++){
+			for(int j=0; j < _fcp->getNumIn(); j++){
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << ":";
-			w_CPU[j*_fcp->getNumOut()+k] -= 0.0002*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
+				w_CPU[j*_fcp->getNumOut()+k] -= 0.00005*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << "\t";
-		}
+			}
 //		cout << endl;
+		}
 	}
 
-//	dE_dx->copyFromHost(dE_dx_CPU, dE_dx->getNumEles());
+	dE_dx->copyFromHost(dE_dx_CPU, dE_dx->getNumEles());
 
 
 //dE_dx->showValue("Recommendation_dedx");

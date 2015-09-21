@@ -21,12 +21,18 @@
 using namespace std;
 
 template <typename Dtype>
-TrainModel<Dtype>::TrainModel(const int master_pid, const int pid){
+TrainModel<Dtype>::TrainModel(const int master_pid, const int pid, bool has_valid, bool is_test){
 	_model_component = new ModelComponent<Dtype>();
 	_model_component->_master_pid = master_pid;
 	_model_component->_pid = pid;
 	_likelihood = 0;
 	_is_stop = false;
+	_has_valid = has_valid;
+	_is_test = is_test;
+	if(has_valid)
+		_num_data_type = 2;
+	else
+		_num_data_type = 1;
 }
 
 template <typename Dtype>
@@ -36,7 +42,7 @@ TrainModel<Dtype>::~TrainModel() {
 }
 
 template <typename Dtype>
-void TrainModel<Dtype>::parseImgBinary(int num_process, string train_file, string valid_file){
+void TrainModel<Dtype>::parseImgBinary(int num_process){
 
 	if(_model_component->_pid == _model_component->_master_pid){
 		_model_component->_num_train = _load_layer->getNumTrain();
@@ -189,7 +195,11 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 				param = new FullConnectParam( \
 						_model_component->_string_map_layertype[layer_type], \
 						name, 0, _model_component->_layers_param.back());
-			} else if(layer_type == "RECOMMENDATION"){
+			} else if(layer_type == "RECOMMENDSUBSTITUE"){
+				param = new FullConnectParam( \
+						_model_component->_string_map_layertype[layer_type], \
+						name, num_out, _model_component->_layers_param.back());
+			} else if(layer_type == "RECOMMENDCOMPATIBLE"){
 				param = new FullConnectParam( \
 						_model_component->_string_map_layertype[layer_type], \
 						name, num_out, _model_component->_layers_param.back());
@@ -238,7 +248,9 @@ void TrainModel<Dtype>::createLayerForWorker(){
 				layer = new InnerProductLayer<Dtype>(dynamic_cast<InnerParam*>(fcp));
 			} else if (param->getLayerType() == PREDICTOBJECT ) {
 				layer = new PredictObjectLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
-			} else if (param->getLayerType() == RECOMMENDATION ) {
+			} else if (param->getLayerType() == RECOMMENDSUBSTITUE ) {
+				layer = new RecommendationLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
+			} else if (param->getLayerType() == RECOMMENDCOMPATIBLE ) {
 				layer = new RecommendationLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
 			}
 		}catch(int e){
@@ -313,7 +325,6 @@ void TrainModel<Dtype>::createYDEDYForWorker() {
 }
 
 
-
 template <typename Dtype>
 void TrainModel<Dtype>::createMPIDist() {
 	int num_trans;
@@ -322,25 +333,6 @@ void TrainModel<Dtype>::createMPIDist() {
 		num_trans = _model_component->_num_process - 1;
 	else
 		num_trans = 1;
-
-	MPIDistribute<Dtype> *send_pixel[2*num_trans];  //2表示train和valid,相邻的是
-	int pixel_len = _model_component->_minibatch_size*_model_component->_one_img_len;
-
-	for(int i = 0; i < num_trans; i++){
-		int trans_pid = _model_component->_master_pid;   ///> 求需要send或者recv的进程id
-		if(_model_component->_pid == _model_component->_master_pid)
-			trans_pid = i+1;
-
-		send_pixel[i*2] = new MPIDistribute<Dtype>( \
-				pixel_len, i, trans_pid, MPI_FLOAT, \
-				_model_component->_mini_data[i*2]->getDevData());	
-		send_pixel[i*2+1] = new MPIDistribute<Dtype>( \
-				pixel_len, i+num_trans*2, trans_pid, MPI_FLOAT, \
-				_model_component->_mini_data[i*2+1]->getDevData());
-
-		_model_component->_send_recv_pixel.push_back(send_pixel[i*2]);
-		_model_component->_send_recv_pixel.push_back(send_pixel[i*2+1]);
-	}
 
 	MPIDistribute<Dtype> *send_recv_w[num_trans*num_pars_type];  
 	MPIDistribute<Dtype> *send_recv_bias[num_trans*num_pars_type];
@@ -351,10 +343,10 @@ void TrainModel<Dtype>::createMPIDist() {
 			if(_model_component->_pid == _model_component->_master_pid)
 				trans_pid = i+1;
 			send_recv_w[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
-					_model_component->_w_len[j], i+(4+j*2)*num_trans, \
+					_model_component->_w_len[j], i+(6+j*2)*num_trans, \
 					trans_pid, MPI_FLOAT, _model_component->_w[j]->getDevData());	
 			send_recv_bias[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
-					_model_component->_bias_len[j], i+(5+j*2)*num_trans, \
+					_model_component->_bias_len[j], i+(7+j*2)*num_trans, \
 					trans_pid, MPI_FLOAT, _model_component->_bias[j]->getDevData());
 			_model_component->_send_recv_w.push_back(send_recv_w[i*num_pars_type+j]);
 			_model_component->_send_recv_bias.push_back(send_recv_bias[i*num_pars_type+j]);
@@ -363,7 +355,7 @@ void TrainModel<Dtype>::createMPIDist() {
 }
 
 template <typename Dtype>
-void TrainModel<Dtype>::initWeightAndBcast() {
+void TrainModel<Dtype>::initWeightAndBcastByRandom() {
 
 	for (int k = 0; k < _model_component->_num_need_train_layers; ++k) {
 		if (_model_component->_pid == _model_component->_master_pid) {
@@ -372,6 +364,26 @@ void TrainModel<Dtype>::initWeightAndBcast() {
 						_model_component->_layers_need_train_param[k])->getWGauss());
 			cudaMemset(_model_component->_bias[k]->getDevData(), 0, \
 					sizeof(float) * _model_component->_bias_len[k]);
+		}
+		MPIDistribute<Dtype> *bcast_w = new MPIDistribute<Dtype>( \
+					   	_model_component->_w_len[k], 0, \
+						0, MPI_FLOAT, _model_component->_w[k]->getDevData());
+		bcast_w->bcast();
+		MPIDistribute<Dtype> *bcast_bias = new MPIDistribute<Dtype>( \
+						_model_component->_bias_len[k], 0, \
+						0, MPI_FLOAT, _model_component->_bias[k]->getDevData());
+		bcast_bias->bcast();
+		delete bcast_w;
+		delete bcast_bias;
+	}
+}
+
+template <typename Dtype>
+void TrainModel<Dtype>::initWeightAndBcastByFile(string *w_file, string *bias_file) {
+	for (int k = 0; k < _model_component->_num_need_train_layers; ++k) {
+		if (_model_component->_pid == _model_component->_master_pid) {
+			_model_component->_w[k].readPars(w_file[k]);
+			_model_component->_bias[k].readPars(bias_file[k]);
 		}
 		MPIDistribute<Dtype> *bcast_w = new MPIDistribute<Dtype>( \
 					   	_model_component->_w_len[k], 0, \

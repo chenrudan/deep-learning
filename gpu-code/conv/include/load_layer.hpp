@@ -40,6 +40,8 @@ public:
 				Dtype* &mini_pixel, int* &mini_label) {}
 	virtual void loadValidOneBatch(int batch_idx, int num_process, int pid, \
 				 Dtype* &mini_pixel, int* &mini_label) {}
+	virtual void loadTestOneBatch(int batch_idx, \
+				int num_process, int pid, Dtype* &mini_pixel) {}
 
 	int getNumTrain(){
 		return _num_train;
@@ -214,13 +216,15 @@ class LoadTianchi : public LoadLayer<Dtype> {
 
 public: 
 	//img_file内是所有图片，matches分成训练集和验证集，后续加入测试集
-	LoadTianchi(int minibatch, string img_file, string matches);
+	LoadTianchi(int minibatch, string img_file, string matches, string test_file="");
 
 	~LoadTianchi();
 
 	void loadBinary(string filenmae, Dtype* pixel_ptr, \
 		int* label_ptr, int batch_idx, \
 		int num_process, int pid);
+	void loadTestNoLabel(string filenmae, Dtype* pixel_ptr, \
+			int batch_idx, int num_process, int pid);
 	
 	void loadTrainOneBatch(int batch_idx, \
 		int num_process, int pid, Dtype* &mini_pixel, \
@@ -228,15 +232,20 @@ public:
 	void loadValidOneBatch(int batch_idx, \
 		int num_process, int pid, Dtype* &mini_pixel, \
 		int* &mini_label);
+	void loadTestOneBatch(int batch_idx, \
+		int num_process, int pid, Dtype* &mini_pixel);
 
 protected:
 	int _minibatch_size;
 	string _img_file;
+	string _test_file;
 	string _matches_file;
 	map<int, int> _img_idx_pos;
 	int _num_matches_train;
 	int _num_matches_valid;
 	int _matches_batch_size;
+	int _num_train_img;
+	int _num_test_img;
 };
 
 

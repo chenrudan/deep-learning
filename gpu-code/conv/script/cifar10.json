@@ -95,9 +95,12 @@
 			"type": "POOLING",
 			"name": "pool3",
 			"pool_type": "AVG_POOLING",
-			"pad": 0,
-			"stride": 2,
-			"filter_size": 3
+			"pad_height": 0,
+			"pad_width": 0,
+			"stride_height": 2,
+			"stride_width": 2,
+			"filter_height": 3,
+			"filter_width": 3
 		},
 		{
 			"type": "INNERPRODUCT",

@@ -15,7 +15,8 @@ ModelComponent<Dtype>::ModelComponent() {
 	_string_map_layertype["SOFTMAX"] = SOFTMAX;
 	_string_map_layertype["DROPOUT"] = DROPOUT;
 	_string_map_layertype["PREDICTOBJECT"] = PREDICTOBJECT;
-	_string_map_layertype["RECOMMENDATION"] = RECOMMENDATION;
+	_string_map_layertype["RECOMMENDSUBSTITUE"] = RECOMMENDSUBSTITUE;
+	_string_map_layertype["RECOMMENDCOMPATIBLE"] = RECOMMENDCOMPATIBLE;
 
 	_string_map_pooltype["MAX_POOLING"] = MAX_POOLING;
 	_string_map_pooltype["AVG_POOLING"] = AVG_POOLING;

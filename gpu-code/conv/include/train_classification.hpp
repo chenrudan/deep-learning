@@ -16,8 +16,8 @@ class TrainClassification : public TrainModel<Dtype> {
 private:
 
 public:
-    TrainClassification(const int master_pid, const int pid) \
-		: TrainModel<Dtype>(master_pid, pid) {}
+    TrainClassification(const int master_pid, const int pid, bool has_valid, bool is_test) \
+		: TrainModel<Dtype>(master_pid, pid, has_valid, is_test) {}
     ~TrainClassification() {}
 
     void createPixelAndLabel();
@@ -26,7 +26,9 @@ public:
 	void forwardLastLayer();
 	void backwardLastLayer();
 	void createMPIDist();
-	void train();
+	void createDataMPIDist(int multi);
+	virtual void train();
+	virtual void test() {}
 	void sendAndRecvForManager();
 
 };

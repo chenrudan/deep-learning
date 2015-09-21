@@ -29,12 +29,15 @@ protected:
 	int _min_error;
 	int _num_strip;
 	bool _is_stop;   ///>训练是否由于early stopping而中断
+	bool _has_valid;
+	bool _is_test;
+	int _num_data_type;  //train是0，valid是1，test是2
 
 public:
-    TrainModel(const int master_pid, const int pid);
+    TrainModel(const int master_pid, const int pid, bool has_valid, bool is_test);
     virtual ~TrainModel();
 
-    virtual void parseImgBinary(int num_process, string train_file, string valid_file);
+    void parseImgBinary(int num_process);
     void parseNetJson(string json_file);
 
     void createLayerForWorker();
@@ -43,8 +46,10 @@ public:
     void createWBiasForWorker();
 	
 	virtual void createMPIDist();
+	virtual void createDataMPIDist(int multi) {}
 
-    void initWeightAndBcast();
+    void initWeightAndBcastByRandom();
+    void initWeightAndBcastByFile(string *w_file, string *bias_file);
     void forwardPropagate();
     void backwardPropagate();
     void computeAndUpdatePars();

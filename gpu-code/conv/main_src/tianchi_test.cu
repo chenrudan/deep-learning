@@ -16,7 +16,8 @@ using namespace std;
 
 int Param::_minibatch_size = 0;
 
-void managerNode(TrainClassification<float> *model){
+void managerNode(TrainClassification<float> *model, string *w_file, \
+		string *bias_file){
 
 	cout << "Loading data...\n";
 	model->createWBiasForManager();
@@ -25,13 +26,14 @@ void managerNode(TrainClassification<float> *model){
 	cout << "Loading data is done.\n";
 	model->createMPIDist();
 	cout << "done12\n";
-	model->initWeightAndBcastByRandom();
+	model->initWeightAndBcastByFile(w_file, bias_file);
 	cout << "done13\n";
 	model->sendAndRecvForManager();
 	cout << "CPU number: " << omp_get_num_procs() << endl;  
 }
 
-void detectionNode(TrainClassification<float> *model){
+void detectionNode(TrainClassification<float> *model, string *w_file, \
+		string *bias_file){
 
 	cout << "Initialize layers...\n";
 
@@ -47,7 +49,7 @@ void detectionNode(TrainClassification<float> *model){
 	cout << "done5\n";
 	model->initWeightAndBcastByRandom();
 	cout << "done6\n";
-	model->train();
+	model->test();
 
 }
 
@@ -79,7 +81,7 @@ int main(int argc, char** argv){
 	TrainRecommendation<float> *voc_model = new TrainRecommendation<float>(0, pid);
 
 	voc_model->parseNetJson("script/tianchi.json");
-	voc_model->parseImgBinary(num_process, "../data/tianchi_img.bin", "../data/compatible_matches.bin", "");
+	voc_model->parseImgBinary(num_process, "../data/tianchi_img.bin", "../data/dim_fashion_matches.bin");
 
 	if(pid == 0){ 
 		managerNode(voc_model);
