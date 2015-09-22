@@ -74,8 +74,13 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 			}
 		}
 	//	cout << h_labels[i] << ",   y_cpu: "<< y_CPU[i] << endl;
+
+		/***用log来算
 		if(y_CPU[i] != 0)
 			result -= log(y_CPU[i]);
+		***/
+		result += y_CPU[i];
+
 	}
 	cout << result << endl;
 	
@@ -91,7 +96,17 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	for(int i=0; i < _fcp->getMinibatchSize()/2; i++){
 		if(!_is_compatible){
 			for(int j=0; j < dE_dx->getNumCols(); j++){
-				if(y_CPU[i] < 0.0001){
+				dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
+						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
+							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j]) \
+						*2*x_CPU[i*2*dE_dx->getNumCols() + j];
+				dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
+						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+							- x_CPU[i*2*dE_dx->getNumCols() + j]) \
+						*2*x_CPU[(i*2+1)*dE_dx->getNumCols() + j];
+
+				/***用log算的时候的求导
+				if(y_CPU[i] < 0.00001){
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
 				}else{
@@ -101,7 +116,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
 						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
 							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j]) / pow(y_CPU[i],2);
-				}
+				}***/
 			}
 		}else{
 			for(int j=0; j < _fcp->getNumIn(); j++){
@@ -109,7 +124,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 				for(int k=0; k < _fcp->getNumOut(); k++){
 					tmp += pow(w_CPU[j*_fcp->getNumOut()+k], 2);
 				}
-				if(y_CPU[i] < 0.0001){
+				if(y_CPU[i] < 0.00001){
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
 				}else{

@@ -88,7 +88,7 @@ cout << batch_idx << ":";
 */	
 			this->sendAndRecvWBiasForWorker(epoch_idx, batch_idx, flag);
 			
-			if(batch_idx == 2000){
+			if(batch_idx == 700){
 				stringstream ss;
 				string str;
 				ss << epoch_idx;
