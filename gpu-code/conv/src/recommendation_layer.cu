@@ -51,7 +51,7 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 //	x->showValue("data");
 
 	x->copyToHost(x_CPU, x->getNumEles());
-//	labels->copyToHost(h_labels, labels->getNumEles());
+	labels->copyToHost(h_labels, labels->getNumEles());
 	
 	memset(y_CPU, 0, (_fcp->getMinibatchSize()/2)*sizeof(int));
 	
@@ -81,8 +81,9 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 		***/
 		result += y_CPU[i];
 
+		cout << h_labels[1+i*2] << "\t" << h_labels[2*i] << "\t";
+		cout << y_CPU[i] << "\n";
 	}
-	cout << result << endl;
 	
 	return result;
 
@@ -124,16 +125,16 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 				for(int k=0; k < _fcp->getNumOut(); k++){
 					tmp += pow(w_CPU[j*_fcp->getNumOut()+k], 2);
 				}
-				if(y_CPU[i] < 0.00001){
+				if(y_CPU[i] < 0.000001){
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
 				}else{
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
-						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
-							- x_CPU[i*2*dE_dx->getNumCols() + j])*tmp / pow(y_CPU[i],2);
-					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
 						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
-							- x_CPU[(i*2+1)*dE_dx->getNumCols()+j])*tmp / pow(y_CPU[i],2);
+							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j])*tmp / y_CPU[i];
+					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
+						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+							- x_CPU[i*2*dE_dx->getNumCols()+j])*tmp / y_CPU[i];
 				}
 			}
 		}
@@ -142,12 +143,12 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 			
 			for(int k=0; k < _fcp->getNumOut(); k++){
 				for(int j=0; j < _fcp->getNumIn(); j++){
-					if(y_CPU[i] < 0.0001){
+					if(y_CPU[i] < 0.000001){
 						dE_dw_CPU[j*_fcp->getNumOut()+k] += 0;
 					}else{
 						dE_dw_CPU[j*_fcp->getNumOut()+k] += -pow(x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
 							- x_CPU[i*2*dE_dx->getNumCols() + j], 2) \
-							*w_CPU[j*_fcp->getNumOut()+k] / pow(y_CPU[i], 2);
+							*w_CPU[j*_fcp->getNumOut()+k] / y_CPU[i];
 					}
 				}
 			}

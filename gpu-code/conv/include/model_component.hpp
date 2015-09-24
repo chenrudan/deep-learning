@@ -37,9 +37,9 @@ friend class TrainRecommendation;
 private:
 
     int _num_process;
-    int _num_train; ///>model的参数
+    long long _num_train; ///>model的参数
     int _num_valid;
-	int _num_train_each_process;
+	long long _num_train_each_process;
 	int _num_valid_each_process;
     int _minibatch_size;
     int _num_train_batch;
@@ -130,13 +130,13 @@ public:
     void setNumProcess(const int num_process){
         _num_process = num_process;
     }
-    void setNumTrain(const int num_train){
+    void setNumTrain(const long long num_train){
         _num_train = num_train;
     }
     void setNumValid(const int num_valid){
         _num_valid = num_valid;
     }
-    void setNumTrainEachProcess(const int num_train_each_process){
+    void setNumTrainEachProcess(const long long num_train_each_process){
         _num_train_each_process = num_train_each_process;
     }
     void setNumValidEachProcess(const int num_valid_each_process){
@@ -218,13 +218,13 @@ public:
     int getNumProcess(){
         return _num_process;
     }
-    int getNumTrain(){
+    long long getNumTrain(){
         return _num_train;
     }
     int getNumValid(){
         return _num_valid;
     }
-    int getNumTrainiEachProcess(){
+    long long getNumTrainiEachProcess(){
         return _num_train_each_process;
     }
     int getNumValidEachProcess(){

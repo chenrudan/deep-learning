@@ -10,7 +10,7 @@
 #include "mpi.h"
 #include "model_component.hpp"
 
-#define PROCESS_END 100000
+#define PROCESS_END 100000000
 
 using namespace std;
 
@@ -51,6 +51,9 @@ public:
 	}
 	void setFlag(int flag){
 		_flag = flag;
+	}
+	int getTag(){
+		return _tag;
 	}
 	void changeData(Dtype* data){
 		_data = data;

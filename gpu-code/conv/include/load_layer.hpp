@@ -31,17 +31,17 @@ public:
 
 	virtual void loadBinary(string filenmae, Dtype* pixel_ptr, \
 		int* label_ptr, int batch_idx, \
-		int num_process, int pid) {}
+		int pid) {}
 
 	void meanOneImg(Dtype* pixel_ptr, int process_len);
 	void stdOneImg(Dtype* pixel_ptr, int process_len);
 
-	virtual void loadTrainOneBatch(int batch_idx, int num_process, int pid, \
+	virtual void loadTrainOneBatch(int batch_idx, int pid, \
 				Dtype* &mini_pixel, int* &mini_label) {}
-	virtual void loadValidOneBatch(int batch_idx, int num_process, int pid, \
+	virtual void loadValidOneBatch(int batch_idx, int pid, \
 				 Dtype* &mini_pixel, int* &mini_label) {}
 	virtual void loadTestOneBatch(int batch_idx, \
-				int num_process, int pid, Dtype* &mini_pixel) {}
+				int pid, Dtype* &mini_pixel, int *&mini_label) {}
 
 	int getNumTrain(){
 		return _num_train;
@@ -79,7 +79,7 @@ public:
 	}
 
 protected:
-	int _num_train;
+	long long _num_train;
 	int _num_valid;
 	int _num_test;
 	int _img_size;
@@ -216,24 +216,25 @@ class LoadTianchi : public LoadLayer<Dtype> {
 
 public: 
 	//img_file内是所有图片，matches分成训练集和验证集，后续加入测试集
-	LoadTianchi(int minibatch, string img_file, string matches, string test_file="");
+	LoadTianchi(int minibatch, int num_process, string img_file, string matches, string test_file="");
 
 	~LoadTianchi();
 
 	void loadBinary(string filenmae, Dtype* pixel_ptr, \
 		int* label_ptr, int batch_idx, \
-		int num_process, int pid);
+		int pid);
 	void loadTestNoLabel(string filenmae, Dtype* pixel_ptr, \
-			int batch_idx, int num_process, int pid);
+			int* label_ptr, int batch_idx, int pid);
 	
 	void loadTrainOneBatch(int batch_idx, \
-		int num_process, int pid, Dtype* &mini_pixel, \
+		int pid, Dtype* &mini_pixel, \
 		int* &mini_label);
 	void loadValidOneBatch(int batch_idx, \
-		int num_process, int pid, Dtype* &mini_pixel, \
+		int pid, Dtype* &mini_pixel, \
 		int* &mini_label);
 	void loadTestOneBatch(int batch_idx, \
-		int num_process, int pid, Dtype* &mini_pixel);
+		int pid, Dtype* &mini_pixel, \
+		int* &mini_label);
 
 protected:
 	int _minibatch_size;
@@ -244,8 +245,10 @@ protected:
 	int _num_matches_train;
 	int _num_matches_valid;
 	int _matches_batch_size;
-	int _num_train_img;
+	long long _num_train_img;
 	int _num_test_img;
+	int _img_idx;
+	int _num_process;
 };
 
 

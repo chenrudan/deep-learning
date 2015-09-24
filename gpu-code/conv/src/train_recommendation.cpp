@@ -17,7 +17,7 @@ void TrainRecommendation<Dtype>::parseImgBinary(int num_process, \
 
 	if(this->_model_component->_pid == this->_model_component->_master_pid){
 		this->_load_layer = new LoadTianchi<Dtype>(this->_model_component->_minibatch_size, \
-				train_file, train_matches, test_file);
+				num_process-1, train_file, train_matches, test_file);
 	}
 	TrainModel<Dtype>::parseImgBinary(num_process);
 }
@@ -67,8 +67,8 @@ cout << batch_idx << ":";
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
 			this->_model_component->_send_recv_label[0]->dataFrom();
 			if(batch_idx == 4){
-				this->_model_component->_mini_data[0]->savePars("snapshot/input_snap/mini_data.bin");
-				this->_model_component->_mini_label[0]->savePars("snapshot/input_snap/mini_label.bin");
+				this->_model_component->_mini_data[0]->savePars("../snapshot/input_snap/mini_data.bin");
+				this->_model_component->_mini_label[0]->savePars("../snapshot/input_snap/mini_label.bin");
 			}
 			this->forwardPropagate();
 			forwardLastLayer();
@@ -95,9 +95,9 @@ cout << batch_idx << ":";
 				ss >> str;
 				for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
 					this->_model_component->_w[i]->savePars( \
-							"snapshot/w_snap/"+str+"_"+this->_model_component->_layers_need_train_param[i]->getName()+"_w.bin");
+							"../snapshot/w_snap/"+str+"_"+this->_model_component->_layers_need_train_param[i]->getName()+"_w.bin");
 					this->_model_component->_bias[i]->savePars( \
-							"snapshot/w_snap/"+str+"_"+this->_model_component->_layers_need_train_param[i]->getName()+"_bias.bin");
+							"../snapshot/w_snap/"+str+"_"+this->_model_component->_layers_need_train_param[i]->getName()+"_bias.bin");
 				}
 			}
 
@@ -128,8 +128,8 @@ cout << batch_idx << ":";
 					this->_model_component->_send_recv_pixel[1]->dataFrom();
 					this->_model_component->_send_recv_label[1]->dataFrom();
 
-			//		this->_model_component->_mini_data[1]->savePars("snapshot/input_snap/mini_data.bin");
-			//		this->_model_component->_mini_label[1]->savePars("snapshot/input_snap/mini_label.bin");
+			//		this->_model_component->_mini_data[1]->savePars("../snapshot/input_snap/mini_data.bin");
+			//		this->_model_component->_mini_label[1]->savePars("../snapshot/input_snap/mini_label.bin");
 					this->forwardPropagate();
 					forwardLastLayer();
 
@@ -171,6 +171,7 @@ void TrainRecommendation<Dtype>::test() {
 	for (int epoch_idx = 0; epoch_idx < this->_model_component->_num_epoch; \
 			epoch_idx++) {
 		this->_model_component->_y_for_worker[0] = this->_model_component->_mini_data[0];
+		this->_model_component->_mini_label_for_compute= this->_model_component->_mini_label[0];
 
 		this->_likelihood = 0;
 
@@ -182,12 +183,13 @@ void TrainRecommendation<Dtype>::test() {
 				flag = PROCESS_END;
 			else
 				flag = batch_idx;
-
 			this->_model_component->_send_recv_pixel[0]->sendFlag(flag);
+			this->_model_component->_send_recv_label[0]->setFlag(flag);
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
+			this->_model_component->_send_recv_label[0]->dataFrom();
 	
 	//		if(batch_idx == 4){
-	//			this->_model_component->_mini_data[0]->savePars("snapshot/input_snap/mini_data.bin");
+	//			this->_model_component->_mini_data[0]->savePars("../snapshot/input_snap/mini_data.bin");
 	//		}
 
 			this->forwardPropagate();
@@ -196,7 +198,7 @@ void TrainRecommendation<Dtype>::test() {
 			this->backwardPropagate();
 		}
 		cout << "----------epoch_idx: " << epoch_idx << "-----------\n";
-		cout << "testing likelihood: " << this->_likelihood << endl;
+		cout << "    testing likelihood: " << this->_likelihood << endl;
 
 		if(this->_model_component->_pid == 1){
 			t = clock() - t;

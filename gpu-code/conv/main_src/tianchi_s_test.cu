@@ -18,13 +18,13 @@ int Param::_minibatch_size = 0;
 
 void managerNode(TrainClassification<float> *model){
 
-	string str1[6]= {"snapshot/w_snap/0_conv1_w.bin", "snapshot/w_snap/0_conv2_w.bin", \
-		"snapshot/w_snap/0_conv3_w.bin", "snapshot/w_snap/0_inner1_w.bin", \
-			"snapshot/w_snap/0_inner2_w.bin", "snapshot/w_snap/0_inner3_w.bin"};
+	string str1[6]= {"../snapshot/w_snap/20_conv1_w.bin", "../snapshot/w_snap/20_conv2_w.bin", \
+		"../snapshot/w_snap/20_conv3_w.bin", "../snapshot/w_snap/20_inner1_w.bin", \
+			"../snapshot/w_snap/20_inner2_w.bin", "../snapshot/w_snap/20_inner3_w.bin"};
 	vector<string> w_file(str1, str1+6);
-	string str2[6]	= {"snapshot/w_snap/0_conv1_bias.bin", "snapshot/w_snap/0_conv2_bias.bin", \
-		"snapshot/w_snap/0_conv3_bias.bin", "snapshot/w_snap/0_inner1_bias.bin", \
-			"snapshot/w_snap/0_inner2_bias.bin", "snapshot/w_snap/0_inner3_bias.bin"};
+	string str2[6]	= {"../snapshot/w_snap/20_conv1_bias.bin", "../snapshot/w_snap/20_conv2_bias.bin", \
+		"../snapshot/w_snap/20_conv3_bias.bin", "../snapshot/w_snap/20_inner1_bias.bin", \
+			"../snapshot/w_snap/20_inner2_bias.bin", "../snapshot/w_snap/20_inner3_bias.bin"};
 	vector<string> bias_file(str2, str2+6);
 
 	cout << "Loading data...\n";
@@ -37,7 +37,6 @@ void managerNode(TrainClassification<float> *model){
 	model->initWeightAndBcastByFile(w_file, bias_file);
 	cout << "done13\n";
 	model->sendAndRecvForManager();
-	cout << "CPU number: " << omp_get_num_procs() << endl;  
 }
 
 void detectionNode(TrainClassification<float> *model){

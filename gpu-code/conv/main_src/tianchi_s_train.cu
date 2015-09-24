@@ -18,15 +18,6 @@ int Param::_minibatch_size = 0;
 
 void managerNode(TrainClassification<float> *model){
 
-	string str1[6]= {"snapshot/w_snap/0_conv1_w.bin", "snapshot/w_snap/0_conv2_w.bin", \
-		"snapshot/w_snap/0_conv3_w.bin", "snapshot/w_snap/0_inner1_w.bin", \
-			"snapshot/w_snap/0_inner2_w.bin", "snapshot/w_snap/0_inner3_w.bin"};
-	vector<string> w_file(str1, str1+6);
-	string str2[6]	= {"snapshot/w_snap/0_conv1_bias.bin", "snapshot/w_snap/0_conv2_bias.bin", \
-		"snapshot/w_snap/0_conv3_bias.bin", "snapshot/w_snap/0_inner1_bias.bin", \
-			"snapshot/w_snap/0_inner2_bias.bin", "snapshot/w_snap/0_inner3_bias.bin"};
-	vector<string> bias_file(str2, str2+6);
-
 	cout << "Loading data...\n";
 	model->createWBiasForManager();
 	cout << "Initialize weight and bias...\n";
@@ -34,7 +25,7 @@ void managerNode(TrainClassification<float> *model){
 	cout << "Loading data is done.\n";
 	model->createMPIDist();
 	cout << "done12\n";
-	model->initWeightAndBcastByFile(w_file, bias_file);
+	model->initWeightAndBcastByRandom();
 	cout << "done13\n";
 	model->sendAndRecvForManager();
 	cout << "CPU number: " << omp_get_num_procs() << endl;  
@@ -56,7 +47,7 @@ void detectionNode(TrainClassification<float> *model){
 	cout << "done5\n";
 	model->initWeightAndBcastByRandom();
 	cout << "done6\n";
-	model->test();
+	model->train();
 
 }
 
@@ -85,10 +76,10 @@ int main(int argc, char** argv){
 	cudaSetDevice(pid % num_gpu);
 
 
-	TrainRecommendation<float> *voc_model = new TrainRecommendation<float>(0, pid, false, true);
+	TrainRecommendation<float> *voc_model = new TrainRecommendation<float>(0, pid);
 
-	voc_model->parseNetJson("script/tianchi_s_test.json");
-	voc_model->parseImgBinary(num_process, "../data/tianchi_img.bin", "../data/compatible_matches.bin", "../data/tianchi_img_test.bin");
+	voc_model->parseNetJson("script/tianchi_s_train.json");
+	voc_model->parseImgBinary(num_process, "../data/tianchi_img.bin", "../data/substitute_matches.bin", "");
 
 	if(pid == 0){ 
 		managerNode(voc_model);

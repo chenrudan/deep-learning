@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <cstring>
 #include "matrix.hpp"
 #include "matrix_kernel.hpp"
 

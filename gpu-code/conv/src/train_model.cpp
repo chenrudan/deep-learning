@@ -53,7 +53,6 @@ void TrainModel<Dtype>::parseImgBinary(int num_process){
 		_model_component->setNumTrainBatch();
 		_model_component->setNumValidBatch();
 
-
 		//将batch数传递给工作进程
 #pragma omp parallel num_threads(num_process-1)
 		{
@@ -154,7 +153,7 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 							name, w_lr, bias_lr, momentum, weight_decay, w_gauss, \
 							_model_component->_img_height, _model_component->_img_width, \
 							pad_height, pad_width, stride_height, stride_width, \
-						   	_model_component->_img_channel, filter_height, \
+							_model_component->_img_channel, filter_height, \
 							filter_width, filter_channel);
 				} else{
 					param = new ConvParam( \
@@ -337,21 +336,34 @@ void TrainModel<Dtype>::createMPIDist() {
 	MPIDistribute<Dtype> *send_recv_w[num_trans*num_pars_type];  
 	MPIDistribute<Dtype> *send_recv_bias[num_trans*num_pars_type];
 
-	for(int i = 0; i < num_trans; i++){
+	if(_model_component->_pid == _model_component->_master_pid){
+		for(int i = 0; i < num_trans; i++){
+			for(int j = 0; j < num_pars_type; j++){
+				int trans_pid = i+1;
+				send_recv_w[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
+						_model_component->_w_len[j], i+(6+j*2)*num_trans, \
+						trans_pid, MPI_FLOAT, _model_component->_w[j]->getDevData());	
+				send_recv_bias[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
+						_model_component->_bias_len[j], i+(7+j*2)*num_trans, \
+						trans_pid, MPI_FLOAT, _model_component->_bias[j]->getDevData());
+				_model_component->_send_recv_w.push_back(send_recv_w[i*num_pars_type+j]);
+				_model_component->_send_recv_bias.push_back(send_recv_bias[i*num_pars_type+j]);
+			}
+		}
+	}else{
 		for(int j = 0; j < num_pars_type; j++){
-			int trans_pid = _model_component->_master_pid;
-			if(_model_component->_pid == _model_component->_master_pid)
-				trans_pid = i+1;
-			send_recv_w[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
-					_model_component->_w_len[j], i+(6+j*2)*num_trans, \
+			int trans_pid = 0;
+			send_recv_w[j] = new MPIDistribute<Dtype>( \
+					_model_component->_w_len[j], this->_model_component->_pid-1+(6+j*2)*num_trans, \
 					trans_pid, MPI_FLOAT, _model_component->_w[j]->getDevData());	
-			send_recv_bias[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
-					_model_component->_bias_len[j], i+(7+j*2)*num_trans, \
+			send_recv_bias[j] = new MPIDistribute<Dtype>( \
+					_model_component->_bias_len[j], this->_model_component->_pid-1+(7+j*2)*num_trans, \
 					trans_pid, MPI_FLOAT, _model_component->_bias[j]->getDevData());
-			_model_component->_send_recv_w.push_back(send_recv_w[i*num_pars_type+j]);
-			_model_component->_send_recv_bias.push_back(send_recv_bias[i*num_pars_type+j]);
+			_model_component->_send_recv_w.push_back(send_recv_w[j]);
+			_model_component->_send_recv_bias.push_back(send_recv_bias[j]);
 		}
 	}
+
 }
 
 template <typename Dtype>
@@ -366,12 +378,12 @@ void TrainModel<Dtype>::initWeightAndBcastByRandom() {
 					sizeof(float) * _model_component->_bias_len[k]);
 		}
 		MPIDistribute<Dtype> *bcast_w = new MPIDistribute<Dtype>( \
-					   	_model_component->_w_len[k], 0, \
-						0, MPI_FLOAT, _model_component->_w[k]->getDevData());
+				_model_component->_w_len[k], 0, \
+				0, MPI_FLOAT, _model_component->_w[k]->getDevData());
 		bcast_w->bcast();
 		MPIDistribute<Dtype> *bcast_bias = new MPIDistribute<Dtype>( \
-						_model_component->_bias_len[k], 0, \
-						0, MPI_FLOAT, _model_component->_bias[k]->getDevData());
+				_model_component->_bias_len[k], 0, \
+				0, MPI_FLOAT, _model_component->_bias[k]->getDevData());
 		bcast_bias->bcast();
 		delete bcast_w;
 		delete bcast_bias;
@@ -379,19 +391,20 @@ void TrainModel<Dtype>::initWeightAndBcastByRandom() {
 }
 
 template <typename Dtype>
-void TrainModel<Dtype>::initWeightAndBcastByFile(string *w_file, string *bias_file) {
+void TrainModel<Dtype>::initWeightAndBcastByFile(vector<string> w_file, \
+		vector<string> bias_file) {
 	for (int k = 0; k < _model_component->_num_need_train_layers; ++k) {
 		if (_model_component->_pid == _model_component->_master_pid) {
-			_model_component->_w[k].readPars(w_file[k]);
-			_model_component->_bias[k].readPars(bias_file[k]);
+			_model_component->_w[k]->readPars(w_file[k]);
+			_model_component->_bias[k]->readPars(bias_file[k]);
 		}
 		MPIDistribute<Dtype> *bcast_w = new MPIDistribute<Dtype>( \
-					   	_model_component->_w_len[k], 0, \
-						0, MPI_FLOAT, _model_component->_w[k]->getDevData());
+				_model_component->_w_len[k], 0, \
+				0, MPI_FLOAT, _model_component->_w[k]->getDevData());
 		bcast_w->bcast();
 		MPIDistribute<Dtype> *bcast_bias = new MPIDistribute<Dtype>( \
-						_model_component->_bias_len[k], 0, \
-						0, MPI_FLOAT, _model_component->_bias[k]->getDevData());
+				_model_component->_bias_len[k], 0, \
+				0, MPI_FLOAT, _model_component->_bias[k]->getDevData());
 		bcast_bias->bcast();
 		delete bcast_w;
 		delete bcast_bias;

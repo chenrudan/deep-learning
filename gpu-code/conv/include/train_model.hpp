@@ -49,7 +49,7 @@ public:
 	virtual void createDataMPIDist(int multi) {}
 
     void initWeightAndBcastByRandom();
-    void initWeightAndBcastByFile(string *w_file, string *bias_file);
+    void initWeightAndBcastByFile(vector<string> w_file, vector<string> bias_file);
     void forwardPropagate();
     void backwardPropagate();
     void computeAndUpdatePars();
