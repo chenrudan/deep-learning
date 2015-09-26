@@ -197,6 +197,11 @@ void TrainRecommendation<Dtype>::test() {
 			backwardLastLayer();
 			this->backwardPropagate();
 		}
+			for(int i = 0; i < this->_model_component->_num_layers; i++){
+				this->_model_component->_y_for_worker[i]->showValue( \
+					this->_model_component->_layers_param[i]->getName()+"_y");
+			}
+
 		cout << "----------epoch_idx: " << epoch_idx << "-----------\n";
 		cout << "    testing likelihood: " << this->_likelihood << endl;
 
