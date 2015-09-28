@@ -39,7 +39,6 @@ void TrainRecommendation<Dtype>::backwardLastLayer(){
 			this->_model_component->_num_layers-2]);
 }
 
-
 template <typename Dtype>
 void TrainRecommendation<Dtype>::train() {
 
@@ -61,15 +60,17 @@ void TrainRecommendation<Dtype>::train() {
 				flag = PROCESS_END;
 			else
 				flag = batch_idx;
-cout << batch_idx << ":";
+			
 			this->_model_component->_send_recv_pixel[0]->sendFlag(flag);
 			this->_model_component->_send_recv_label[0]->setFlag(flag);
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
 			this->_model_component->_send_recv_label[0]->dataFrom();
-			if(batch_idx == 4){
-				this->_model_component->_mini_data[0]->savePars("../snapshot/input_snap/mini_data.bin");
-				this->_model_component->_mini_label[0]->savePars("../snapshot/input_snap/mini_label.bin");
-			}
+					
+	//	this->_model_component->_mini_data[0]->showValue("data");
+//			if(batch_idx == 4){
+//				this->_model_component->_mini_data[0]->savePars("../snapshot/input_snap/mini_data.bin");
+//				this->_model_component->_mini_label[0]->savePars("../snapshot/input_snap/mini_label.bin");
+//			}
 			this->forwardPropagate();
 			forwardLastLayer();
 			backwardLastLayer();
@@ -88,7 +89,7 @@ cout << batch_idx << ":";
 */	
 			this->sendAndRecvWBiasForWorker(epoch_idx, batch_idx, flag);
 			
-			if(batch_idx == 700){
+			if(batch_idx == 200){
 				stringstream ss;
 				string str;
 				ss << epoch_idx;
@@ -99,6 +100,9 @@ cout << batch_idx << ":";
 					this->_model_component->_bias[i]->savePars( \
 							"../snapshot/w_snap/"+str+"_"+this->_model_component->_layers_need_train_param[i]->getName()+"_bias.bin");
 				}
+				RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
+						this->_model_component->_layers[this->_model_component->_num_layers-1]);
+				last_layer->saveRecommendW("../snapshot/w_snap/"+str+"_" + "recommend_w.bin");
 			}
 
 			if(batch_idx == this->_model_component->_num_train_batch-1){
@@ -136,10 +140,21 @@ cout << batch_idx << ":";
 				}
 				cout << "validation likelihood: " << this->_likelihood << endl;
 		
-			}
-
-
+			}/*
+			for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
+				
+				this->_model_component->_w[i]->showValue( \
+				this->_model_component->_layers_need_train_param[i]->getName()+"_w");
+			}*/
+	//		this->_model_component->_y_for_worker[1]->showValue( \
+				this->_model_component->_layers_param[1]->getName()+"_y");
+//			this->_model_component->_y_for_worker[4]->showValue( \
+				this->_model_component->_layers_param[4]->getName()+"_y");
+//			this->_model_component->_y_for_worker[7]->showValue( \
+				this->_model_component->_layers_param[7]->getName()+"_y");
 		}
+			this->_model_component->_y_for_worker[15]->showValue( \
+				this->_model_component->_layers_param[15]->getName()+"_y");
 		
 
 //		if(this->_is_stop == false)
@@ -167,7 +182,10 @@ void TrainRecommendation<Dtype>::test() {
 	int flag = 0;
 	clock_t t;
 	t = clock();
-			
+		
+	RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
+				this->_model_component->_layers[this->_model_component->_num_layers-1]);
+	last_layer->readRecommendW("../snapshot/w_snap/4_recommend_w.bin");
 	for (int epoch_idx = 0; epoch_idx < this->_model_component->_num_epoch; \
 			epoch_idx++) {
 		this->_model_component->_y_for_worker[0] = this->_model_component->_mini_data[0];
@@ -197,10 +215,6 @@ void TrainRecommendation<Dtype>::test() {
 			backwardLastLayer();
 			this->backwardPropagate();
 		}
-			for(int i = 0; i < this->_model_component->_num_layers; i++){
-				this->_model_component->_y_for_worker[i]->showValue( \
-					this->_model_component->_layers_param[i]->getName()+"_y");
-			}
 
 		cout << "----------epoch_idx: " << epoch_idx << "-----------\n";
 		cout << "    testing likelihood: " << this->_likelihood << endl;

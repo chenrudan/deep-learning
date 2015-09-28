@@ -587,8 +587,8 @@ void LoadTianchi<Dtype>::loadTestNoLabel(string filename, Dtype* pixel_ptr, \
 		exit(EXIT_FAILURE);
 	}
 
-	int offset = (batch_idx*_num_process*_minibatch_size/2 \
-			+ pid*_minibatch_size/2); 
+	int offset = (batch_idx*_num_process*_minibatch_size \
+			+ pid*_minibatch_size); 
 	for(int i = 0; i < _minibatch_size / 2; i++){
 		//分类、第一张图id、第二张图id
 		int img1_pos = (offset/2+i)%_num_train_img;
@@ -606,13 +606,14 @@ void LoadTianchi<Dtype>::loadTestNoLabel(string filename, Dtype* pixel_ptr, \
 				pixel_ptr[k] = (int)tmp;
 			}
 			this->meanOneImg(pixel_ptr, this->_img_sqrt);
-			this->stdOneImg(pixel_ptr, this->_img_sqrt);
+	//		this->stdOneImg(pixel_ptr, this->_img_sqrt);
 			pixel_ptr += this->_img_sqrt;
 		}
 
 		fin2.seekg(4*sizeof(int)+img2_pos*(sizeof(int) \
 					+sizeof(char)*this->_img_channel*this->_img_sqrt), fin2.beg);
 		fin2.read((char*)&(label_ptr[2*i+1]), sizeof(int));
+
 		for(int j = 0; j < this->_img_channel; j++){
 			for(int k = 0; k < this->_img_sqrt; k++){
 				fin2.read(&buf, 1);
@@ -620,7 +621,7 @@ void LoadTianchi<Dtype>::loadTestNoLabel(string filename, Dtype* pixel_ptr, \
 				pixel_ptr[k] = (int)tmp;
 			}
 			this->meanOneImg(pixel_ptr, this->_img_sqrt);
-			this->stdOneImg(pixel_ptr, this->_img_sqrt);
+	//		this->stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != _minibatch_size/2 - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
 		}
@@ -650,14 +651,12 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 	for(int i = 0; i < _matches_batch_size; i++){
 		//分类、第一张图id、第二张图id
 		int img1_idx, img2_idx;
-//		fin2.read((char*)&(label_ptr[i]), sizeof(int));
 		fin2.seekg(sizeof(float)+sizeof(int), fin2.cur);
 		fin2.read((char*)&img1_idx, sizeof(int));
 		fin2.read((char*)&img2_idx, sizeof(int));
 		int img1_pos, img2_pos;
 		img1_pos = _img_idx_pos.find(img1_idx)->second;
 		img2_pos = _img_idx_pos.find(img2_idx)->second;
-
 		fin1.seekg(4*sizeof(int)+img1_pos*(sizeof(int) \
 					+sizeof(char)*this->_img_channel*this->_img_sqrt), fin1.beg);
 		fin1.read((char*)&(label_ptr[i*2]), sizeof(int));
@@ -671,7 +670,7 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 				pixel_ptr[k] = (int)tmp;
 			}
 			this->meanOneImg(pixel_ptr, this->_img_sqrt);
-			this->stdOneImg(pixel_ptr, this->_img_sqrt);
+	//		this->stdOneImg(pixel_ptr, this->_img_sqrt);
 			pixel_ptr += this->_img_sqrt;
 		}
 
@@ -685,7 +684,7 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 				pixel_ptr[k] = (int)tmp;
 			}
 			this->meanOneImg(pixel_ptr, this->_img_sqrt);
-			this->stdOneImg(pixel_ptr, this->_img_sqrt);
+		//	this->stdOneImg(pixel_ptr, this->_img_sqrt);
 			if(i != _minibatch_size/2 - 1 || j != this->_img_channel - 1)
 				pixel_ptr += this->_img_sqrt;
 		}

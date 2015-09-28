@@ -20,6 +20,15 @@ public:
 	double computeError(Matrix<Dtype>* x, Matrix<int> *labels);
 	void computeDerivsOfInput(Matrix<Dtype>* dE_dx);
 
+	void saveRecommendW(string filename){
+		dE_dw->copyFromHost(dE_dw_CPU, dE_dw->getNumEles());
+		dE_dw->savePars(filename);
+	}
+	void readRecommendW(string filename){
+		dE_dw->readPars(filename);
+		dE_dw->copyToHost(dE_dw_CPU, dE_dw->getNumEles());
+	}
+
 private:
 	FullConnectParam* _fcp;
 	Dtype* y_CPU;
@@ -27,8 +36,10 @@ private:
 	Dtype* dE_dx_CPU;
 	Dtype* w_CPU;
 	Dtype* dE_dw_CPU;
+	Matrix<Dtype>* dE_dw;
 	int *h_labels;
 	bool _is_compatible;
+
 };
 
 

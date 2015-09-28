@@ -88,7 +88,7 @@ int main(int argc, char** argv){
 	TrainRecommendation<float> *voc_model = new TrainRecommendation<float>(0, pid, false, true);
 
 	voc_model->parseNetJson("script/tianchi_c_test.json");
-	voc_model->parseImgBinary(num_process, "../data/tianchi_img_64.bin", "../data/compatible_matches.bin", "../data/tianchi_img_test_64.bin");
+	voc_model->parseImgBinary(num_process, "../data/tianchi_img_train_64.bin", "../data/compatible_matches.bin", "../data/tianchi_img_test_64.bin");
 
 	if(pid == 0){ 
 		managerNode(voc_model);

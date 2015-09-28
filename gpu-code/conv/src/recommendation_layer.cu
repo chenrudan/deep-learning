@@ -37,6 +37,7 @@ void RecommendationLayer<Dtype>::initCuda() {
 	if(_is_compatible){
 		w_CPU				= new Dtype[_fcp->getNumIn()*_fcp->getNumOut()];
 		dE_dw_CPU				= new Dtype[_fcp->getNumIn()*_fcp->getNumOut()];
+		dE_dw				= new Matrix<Dtype>(_fcp->getNumIn(), _fcp->getNumOut());
 		gaussRand(w_CPU, _fcp->getNumIn()*_fcp->getNumOut(), 0.1);
 	}
 
@@ -125,16 +126,16 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 				for(int k=0; k < _fcp->getNumOut(); k++){
 					tmp += pow(w_CPU[j*_fcp->getNumOut()+k], 2);
 				}
-				if(y_CPU[i] < 0.000001){
+				if(y_CPU[i] == 0.0f){
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
 				}else{
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
 						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
-							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j])*tmp / y_CPU[i];
+							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j])*tmp;
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
 						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
-							- x_CPU[i*2*dE_dx->getNumCols()+j])*tmp / y_CPU[i];
+							- x_CPU[i*2*dE_dx->getNumCols()+j])*tmp;
 				}
 			}
 		}
@@ -143,12 +144,12 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 			
 			for(int k=0; k < _fcp->getNumOut(); k++){
 				for(int j=0; j < _fcp->getNumIn(); j++){
-					if(y_CPU[i] < 0.000001){
+					if(y_CPU[i] == 0.0f){
 						dE_dw_CPU[j*_fcp->getNumOut()+k] += 0;
 					}else{
 						dE_dw_CPU[j*_fcp->getNumOut()+k] += -pow(x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
 							- x_CPU[i*2*dE_dx->getNumCols() + j], 2) \
-							*w_CPU[j*_fcp->getNumOut()+k] / y_CPU[i];
+							*w_CPU[j*_fcp->getNumOut()+k];
 					}
 				}
 			}
@@ -159,7 +160,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		for(int k=0; k < _fcp->getNumOut(); k++){
 			for(int j=0; j < _fcp->getNumIn(); j++){
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << ":";
-				w_CPU[j*_fcp->getNumOut()+k] -= 0.00005*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
+				w_CPU[j*_fcp->getNumOut()+k] -= 0.00001*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << "\t";
 			}
 //		cout << endl;
