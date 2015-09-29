@@ -60,7 +60,7 @@ void TrainRecommendation<Dtype>::train() {
 				flag = PROCESS_END;
 			else
 				flag = batch_idx;
-			
+		
 			this->_model_component->_send_recv_pixel[0]->sendFlag(flag);
 			this->_model_component->_send_recv_label[0]->setFlag(flag);
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
@@ -89,7 +89,7 @@ void TrainRecommendation<Dtype>::train() {
 */	
 			this->sendAndRecvWBiasForWorker(epoch_idx, batch_idx, flag);
 			
-			if(batch_idx == 200){
+			if(batch_idx == 200 && this->_model_component->_pid == 1){
 				stringstream ss;
 				string str;
 				ss << epoch_idx;
@@ -105,7 +105,7 @@ void TrainRecommendation<Dtype>::train() {
 				last_layer->saveRecommendW("../snapshot/w_snap/"+str+"_" + "recommend_w.bin");
 			}
 
-			if(batch_idx == this->_model_component->_num_train_batch-1){
+			if(batch_idx == this->_model_component->_num_train_batch-1 && this->_model_component->_pid == 1){
 				cout << "----------epoch_idx: " << epoch_idx << "-----------\n";
 				cout << "training likelihood: " << this->_likelihood << endl;
 			}
@@ -132,13 +132,15 @@ void TrainRecommendation<Dtype>::train() {
 					this->_model_component->_send_recv_pixel[1]->dataFrom();
 					this->_model_component->_send_recv_label[1]->dataFrom();
 
+	cout << "valid_idx: "<< this->_model_component->_pid << ":"<< valid_idx << endl;	
 			//		this->_model_component->_mini_data[1]->savePars("../snapshot/input_snap/mini_data.bin");
 			//		this->_model_component->_mini_label[1]->savePars("../snapshot/input_snap/mini_label.bin");
 					this->forwardPropagate();
 					forwardLastLayer();
 
 				}
-				cout << "validation likelihood: " << this->_likelihood << endl;
+				if(this->_model_component->_pid == 1)
+					cout << "validation likelihood: " << this->_likelihood << endl;
 		
 			}/*
 			for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){

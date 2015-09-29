@@ -472,6 +472,8 @@ LoadTianchi<Dtype>::LoadTianchi(int minibatch, int num_process, string img_file,
 
 		_num_matches_train = num_matches * 9 / 10;
 		_num_matches_valid = num_matches / 10;
+		_num_matches_train = 408000;
+		_num_matches_valid = 5186;
 
 		this->_num_train = _num_matches_train*2;
 		this->_num_valid = _num_matches_valid*2;
@@ -556,11 +558,9 @@ void LoadTianchi<Dtype>::loadTrainOneBatch(int batch_idx, \
 
 template <typename Dtype>
 void LoadTianchi<Dtype>::loadValidOneBatch(int batch_idx, \
-		int pid, Dtype* &mini_pixel, \
-		int* &mini_label){
+		int pid, Dtype* &mini_pixel, int* &mini_label){
 	loadBinary("1", this->_valid_pixel+pid*(_minibatch_size*this->_img_sqrt*this->_img_channel), \
-			this->_valid_label+pid*_minibatch_size, \
-			batch_idx, pid);
+			this->_valid_label+pid*_minibatch_size, batch_idx, pid);
 	mini_pixel = this->_valid_pixel+pid*(_minibatch_size*this->_img_sqrt*this->_img_channel);
 	mini_label = this->_valid_label+pid*_minibatch_size;
 }
@@ -650,8 +650,9 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 
 	for(int i = 0; i < _matches_batch_size; i++){
 		//分类、第一张图id、第二张图id
-		int img1_idx, img2_idx;
-		fin2.seekg(sizeof(float)+sizeof(int), fin2.cur);
+		int img1_idx, img2_idx, sign;
+		fin2.seekg(sizeof(int), fin2.cur);  //这一位表示是可替代还是可搭配
+		fin2.read((char*)&sign, sizeof(int));  //这一位表示是正样本还是负样本
 		fin2.read((char*)&img1_idx, sizeof(int));
 		fin2.read((char*)&img2_idx, sizeof(int));
 		int img1_pos, img2_pos;
@@ -660,6 +661,7 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 		fin1.seekg(4*sizeof(int)+img1_pos*(sizeof(int) \
 					+sizeof(char)*this->_img_channel*this->_img_sqrt), fin1.beg);
 		fin1.read((char*)&(label_ptr[i*2]), sizeof(int));
+		label_ptr[i*2] *= sign;
 		//然后是像素数据
 		unsigned char tmp;
 		char buf;
@@ -677,6 +679,7 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 		fin1.seekg(4*sizeof(int)+img2_pos*(sizeof(int) \
 					+sizeof(char)*this->_img_channel*this->_img_sqrt), fin1.beg);
 		fin1.read((char*)&(label_ptr[i*2+1]), sizeof(int));
+		label_ptr[i*2+1] *= sign;
 		for(int j = 0; j < this->_img_channel; j++){
 			for(int k = 0; k < this->_img_sqrt; k++){
 				fin1.read(&buf, 1);

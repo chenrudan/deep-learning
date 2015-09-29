@@ -51,6 +51,7 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 //	x->reValue(_fcp->getNumIn(), true);
 //	x->showValue("data");
 
+
 	x->copyToHost(x_CPU, x->getNumEles());
 	labels->copyToHost(h_labels, labels->getNumEles());
 	
@@ -58,12 +59,17 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 	
 	double result = 0;
 	for(int i=0; i < _fcp->getMinibatchSize()/2; i++){
+		int pos_or_neg = 1;
+		if(h_labels[2*i] < 0)
+			pos_or_neg = -1;
+
 		if(!_is_compatible){
 			for(int j=0; j < x->getNumCols(); j++){
 				y_CPU[i] += pow(x_CPU[i*2*x->getNumCols() + j] \
 						- x_CPU[(i*2+1)*x->getNumCols() + j], 2); 
 			}	
 		}else{
+
 			for(int k=0; k < _fcp->getNumOut(); k++){
 				Dtype ele = 0;
 				for(int j=0; j < _fcp->getNumIn(); j++){
@@ -80,12 +86,13 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 		if(y_CPU[i] != 0)
 			result -= log(y_CPU[i]);
 		***/
-		result += y_CPU[i];
+		//负样本因为要减去结果值
+		result += pos_or_neg*y_CPU[i];
 
 		cout << h_labels[1+i*2] << "\t" << h_labels[2*i] << "\t";
 		cout << y_CPU[i] << "\n";
 	}
-	
+//cout << result << endl;	
 	return result;
 
 }
@@ -96,6 +103,10 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	if(_is_compatible)
 		memset(dE_dw_CPU, 0, _fcp->getNumIn()*_fcp->getNumOut()*sizeof(Dtype));
 	for(int i=0; i < _fcp->getMinibatchSize()/2; i++){
+		int pos_or_neg = 1;
+		if(h_labels[2*i] < 0)
+			pos_or_neg = -1;
+
 		if(!_is_compatible){
 			for(int j=0; j < dE_dx->getNumCols(); j++){
 				dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
@@ -121,6 +132,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 				}***/
 			}
 		}else{
+
 			for(int j=0; j < _fcp->getNumIn(); j++){
 				Dtype tmp = 0;
 				for(int k=0; k < _fcp->getNumOut(); k++){
@@ -131,10 +143,10 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
 				}else{
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
-						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
+						= pos_or_neg*(x_CPU[i*2*dE_dx->getNumCols() + j] \
 							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j])*tmp;
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
-						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+						= pos_or_neg*(x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
 							- x_CPU[i*2*dE_dx->getNumCols()+j])*tmp;
 				}
 			}
@@ -147,7 +159,8 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 					if(y_CPU[i] == 0.0f){
 						dE_dw_CPU[j*_fcp->getNumOut()+k] += 0;
 					}else{
-						dE_dw_CPU[j*_fcp->getNumOut()+k] += -pow(x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+						dE_dw_CPU[j*_fcp->getNumOut()+k] += pos_or_neg \
+							*pow(x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
 							- x_CPU[i*2*dE_dx->getNumCols() + j], 2) \
 							*w_CPU[j*_fcp->getNumOut()+k];
 					}

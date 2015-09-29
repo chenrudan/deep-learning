@@ -351,6 +351,7 @@ void TrainModel<Dtype>::createMPIDist() {
 			}
 		}
 	}else{
+		num_trans = _model_component->_num_process - 1;
 		for(int j = 0; j < num_pars_type; j++){
 			int trans_pid = 0;
 			send_recv_w[j] = new MPIDistribute<Dtype>( \
