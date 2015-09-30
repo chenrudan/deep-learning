@@ -132,7 +132,6 @@ void TrainRecommendation<Dtype>::train() {
 					this->_model_component->_send_recv_pixel[1]->dataFrom();
 					this->_model_component->_send_recv_label[1]->dataFrom();
 
-	cout << "valid_idx: "<< this->_model_component->_pid << ":"<< valid_idx << endl;	
 			//		this->_model_component->_mini_data[1]->savePars("../snapshot/input_snap/mini_data.bin");
 			//		this->_model_component->_mini_label[1]->savePars("../snapshot/input_snap/mini_label.bin");
 					this->forwardPropagate();

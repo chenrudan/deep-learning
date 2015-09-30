@@ -340,11 +340,12 @@ void TrainModel<Dtype>::createMPIDist() {
 		for(int i = 0; i < num_trans; i++){
 			for(int j = 0; j < num_pars_type; j++){
 				int trans_pid = i+1;
+				//加6是因为前面的三种数据占了6个tag
 				send_recv_w[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
-						_model_component->_w_len[j], i+(6+j*2)*num_trans, \
+						_model_component->_w_len[j], i*num_pars_type+6+j, \
 						trans_pid, MPI_FLOAT, _model_component->_w[j]->getDevData());	
 				send_recv_bias[i*num_pars_type+j] = new MPIDistribute<Dtype>( \
-						_model_component->_bias_len[j], i+(7+j*2)*num_trans, \
+						_model_component->_bias_len[j], i*num_pars_type+6+j + num_trans*num_pars_type, \
 						trans_pid, MPI_FLOAT, _model_component->_bias[j]->getDevData());
 				_model_component->_send_recv_w.push_back(send_recv_w[i*num_pars_type+j]);
 				_model_component->_send_recv_bias.push_back(send_recv_bias[i*num_pars_type+j]);
@@ -355,10 +356,11 @@ void TrainModel<Dtype>::createMPIDist() {
 		for(int j = 0; j < num_pars_type; j++){
 			int trans_pid = 0;
 			send_recv_w[j] = new MPIDistribute<Dtype>( \
-					_model_component->_w_len[j], this->_model_component->_pid-1+(6+j*2)*num_trans, \
-					trans_pid, MPI_FLOAT, _model_component->_w[j]->getDevData());	
+					_model_component->_w_len[j], (this->_model_component->_pid-1)*num_pars_type \
+					+6+j, trans_pid, MPI_FLOAT, _model_component->_w[j]->getDevData());	
 			send_recv_bias[j] = new MPIDistribute<Dtype>( \
-					_model_component->_bias_len[j], this->_model_component->_pid-1+(7+j*2)*num_trans, \
+					_model_component->_bias_len[j], (this->_model_component->_pid-1)*num_pars_type \
+					+6+j+num_trans*num_pars_type, \
 					trans_pid, MPI_FLOAT, _model_component->_bias[j]->getDevData());
 			_model_component->_send_recv_w.push_back(send_recv_w[j]);
 			_model_component->_send_recv_bias.push_back(send_recv_bias[j]);

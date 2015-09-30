@@ -658,6 +658,7 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 		int img1_pos, img2_pos;
 		img1_pos = _img_idx_pos.find(img1_idx)->second;
 		img2_pos = _img_idx_pos.find(img2_idx)->second;
+
 		fin1.seekg(4*sizeof(int)+img1_pos*(sizeof(int) \
 					+sizeof(char)*this->_img_channel*this->_img_sqrt), fin1.beg);
 		fin1.read((char*)&(label_ptr[i*2]), sizeof(int));

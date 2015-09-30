@@ -279,8 +279,8 @@ void TrainClassification<Dtype>::sendAndRecvForManager() {
 		Dtype *h_mini_pixel = new Dtype[pixel_len];   //分配在主机内存上
 		int *h_mini_label = new int[label_len]; 
 		if(tid < num_trans*this->_num_data_type){
-			int pid = tid / this->_num_data_type + 1 + this->_model_component->_master_pid;   //计算出对应的进程ID
-			int type_id = tid % this->_num_data_type;   //计算是train还是valid
+			int pid = tid % this->_num_data_type + 1 + this->_model_component->_master_pid;   //计算出对应的进程ID
+			int type_id = tid / this->_num_data_type;   //计算是train还是valid
 			do{
 				if(this->_is_test){
 					this->_load_layer->loadTestOneBatch( \
