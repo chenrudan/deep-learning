@@ -472,8 +472,8 @@ LoadTianchi<Dtype>::LoadTianchi(int minibatch, int num_process, string img_file,
 
 		_num_matches_train = num_matches * 9 / 10;
 		_num_matches_valid = num_matches / 10;
-		_num_matches_train = 408000;
-		_num_matches_valid = 5186;
+		_num_matches_train = 201000;
+		_num_matches_valid = 143;
 
 		this->_num_train = _num_matches_train*2;
 		this->_num_valid = _num_matches_valid*2;
@@ -485,7 +485,7 @@ LoadTianchi<Dtype>::LoadTianchi(int minibatch, int num_process, string img_file,
 		fin1.read((char*)&this->_img_height, sizeof(int));
 
 		this->_img_sqrt = this->_img_width * this->_img_height;
-	//	cout << num_matches << ":" << this->_num_train << ":" << this->_num_valid \
+		cout << num_matches << ":" << this->_num_train << ":" << this->_num_valid \
 			<< ":" << this->_img_channel \
 			<< ":" << this->_img_height << ":" << this->_img_width << endl; 
 		_minibatch_size = minibatch;

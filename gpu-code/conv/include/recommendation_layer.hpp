@@ -28,6 +28,12 @@ public:
 		dE_dw->readPars(filename);
 		dE_dw->copyToHost(dE_dw_CPU, dE_dw->getNumEles());
 	}
+	float* getProbRecord(){
+		return y_CPU;
+	}
+	int* getHLabel(){
+		return h_labels;
+	}
 
 private:
 	FullConnectParam* _fcp;

@@ -25,10 +25,31 @@ void TrainRecommendation<Dtype>::parseImgBinary(int num_process, \
 template <typename Dtype>
 void TrainRecommendation<Dtype>::forwardLastLayer(){
 
-	this->_likelihood += dynamic_cast<RecommendationLayer<Dtype>* >( \
-			this->_model_component->_layers[this->_model_component->_num_layers-1]) \
-				   ->computeError(this->_model_component->_y_for_worker[this->_model_component->_num_layers-1], \
+	RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
+			this->_model_component->_layers[this->_model_component->_num_layers-1]);
+	this->_likelihood += last_layer->computeError(this->_model_component->_y_for_worker[ \
+			this->_model_component->_num_layers-1], \
 						   this->_model_component->_mini_label_for_compute);
+	if(this->_is_test && this->_model_component->_pid != this->_model_component->_master_pid){
+		Dtype *prob_record = last_layer->getProbRecord();
+		int *h_labels = last_layer->getHLabel();
+		for(int i = 0; i < this->_model_component->_minibatch_size/2; i++){
+			fout << h_labels[2*i+1];
+			fout << '\t';
+			fout << h_labels[2*i];
+			fout << '\t';
+			fout << prob_record[i];
+			fout << '\n';
+		}
+	}
+	if(!this->_is_test){
+		Dtype *prob_record = last_layer->getProbRecord();
+		int *h_labels = last_layer->getHLabel();
+		for(int i = 0; i < this->_model_component->_minibatch_size/2; i++){
+			cout << h_labels[1+i*2] << "\t" << h_labels[2*i] << "\t";
+			cout << prob_record[i] << "\n";
+		}
+	}
 }
 
 template <typename Dtype>
@@ -37,6 +58,7 @@ void TrainRecommendation<Dtype>::backwardLastLayer(){
 			this->_model_component->_layers[this->_model_component->_num_layers-1]);
 	last_layer->computeDerivsOfInput(this->_model_component->_dE_dy_for_worker[ \
 			this->_model_component->_num_layers-2]);
+
 }
 
 template <typename Dtype>
@@ -107,7 +129,7 @@ void TrainRecommendation<Dtype>::train() {
 
 			if(batch_idx == this->_model_component->_num_train_batch-1 && this->_model_component->_pid == 1){
 				cout << "----------epoch_idx: " << epoch_idx << "-----------\n";
-				cout << "training likelihood: " << this->_likelihood << endl;
+				cout << " training likelihood: " << this->_likelihood << endl;
 			}
 
 			if(batch_idx == this->_model_component->_num_train_batch-1 && this->_has_valid){
@@ -154,8 +176,8 @@ void TrainRecommendation<Dtype>::train() {
 //			this->_model_component->_y_for_worker[7]->showValue( \
 				this->_model_component->_layers_param[7]->getName()+"_y");
 		}
-			this->_model_component->_y_for_worker[15]->showValue( \
-				this->_model_component->_layers_param[15]->getName()+"_y");
+			this->_model_component->_y_for_worker[this->_model_component->_num_layers-1]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-1]->getName()+"_y");
 		
 
 //		if(this->_is_stop == false)
@@ -186,7 +208,7 @@ void TrainRecommendation<Dtype>::test() {
 		
 	RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
 				this->_model_component->_layers[this->_model_component->_num_layers-1]);
-	last_layer->readRecommendW("../snapshot/w_snap/4_recommend_w.bin");
+	last_layer->readRecommendW("../snapshot/w_snap/8_recommend_w.bin");
 	for (int epoch_idx = 0; epoch_idx < this->_model_component->_num_epoch; \
 			epoch_idx++) {
 		this->_model_component->_y_for_worker[0] = this->_model_component->_mini_data[0];

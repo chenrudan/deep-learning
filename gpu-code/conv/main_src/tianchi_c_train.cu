@@ -80,7 +80,7 @@ int main(int argc, char** argv){
 
 	voc_model->parseNetJson("script/tianchi_c_train.json");
 	cout << "???1\n";
-	voc_model->parseImgBinary(num_process, "../data/tianchi_img_train_64.bin", "../data/compatible_matches.bin", "");
+	voc_model->parseImgBinary(num_process, "../data/tianchi_img_train_32.bin", "../data/compatible_matches.bin", "");
 	cout << "???12\n";
 
 	if(pid == 0){ 

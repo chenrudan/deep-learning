@@ -80,7 +80,6 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 				y_CPU[i] += pow(ele, 2);
 			}
 		}
-	//	cout << h_labels[i] << ",   y_cpu: "<< y_CPU[i] << endl;
 
 		/***用log来算
 		if(y_CPU[i] != 0)
@@ -89,8 +88,6 @@ double RecommendationLayer<Dtype>::computeError(Matrix<Dtype>* x, \
 		//负样本因为要减去结果值
 		result += pos_or_neg*y_CPU[i];
 
-		cout << h_labels[1+i*2] << "\t" << h_labels[2*i] << "\t";
-		cout << y_CPU[i] << "\n";
 	}
 //cout << result << endl;	
 	return result;
@@ -173,7 +170,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		for(int k=0; k < _fcp->getNumOut(); k++){
 			for(int j=0; j < _fcp->getNumIn(); j++){
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << ":";
-				w_CPU[j*_fcp->getNumOut()+k] -= 0.00005*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
+				w_CPU[j*_fcp->getNumOut()+k] -= 0.0001*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << "\t";
 			}
 //		cout << endl;
