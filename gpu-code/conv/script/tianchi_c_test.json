@@ -131,7 +131,7 @@
 			"name": "relu5"
 		},
 		{
-			"type": "RECOMMENDCOMPATIBLE",
+			"type": "RECOMMENDSUBSTITUE",
 			"name": "recommend",
 			"num_out": 32
 		}

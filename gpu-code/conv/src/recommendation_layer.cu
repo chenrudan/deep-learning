@@ -170,7 +170,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		for(int k=0; k < _fcp->getNumOut(); k++){
 			for(int j=0; j < _fcp->getNumIn(); j++){
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << ":";
-				w_CPU[j*_fcp->getNumOut()+k] -= 0.0001*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
+				w_CPU[j*_fcp->getNumOut()+k] -= 0.00001*dE_dw_CPU[j*_fcp->getNumOut()+k]/_fcp->getMinibatchSize();
 //			cout << w_CPU[j*_fcp->getNumOut()+k] << "\t";
 			}
 //		cout << endl;

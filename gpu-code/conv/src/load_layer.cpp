@@ -648,6 +648,7 @@ void LoadTianchi<Dtype>::loadBinary(string filename, Dtype* pixel_ptr, \
 
 	fin2.seekg(sizeof(int)*(4*matches_offset+1), fin2.beg);
 
+
 	for(int i = 0; i < _matches_batch_size; i++){
 		//分类、第一张图id、第二张图id
 		int img1_idx, img2_idx, sign;

@@ -18,17 +18,17 @@ int Param::_minibatch_size = 0;
 
 void managerNode(TrainClassification<float> *model){
 
-	string str1[6]= {"../snapshot/w_snap/19_conv1_w.bin", \
-		"../snapshot/w_snap/19_conv2_w.bin", \
-		"../snapshot/w_snap/19_conv3_w.bin", \
-		"../snapshot/w_snap/19_inner1_w.bin", \
-		"../snapshot/w_snap/19_inner2_w.bin"};
+	string str1[6]= {"../snapshot/w_snap/40_conv1_w.bin", \
+		"../snapshot/w_snap/40_conv2_w.bin", \
+		"../snapshot/w_snap/40_conv3_w.bin", \
+		"../snapshot/w_snap/40_inner1_w.bin", \
+		"../snapshot/w_snap/40_inner2_w.bin"};
 	vector<string> w_file(str1, str1+5);
-	string str2[6]	= {"../snapshot/w_snap/19_conv1_bias.bin", \
-		"../snapshot/w_snap/19_conv2_bias.bin", \
-		"../snapshot/w_snap/19_conv3_bias.bin", \
-		"../snapshot/w_snap/19_inner1_bias.bin", \
-		"../snapshot/w_snap/19_inner2_bias.bin"};
+	string str2[6]	= {"../snapshot/w_snap/40_conv1_bias.bin", \
+		"../snapshot/w_snap/40_conv2_bias.bin", \
+		"../snapshot/w_snap/40_conv3_bias.bin", \
+		"../snapshot/w_snap/40_inner1_bias.bin", \
+		"../snapshot/w_snap/40_inner2_bias.bin"};
 	vector<string> bias_file(str2, str2+5);
 
 	cout << "Loading data...\n";

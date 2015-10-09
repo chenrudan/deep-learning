@@ -50,6 +50,7 @@ void TrainRecommendation<Dtype>::forwardLastLayer(){
 			cout << prob_record[i] << "\n";
 		}
 	}
+
 }
 
 template <typename Dtype>
@@ -87,7 +88,7 @@ void TrainRecommendation<Dtype>::train() {
 			this->_model_component->_send_recv_label[0]->setFlag(flag);
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
 			this->_model_component->_send_recv_label[0]->dataFrom();
-					
+	
 	//	this->_model_component->_mini_data[0]->showValue("data");
 //			if(batch_idx == 4){
 //				this->_model_component->_mini_data[0]->savePars("../snapshot/input_snap/mini_data.bin");
@@ -118,13 +119,19 @@ void TrainRecommendation<Dtype>::train() {
 				ss >> str;
 				for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
 					this->_model_component->_w[i]->savePars( \
-							"../snapshot/w_snap/"+str+"_"+this->_model_component->_layers_need_train_param[i]->getName()+"_w.bin");
+							"../snapshot/w_snap/"+str+"_" \
+							+this->_model_component->_layers_need_train_param[i]->getName()+"_w.bin");
 					this->_model_component->_bias[i]->savePars( \
-							"../snapshot/w_snap/"+str+"_"+this->_model_component->_layers_need_train_param[i]->getName()+"_bias.bin");
+							"../snapshot/w_snap/"+str+"_" \
+							+this->_model_component->_layers_need_train_param[i]->getName()+"_bias.bin");
 				}
-				RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
-						this->_model_component->_layers[this->_model_component->_num_layers-1]);
-				last_layer->saveRecommendW("../snapshot/w_snap/"+str+"_" + "recommend_w.bin");
+				if(this->_model_component->_layers_param[ \
+						this->_model_component->_num_layers-1]->getLayerType() == RECOMMENDCOMPATIBLE){
+					RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
+							this->_model_component->_layers[this->_model_component->_num_layers-1]);
+					last_layer->saveRecommendW("../snapshot/w_snap/"+str+"_" + "recommend_w.bin");
+
+				}
 			}
 
 			if(batch_idx == this->_model_component->_num_train_batch-1 && this->_model_component->_pid == 1){
@@ -206,9 +213,12 @@ void TrainRecommendation<Dtype>::test() {
 	clock_t t;
 	t = clock();
 		
-	RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
+	if(this->_model_component->_layers_param[ \
+			this->_model_component->_num_layers-1]->getLayerType() == RECOMMENDCOMPATIBLE){
+		RecommendationLayer<Dtype> *last_layer = dynamic_cast<RecommendationLayer<Dtype>* >( \
 				this->_model_component->_layers[this->_model_component->_num_layers-1]);
-	last_layer->readRecommendW("../snapshot/w_snap/8_recommend_w.bin");
+		last_layer->readRecommendW("../snapshot/w_snap/40_recommend_w.bin");
+	}
 	for (int epoch_idx = 0; epoch_idx < this->_model_component->_num_epoch; \
 			epoch_idx++) {
 		this->_model_component->_y_for_worker[0] = this->_model_component->_mini_data[0];
