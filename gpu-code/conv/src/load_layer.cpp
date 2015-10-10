@@ -472,8 +472,8 @@ LoadTianchi<Dtype>::LoadTianchi(int minibatch, int num_process, string img_file,
 
 		_num_matches_train = num_matches * 9 / 10;
 		_num_matches_valid = num_matches / 10;
-		_num_matches_train = 201000;
-		_num_matches_valid = 143;
+		_num_matches_train = 203200;
+		_num_matches_valid = 23;
 
 		this->_num_train = _num_matches_train*2;
 		this->_num_valid = _num_matches_valid*2;
