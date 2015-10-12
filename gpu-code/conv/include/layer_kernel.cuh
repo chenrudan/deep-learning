@@ -19,7 +19,9 @@ __global__ void forward_convolution(const float* x, const float* w, \
 		const int out_height, const int out_width, \
 		const int filter_height, const int filter_width, const int filter_channel, \
 		const int stride_height, const int stride_width, \
-		const int box_num_height, const int box_num_width);
+		const int box_num_height, const int box_num_width, \
+		const int box_in_height, const int box_in_width, \
+		const int box_out_height, const int box_out_width);
 
 
 __global__ void backward_convolution(const float* dE_dy, const float *w, \

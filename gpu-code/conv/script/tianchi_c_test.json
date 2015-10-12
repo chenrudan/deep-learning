@@ -1,6 +1,6 @@
 {
 	"name": "CIFAR10net",
-	"minibatch_size": 4800,
+	"minibatch_size": 200,
 	"n_push": 200,
 	"n_fetch": 201,
 	"num_epoch": 1,
@@ -105,7 +105,7 @@
 		{
 			"type": "INNERPRODUCT",
 			"name": "inner1",
-			"num_out": 256,
+			"num_out": 128,
 			"w_lr": 0.0001,
 			"bias_lr": 0.0002,
 			"momentum": 0.9,
@@ -120,8 +120,8 @@
 			"type": "INNERPRODUCT",
 			"name": "inner2",
 			"num_out": 64,
-			"w_lr": 0.00001,
-			"bias_lr": 0.00002,
+			"w_lr": 0.000001,
+			"bias_lr": 0.000002,
 			"momentum": 0.9,
 			"weight_decay": 0.004,
 			"w_gauss": 0.1

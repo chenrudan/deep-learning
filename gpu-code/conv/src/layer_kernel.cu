@@ -24,7 +24,9 @@ __global__ void forward_convolution(const float* x, const float* w, \
 		const int out_height, const int out_width, \
 		const int filter_height, const int filter_width, const int filter_channel, \
 		const int stride_height, const int stride_width, \
-		const int box_num_height, const int box_num_width){
+		const int box_num_height, const int box_num_width, \
+		const int box_in_height, const int box_in_width, \
+		const int box_out_height, const int box_out_width){
 
 	const int num_box = box_num_height * box_num_width;	
 	const int img_idx = blockIdx.x;
@@ -33,6 +35,9 @@ __global__ void forward_convolution(const float* x, const float* w, \
 	const int box_row_idx = box_idx / box_num_width;
 	const int box_col_idx = box_idx % box_num_width;
 
+	//共享内存里面存放一张图和输入channel个权重
+	extern __shared__ float sh_w_and_x[];
+
 	int in_pixs = in_height * in_width;
 	int out_pixs = out_height * out_width;
 	int filt_pixs = filter_height * filter_width;
@@ -40,33 +45,64 @@ __global__ void forward_convolution(const float* x, const float* w, \
 	//输出的行列idx，当输出大于MAX_THREAD_SIZE的时候每个线程都做了计算
 	int out_row = MAX_THREAD_SIZE * box_row_idx + threadIdx.y;
 	int out_col = MAX_THREAD_SIZE * box_col_idx + threadIdx.x;
+	
+	int in_row = box_in_height * box_row_idx;
+	int	in_col = box_in_width * box_col_idx;
+
+	w += filt_idx*in_channel*filt_pixs;
+
+	int start = threadIdx.y*blockDim.x+threadIdx.x;
+	while(start < in_channel*filt_pixs){
+		sh_w_and_x[start] = w[start];
+		start += blockDim.y*blockDim.x;
+	}
+	__syncthreads();
 
 	if(out_row < out_height && out_col < out_width){
 		//x定位哪一个batch
-		x += img_idx * in_channel * in_pixs;
+		x += img_idx * in_channel * in_pixs + in_row*in_width + in_col;
 		//定位到哪一个filter
-		w += filt_idx * in_channel* filt_pixs;
 		bias += filt_idx;
 		//输出定位到输出的某一张图
 		targets += img_idx * filter_channel * out_pixs + filt_idx * out_pixs \
 				   + out_row * out_width + out_col;
 
 		float out_value = 0;
+		float *sh_w = sh_w_and_x;
+		float *sh_x = sh_w_and_x + in_channel*filt_pixs;
+
+		int interval_height = box_row_idx != (box_num_height-1) ? box_out_height \
+							  : out_height - box_out_height*(box_num_height-1);
+		int interval_width = box_col_idx != (box_num_width-1) ? box_out_width \
+							  : out_width - box_out_width*(box_num_width-1);
 
 		for(int k = 0; k < in_channel; k++){
 			const float *x_offset = x + k*in_pixs;
-			const float *w_offset = w + k*filt_pixs;
+			const float *w_offset = sh_w + k*filt_pixs;
+
+			//在此处对每一张输入将数据存到共享内存中
+			int tmp_row = threadIdx.y;
+			int tmp_col = threadIdx.x;
+			while(tmp_row < box_in_height){
+				tmp_col = threadIdx.x;
+				while(tmp_col < box_in_width){
+					sh_x[tmp_row*box_in_width + tmp_col] = x_offset[tmp_row*in_width+tmp_col];
+					tmp_col += interval_width;
+				}
+				tmp_row += interval_height;
+			}
+			__syncthreads();
 
 			for(int i = 0; i < filter_height; i++){
-				int in_row = out_row * stride_height + i;
-				const float *x_offset_1 = x_offset + in_row*in_width;
+				int box_in_row = threadIdx.y * stride_height + i;
+				const float *x_offset_1 = sh_x + box_in_row*box_in_width;
 				const float *w_offset_1 = w_offset + i*filter_width;
 
 				for(int j = 0; j < filter_width; j++){
-					int in_col = out_col * stride_width + j;
+					int box_in_col = threadIdx.x * stride_width + j;
 
-					if(in_row < in_height && in_col < in_width){
-						out_value += x_offset_1[in_col] \
+					if(box_in_row < box_in_height && box_in_col < box_in_width){
+						out_value += x_offset_1[box_in_col] \
 							 *w_offset_1[j];
 					}
 				}
@@ -87,7 +123,7 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		const int stride_height, const int stride_width, \
 		const int box_num_height, const int box_num_width){
 
-	extern __shared__ float result[];
+	extern __shared__ float sh_w_x_y[];
 
 	const int num_box = box_num_height * box_num_width;	
 	const int img_idx = blockIdx.x;
@@ -114,14 +150,32 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		dE_dy += img_idx*out_channel*out_pixs + out_row*out_width + out_col;
 		w += in_channel_idx*filt_pixs;
 
-		int interval_height = out_height - box_out_height * (box_num_height - 1);
-		int interval_width = out_width - box_out_width* (box_num_width - 1);
+		int interval_height = box_row_idx != (box_num_height-1) ? box_out_height \
+							  : out_height - box_out_height*(box_num_height-1);
+		int interval_width = box_col_idx != (box_num_width-1) ? box_out_width \
+							  : out_width - box_out_width*(box_num_width-1);
+
+		float *sh_w = sh_w_x_y;
+		float *sh_x = sh_w_x_y + out_channel*filt_pixs;
+		float *sh_y = sh_x + box_in_height*box_in_width;
+
 		int tmp_row = threadIdx.y;
 		int tmp_col = threadIdx.x;
 		while(tmp_row < box_in_height){
 			tmp_col = threadIdx.x;
 			while(tmp_col < box_in_width){
-				result[tmp_row*box_in_width + tmp_col] = 0;
+				sh_x[tmp_row*box_in_width + tmp_col] = 0;
+				tmp_col += interval_width;
+			}
+			tmp_row += interval_height;
+		}
+
+		tmp_row = threadIdx.y;
+		while(tmp_row < out_channel){
+			tmp_col = threadIdx.x;
+			while(tmp_col < filt_pixs){
+				sh_w[tmp_row*filt_pixs + tmp_col] \
+					= w[tmp_row*filt_pixs*in_channel + tmp_col];
 				tmp_col += interval_width;
 			}
 			tmp_row += interval_height;
@@ -129,20 +183,24 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 
 		float ele = 0;
 		for(int k = 0; k < out_channel; k++){
-			const float *dE_dy_offset = dE_dy + k*out_pixs;
-			const float *w_offset = w + k*filt_pixs*in_channel;
+			if(threadIdx.x == 0 && threadIdx.y == 0)
+				sh_y[0] = dE_dy[k*out_pixs];
+			__syncthreads();
+
+			const float *w_offset = sh_w + k*filt_pixs;
+
 			for(int i = 0; i < filter_height; i++){
 				int box_in_row = threadIdx.y*stride_height + i;
 				const float *w_offset_1 = w_offset + i*filter_width;
-				float *result_offset = result + box_in_row*box_in_width;
+				float *sh_x_offset = sh_x + box_in_row*box_in_width;
 
 				for(int j = 0; j < filter_width; j++){
 					int box_in_col = threadIdx.x*stride_width + j;
 
 					if(box_in_row < box_in_height \
 							&& box_in_col < box_in_width){
-						ele = dE_dy_offset[0]*w_offset_1[j];
-						atomicAdd(result_offset+box_in_col, ele);
+						ele = sh_y[0]*w_offset_1[j];
+						atomicAdd(sh_x_offset+box_in_col, ele);
 						__syncthreads();
 					}
 				}
@@ -153,7 +211,7 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		while(tmp_row < box_in_height){
 			tmp_col = threadIdx.x;
 			float *target_offset = targets + tmp_row*in_width;
-			float *result_offset = result + tmp_row*box_in_width;
+			float *result_offset = sh_x + tmp_row*box_in_width;
 
 			while(tmp_col < box_in_width){
 				target_offset[tmp_col] = result_offset[tmp_col];
@@ -518,8 +576,11 @@ __global__ void compute_dE_dy_max(const float* dE_dy_i, float* targets, \
 		int posIdx= threadIdx.y * box_in_width * stride_height \
 					+ threadIdx.x * stride_width;
 
-		int interval_height = out_height - box_out_height * (box_num_height - 1);
-		int interval_width = out_width - box_out_width* (box_num_width - 1);
+		int interval_height = box_row_idx != (box_num_height-1) ? box_out_height \
+							  : out_height - box_out_height*(box_num_height-1);
+		int interval_width = box_col_idx != (box_num_width-1) ? box_out_width \
+							  : out_width - box_out_width*(box_num_width-1);
+
 		int tmp_row = threadIdx.y;
 		int tmp_col = threadIdx.x;
 		while(tmp_row < box_in_height){
@@ -589,8 +650,11 @@ __global__ void compute_dE_dy_avg(const float* dE_dy_i, float* targets, \
 				   + out_row * out_width + out_col;
 
 		float ele;
-		int interval_height = out_height - box_out_height * (box_num_height - 1);
-		int interval_width = out_width - box_out_width* (box_num_width - 1);
+		int interval_height = box_row_idx != (box_num_height-1) ? box_out_height \
+							  : out_height - box_out_height*(box_num_height-1);
+		int interval_width = box_col_idx != (box_num_width-1) ? box_out_width \
+							  : out_width - box_out_width*(box_num_width-1);
+
 		int tmp_row = threadIdx.y;
 		int tmp_col = threadIdx.x;
 		while(tmp_row < box_in_height){

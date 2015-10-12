@@ -109,7 +109,7 @@ void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 //	x->reValue(1.0f);
 //	this->_w->reValue(_filt_pixs, true);
-//	this->_bias->reValue(2.0f);
+//	this->_bias->reValue(1.0f);
 
 	if(_cp->getPadHeight() > 0 || _cp->getPadWidth() > 0){
 		num_kernel = this->_cp->getMinibatchSize() * _in_pixs \
@@ -133,7 +133,8 @@ void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 	dim3 blocks = dim3(_cp->getMinibatchSize(), _cp->getOutChannel()*_num_box);
 	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth());
 
-	forward_convolution<<<blocks, threads>>>(\
+	forward_convolution<<<blocks, threads, \
+		sizeof(Dtype)*(_cp->getInChannel()*_filt_pixs + _box_in_pixs)>>>(\
 			padded_x->getDevData(), this->_w->getDevData(), \
 			this->_bias->getDevData(), this->_y->getDevData(), \
 			_cp->getPaddedInHeight(), _cp->getPaddedInWidth(), \
@@ -141,7 +142,9 @@ void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 			_cp->getOutWidth(), _cp->getFilterHeight(), \
 			_cp->getFilterWidth(), _cp->getOutChannel(), \
 			_cp->getStrideHeight(), _cp->getStrideWidth(), \
-			_cp->getBoxNumHeight(), _cp->getBoxNumWidth());  
+			_cp->getBoxNumHeight(), _cp->getBoxNumWidth(), \
+			_cp->getBoxInHeight(), _cp->getBoxInWidth(), \
+			_cp->getBoxOutHeight(), _cp->getBoxOutWidth());  
 	cudaDeviceSynchronize();
 	cudaCheckError();
 
@@ -290,7 +293,7 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	}
 
 	backward_convolution<<<blocks, threads, \
-		sizeof(Dtype)*box_in_height*box_in_width>>>( \
+		sizeof(Dtype)*(box_in_height*box_in_width + 1 + _cp->getOutChannel()*_filt_pixs)>>>( \
 			this->_dE_dy->getDevData(), this->_w->getDevData(), \
 			p_dE_dx, box_in_height, box_in_width, \
 			_cp->getBoxOutHeight(), _cp->getBoxOutWidth(), \

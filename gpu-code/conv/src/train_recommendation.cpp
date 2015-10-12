@@ -96,20 +96,24 @@ void TrainRecommendation<Dtype>::train() {
 //			}
 			this->forwardPropagate();
 			forwardLastLayer();
+
+	t = clock() - t;
+	cout << " forward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+	t = clock();
+
 			backwardLastLayer();
 			this->backwardPropagate();
-/*
+
 	t = clock() - t;
 	cout << " backward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 	t = clock();
-	cout << batch_idx << ": update\n";
-*/
+
 			this->computeAndUpdatePars();
-/*
+
 	t = clock() - t;
 	cout << " update: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 	t = clock();
-*/	
+	
 			this->sendAndRecvWBiasForWorker(epoch_idx, batch_idx, flag);
 			
 			if(batch_idx == 200 && this->_model_component->_pid == 1){

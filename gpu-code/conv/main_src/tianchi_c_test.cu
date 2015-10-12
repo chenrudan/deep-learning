@@ -18,17 +18,17 @@ int Param::_minibatch_size = 0;
 
 void managerNode(TrainClassification<float> *model){
 
-	string str1[6]= {"../snapshot/w_snap/40_conv1_w.bin", \
-		"../snapshot/w_snap/40_conv2_w.bin", \
-		"../snapshot/w_snap/40_conv3_w.bin", \
-		"../snapshot/w_snap/40_inner1_w.bin", \
-		"../snapshot/w_snap/40_inner2_w.bin"};
+	string str1[6]= {"../snapshot/w_snap/60_conv1_w.bin", \
+		"../snapshot/w_snap/60_conv2_w.bin", \
+		"../snapshot/w_snap/60_conv3_w.bin", \
+		"../snapshot/w_snap/60_inner1_w.bin", \
+		"../snapshot/w_snap/60_inner2_w.bin"};
 	vector<string> w_file(str1, str1+5);
-	string str2[6]	= {"../snapshot/w_snap/40_conv1_bias.bin", \
-		"../snapshot/w_snap/40_conv2_bias.bin", \
-		"../snapshot/w_snap/40_conv3_bias.bin", \
-		"../snapshot/w_snap/40_inner1_bias.bin", \
-		"../snapshot/w_snap/40_inner2_bias.bin"};
+	string str2[6]	= {"../snapshot/w_snap/60_conv1_bias.bin", \
+		"../snapshot/w_snap/60_conv2_bias.bin", \
+		"../snapshot/w_snap/60_conv3_bias.bin", \
+		"../snapshot/w_snap/60_inner1_bias.bin", \
+		"../snapshot/w_snap/60_inner2_bias.bin"};
 	vector<string> bias_file(str2, str2+5);
 
 	cout << "Loading data...\n";
@@ -37,9 +37,9 @@ void managerNode(TrainClassification<float> *model){
 	model->createPixelAndLabel();
 	cout << "Loading data is done.\n";
 	model->createMPIDist();
-	cout << "done12\n";
+	cout << "done7\n";
 	model->initWeightAndBcastByFile(w_file, bias_file);
-	cout << "done13\n";
+	cout << "done8\n";
 	model->sendAndRecvForManager();
 	cout << "CPU number: " << omp_get_num_procs() << endl;  
 }
@@ -93,7 +93,7 @@ int main(int argc, char** argv){
 
 	voc_model->parseNetJson("script/tianchi_c_test.json");
 	voc_model->parseImgBinary(num_process, "../data/tianchi_img_train_32.bin", \
-			"../data/compatible_matches.bin", "../data/tianchi_img_local_test_32.bin");
+			"../data/compatible_matches.bin", "../data/tianchi_img_test_32_2.bin");
 
 	if(pid == 0){ 
 		managerNode(voc_model);

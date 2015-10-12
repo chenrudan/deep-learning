@@ -1,6 +1,6 @@
 {
 	"name": "CIFAR10net",
-	"minibatch_size": 200,
+	"minibatch_size": 1600,
 	"n_push": 200,
 	"n_fetch": 201,
 	"num_epoch": 200,
@@ -18,9 +18,9 @@
 			"stride_width": 1,
 			"filter_height": 5,
 			"filter_width": 5,
-			"filter_channel": 16,
-			"w_lr": 0.0001,
-			"bias_lr": 0.0002,
+			"filter_channel": 8,
+			"w_lr": 0.001,
+			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0.004,
 			"w_gauss": 0.01
@@ -49,9 +49,9 @@
 			"stride_width": 1,
 			"filter_height": 5,
 			"filter_width": 5,
-			"filter_channel": 32,
-			"w_lr": 0.0001,
-			"bias_lr": 0.0002,
+			"filter_channel": 16,
+			"w_lr": 0.001,
+			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0.004,
 			"w_gauss": 0.01
@@ -80,9 +80,9 @@
 			"stride_width": 1,
 			"filter_height": 5,
 			"filter_width": 5,
-			"filter_channel": 64,
-			"w_lr": 0.0001,
-			"bias_lr": 0.0002,
+			"filter_channel": 32,
+			"w_lr": 0.001,
+			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0.004,
 			"w_gauss": 0.01
@@ -105,12 +105,12 @@
 		{
 			"type": "INNERPRODUCT",
 			"name": "inner1",
-			"num_out": 512,
-			"w_lr": 0.00001,
-			"bias_lr": 0.00002,
+			"num_out": 128,
+			"w_lr": 0.001,
+			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0.004,
-			"w_gauss": 0.1
+			"w_gauss": 0.01
 		},
 		{
 			"type": "RECTIFIED",
@@ -120,11 +120,11 @@
 			"type": "INNERPRODUCT",
 			"name": "inner2",
 			"num_out": 64,
-			"w_lr": 0.00001,
-			"bias_lr": 0.00002,
+			"w_lr": 0.001,
+			"bias_lr": 0.002,
 			"momentum": 0.9,
 			"weight_decay": 0.004,
-			"w_gauss": 0.1
+			"w_gauss": 0.01
 		},
 		{
 			"type": "RECTIFIED",
