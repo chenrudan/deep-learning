@@ -1,6 +1,6 @@
 {
 	"name": "CIFAR10net",
-	"minibatch_size": 200,
+	"minibatch_size": 4800,
 	"n_push": 200,
 	"n_fetch": 201,
 	"num_epoch": 1,

@@ -123,7 +123,7 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		const int stride_height, const int stride_width, \
 		const int box_num_height, const int box_num_width){
 
-	extern __shared__ float sh_w_x_y[];
+	extern __shared__ float result[];
 
 	const int num_box = box_num_height * box_num_width;	
 	const int img_idx = blockIdx.x;
@@ -155,27 +155,12 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		int interval_width = box_col_idx != (box_num_width-1) ? box_out_width \
 							  : out_width - box_out_width*(box_num_width-1);
 
-		float *sh_w = sh_w_x_y;
-		float *sh_x = sh_w_x_y + out_channel*filt_pixs;
-		float *sh_y = sh_x + box_in_height*box_in_width;
-
 		int tmp_row = threadIdx.y;
 		int tmp_col = threadIdx.x;
 		while(tmp_row < box_in_height){
 			tmp_col = threadIdx.x;
 			while(tmp_col < box_in_width){
-				sh_x[tmp_row*box_in_width + tmp_col] = 0;
-				tmp_col += interval_width;
-			}
-			tmp_row += interval_height;
-		}
-
-		tmp_row = threadIdx.y;
-		while(tmp_row < out_channel){
-			tmp_col = threadIdx.x;
-			while(tmp_col < filt_pixs){
-				sh_w[tmp_row*filt_pixs + tmp_col] \
-					= w[tmp_row*filt_pixs*in_channel + tmp_col];
+				result[tmp_row*box_in_width + tmp_col] = 0;
 				tmp_col += interval_width;
 			}
 			tmp_row += interval_height;
@@ -183,24 +168,21 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 
 		float ele = 0;
 		for(int k = 0; k < out_channel; k++){
-			if(threadIdx.x == 0 && threadIdx.y == 0)
-				sh_y[0] = dE_dy[k*out_pixs];
-			__syncthreads();
-
-			const float *w_offset = sh_w + k*filt_pixs;
+			const float *dE_dy_offset = dE_dy + k*out_pixs;
+			const float *w_offset = w + k*filt_pixs*in_channel;
 
 			for(int i = 0; i < filter_height; i++){
 				int box_in_row = threadIdx.y*stride_height + i;
 				const float *w_offset_1 = w_offset + i*filter_width;
-				float *sh_x_offset = sh_x + box_in_row*box_in_width;
+				float *result_offset = result + box_in_row*box_in_width;
 
 				for(int j = 0; j < filter_width; j++){
 					int box_in_col = threadIdx.x*stride_width + j;
 
 					if(box_in_row < box_in_height \
 							&& box_in_col < box_in_width){
-						ele = sh_y[0]*w_offset_1[j];
-						atomicAdd(sh_x_offset+box_in_col, ele);
+						ele = dE_dy_offset[0]*w_offset_1[j];
+						atomicAdd(result_offset+box_in_col, ele);
 						__syncthreads();
 					}
 				}
@@ -211,7 +193,7 @@ __global__ void backward_convolution(const float* dE_dy, const float *w, \
 		while(tmp_row < box_in_height){
 			tmp_col = threadIdx.x;
 			float *target_offset = targets + tmp_row*in_width;
-			float *result_offset = sh_x + tmp_row*box_in_width;
+			float *result_offset = result + tmp_row*box_in_width;
 
 			while(tmp_col < box_in_width){
 				target_offset[tmp_col] = result_offset[tmp_col];

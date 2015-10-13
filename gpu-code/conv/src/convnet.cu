@@ -293,7 +293,7 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	}
 
 	backward_convolution<<<blocks, threads, \
-		sizeof(Dtype)*(box_in_height*box_in_width + 1 + _cp->getOutChannel()*_filt_pixs)>>>( \
+		sizeof(Dtype)*box_in_height*box_in_width>>>( \
 			this->_dE_dy->getDevData(), this->_w->getDevData(), \
 			p_dE_dx, box_in_height, box_in_width, \
 			_cp->getBoxOutHeight(), _cp->getBoxOutWidth(), \
