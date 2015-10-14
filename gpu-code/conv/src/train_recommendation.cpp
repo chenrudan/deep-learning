@@ -180,6 +180,8 @@ void TrainRecommendation<Dtype>::train() {
 				this->_model_component->_w[i]->showValue( \
 				this->_model_component->_layers_need_train_param[i]->getName()+"_w");
 			}*/
+			//	this->_model_component->_w[0]->showValue( \
+		//		this->_model_component->_layers_need_train_param[0]->getName()+"_w");
 	//		this->_model_component->_y_for_worker[1]->showValue( \
 				this->_model_component->_layers_param[1]->getName()+"_y");
 //			this->_model_component->_y_for_worker[4]->showValue( \
@@ -249,8 +251,6 @@ void TrainRecommendation<Dtype>::test() {
 
 			this->forwardPropagate();
 			forwardLastLayer();
-			backwardLastLayer();
-			this->backwardPropagate();
 		}
 
 		cout << "----------epoch_idx: " << epoch_idx << "-----------\n";
