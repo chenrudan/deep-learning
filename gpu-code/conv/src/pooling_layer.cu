@@ -66,6 +66,8 @@ void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 	/// 每个block计算输出32*32的大小
 	/// 同时并行多个block
+
+
 	if(_lcp->getPoolType() == MAX_POOLING ){
 //	x->reValue(321);
 		max_pooling<<<blocks, threads>>>(x->getDevData(), \
@@ -96,8 +98,8 @@ void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 	cudaThreadSynchronize();
 	cudaCheckError();
-	//	if(_lcp->getName() == "pool3_layer")
-//	this->_y->showValue(_lcp->getName() + "y");
+//	if(_lcp->getName() == "pool3")
+//		this->_y->showValue("inner1_x");
 
 }
 

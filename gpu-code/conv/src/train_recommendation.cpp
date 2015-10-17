@@ -49,6 +49,25 @@ void TrainRecommendation<Dtype>::forwardLastLayer(){
 			cout << h_labels[1+i*2] << "\t" << h_labels[2*i] << "\t";
 			cout << prob_record[i] << "\n";
 		}
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-7]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-7]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-12]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-12]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-9]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-9]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-6]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-6]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-5]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-5]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-4]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-4]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-3]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-3]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-2]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-2]->getName()+"_y");
+//		this->_model_component->_y_for_worker[this->_model_component->_num_layers-1]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-1]->getName()+"_y");
+		
 	}
 
 }
@@ -143,7 +162,7 @@ void TrainRecommendation<Dtype>::train() {
 				cout << " training likelihood: " << this->_likelihood << endl;
 			}
 
-			if(batch_idx == this->_model_component->_num_train_batch-1 && this->_has_valid){
+			if(batch_idx == this->_model_component->_num_train_batch-1 && this->_has_valid && this->_model_component->_num_valid_batch > 0){
 				this->_likelihood = 0;
 
 				this->_model_component->_y_for_worker[0] = this->_model_component->_mini_data[1];
@@ -189,6 +208,13 @@ void TrainRecommendation<Dtype>::train() {
 //			this->_model_component->_y_for_worker[7]->showValue( \
 				this->_model_component->_layers_param[7]->getName()+"_y");
 		}
+		this->_model_component->_y_for_worker[0]->showValue("mini_data");
+		this->_model_component->_y_for_worker[this->_model_component->_num_layers-7]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-7]->getName()+"_y");
+		this->_model_component->_y_for_worker[this->_model_component->_num_layers-5]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-5]->getName()+"_y");
+		this->_model_component->_y_for_worker[this->_model_component->_num_layers-3]->showValue( \
+				this->_model_component->_layers_param[this->_model_component->_num_layers-3]->getName()+"_y");
 			this->_model_component->_y_for_worker[this->_model_component->_num_layers-1]->showValue( \
 				this->_model_component->_layers_param[this->_model_component->_num_layers-1]->getName()+"_y");
 		

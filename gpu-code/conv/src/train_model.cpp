@@ -180,6 +180,9 @@ void TrainModel<Dtype>::parseNetJson(string json_file) {
 						name, 0, _model_component->_layers_param.back());
 			} else if (layer_type == "INNERPRODUCT" ) {
 				if (_model_component->_layers_param.size() == 0) {
+					num_in = _model_component->_img_height \
+							 * _model_component->_img_width \
+							 * _model_component->_img_channel;
 					param = new InnerParam( \
 							_model_component->_string_map_layertype[layer_type], \
 							name, w_lr, bias_lr, momentum, weight_decay, w_gauss, \

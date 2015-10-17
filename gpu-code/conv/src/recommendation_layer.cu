@@ -106,7 +106,7 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 		if(!_is_compatible){
 			for(int j=0; j < dE_dx->getNumCols(); j++){
-				dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
+/*				dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
 						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
 							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j]) \
 						*2*x_CPU[i*2*dE_dx->getNumCols() + j];
@@ -114,19 +114,21 @@ void RecommendationLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
 							- x_CPU[i*2*dE_dx->getNumCols() + j]) \
 						*2*x_CPU[(i*2+1)*dE_dx->getNumCols() + j];
-
-				/***用log算的时候的求导
-				if(y_CPU[i] < 0.00001){
+*/
+				/***用log算的时候的求导***/
+				if(y_CPU[i] == 0){
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] = 0;
 					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] = 0;
 				}else{
 					dE_dx_CPU[i*2*dE_dx->getNumCols()+j] \
-						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
-							- x_CPU[i*2*dE_dx->getNumCols() + j]) / pow(y_CPU[i],2);
-					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
 						= (x_CPU[i*2*dE_dx->getNumCols() + j] \
-							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j]) / pow(y_CPU[i],2);
-				}***/
+							- x_CPU[(i*2+1)*dE_dx->getNumCols() + j]) \
+						*2*x_CPU[i*2*dE_dx->getNumCols() + j];
+					dE_dx_CPU[(i*2+1)*dE_dx->getNumCols()+j] \
+						= (x_CPU[(i*2+1)*dE_dx->getNumCols() + j] \
+							- x_CPU[i*2*dE_dx->getNumCols() + j]) \
+						*2*x_CPU[(i*2+1)*dE_dx->getNumCols() + j];
+				}
 			}
 		}else{
 

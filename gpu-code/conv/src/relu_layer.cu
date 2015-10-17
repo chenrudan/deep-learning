@@ -1,5 +1,5 @@
 ///
-/// \file sigmoid_layer.cu
+/// \file relu_layer.cu
 /// @brief
 
 
@@ -40,13 +40,13 @@ void ReluLayer<Dtype>::initCuda() {
 template <typename Dtype>
 void ReluLayer<Dtype>::computeOutput(Matrix<Dtype>* x){ 
 //	x->reValue(-0.1f);
-//	x->showValue("data");
+//	x->showValue(_p->getName() + "_x");
 
 	this->_y->zeros();	
 	x->applyRelu(this->_y, _record);
 	
 //	if(_p->getName() == "relu1_layer")
-//		this->_y->showValue(_p->getName() +"relu_y");
+//		this->_y->showValue(_p->getName() +"_y");
 }
 
 template <typename Dtype>

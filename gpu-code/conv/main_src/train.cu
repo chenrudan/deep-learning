@@ -18,17 +18,17 @@ int Param::_minibatch_size = 0;
 
 void managerNode(TrainClassification<float> *model){
 
-	string str1[6]= {"../snapshot/w_snap/79_conv1_w.bin", \
-		"../snapshot/w_snap/79_conv2_w.bin", \
-		"../snapshot/w_snap/79_conv3_w.bin", \
-		"../snapshot/w_snap/79_inner1_w.bin", \
-		"../snapshot/w_snap/79_inner2_w.bin"};
+	string str1[6]= {"../snapshot/w_snap/19_conv1_w.bin", \
+		"../snapshot/w_snap/19_conv2_w.bin", \
+		"../snapshot/w_snap/19_conv3_w.bin", \
+		"../snapshot/w_snap/19_inner1_w.bin", \
+		"../snapshot/w_snap/19_inner2_w.bin"};
 	vector<string> w_file(str1, str1+5);
-	string str2[6]	= {"../snapshot/w_snap/0_conv1_bias.bin", \
-		"../snapshot/w_snap/79_conv2_bias.bin", \
-		"../snapshot/w_snap/79_conv3_bias.bin", \
-		"../snapshot/w_snap/79_inner1_bias.bin", \
-		"../snapshot/w_snap/79_inner2_bias.bin"};
+	string str2[6]	= {"../snapshot/w_snap/19_conv1_bias.bin", \
+		"../snapshot/w_snap/19_conv2_bias.bin", \
+		"../snapshot/w_snap/19_conv3_bias.bin", \
+		"../snapshot/w_snap/19_inner1_bias.bin", \
+		"../snapshot/w_snap/19_inner2_bias.bin"};
 	vector<string> bias_file(str2, str2+5);
 
 	cout << "Loading data...\n";
@@ -93,7 +93,7 @@ int main(int argc, char** argv){
 	TrainRecommendation<float> *voc_model = new TrainRecommendation<float>(0, pid);
 
 	voc_model->parseNetJson("script/tianchi_c_train.json");
-	voc_model->parseImgBinary(num_process, "../data/tianchi_img_train_32.bin", "../data/compatible_matches.bin", "");
+	voc_model->parseImgBinary(num_process, "../data/tianchi_img_train_64.bin", "../data/compatible_matches.bin", "");
 
 	if(pid == 0){ 
 		managerNode(voc_model);
