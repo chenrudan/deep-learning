@@ -62,7 +62,7 @@ void PoolingLayer<Dtype>::computeOutput(Matrix<Dtype>* x){
 	this->_y->zeros();	
 
 	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * _num_box);
-	dim3 threads = dim3(_lcp->getThreadHeight(), _lcp->getThreadWidth()); 
+	dim3 threads = dim3(_lcp->getThreadWidth(), _lcp->getThreadHeight()); 
 
 	/// 每个block计算输出32*32的大小
 	/// 同时并行多个block
@@ -109,7 +109,7 @@ void PoolingLayer<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	/// 计算一个box的pooling对应的输入行列大小
 
 	dim3 blocks = dim3(_lcp->getMinibatchSize(), _lcp->getInChannel() * _num_box);
-	dim3 threads = dim3(_lcp->getThreadHeight(), _lcp->getThreadWidth());
+	dim3 threads = dim3(_lcp->getThreadWidth(), _lcp->getThreadHeight());
 
 	int box_in_height = MAX_THREAD_SIZE > _lcp->getOutHeight() \
 				? _lcp->getInHeight() : _lcp->getBoxInHeight();

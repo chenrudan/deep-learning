@@ -79,8 +79,9 @@ int main(int argc, char** argv){
 	TrainClassification<float> *voc_model = new TrainClassification<float>(0, pid, true, false);
 //	TrainModel<float> *voc_model = new TrainModel<float>(0, pid);
 
-	voc_model->parseNetJson("script/cifar10.json");
-	voc_model->parseImgBinary(num_process, "", "");
+	voc_model->parseNetJson("script/sfes.json");
+	voc_model->parseImgBinary(num_process, "../../data/sfes_train_and_label.bin", \
+			"../../data/sfes_test_and_label.bin");
 
 	if(pid == 0){ 
 		managerNode(voc_model);

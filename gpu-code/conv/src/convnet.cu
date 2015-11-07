@@ -107,8 +107,11 @@ void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 	int num_kernel;
 	int num_block;
 
+//	clock_t t = clock();
+
 //	x->reValue(1.0f);
 //	this->_w->reValue(_filt_pixs, true);
+//	this->_w->reValue(1.0f);
 //	this->_bias->reValue(1.0f);
 
 	if(_cp->getPadHeight() > 0 || _cp->getPadWidth() > 0){
@@ -130,8 +133,22 @@ void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 //if(_cp->getName() == "conv3")
 //padded_x->showValue("_x");	
 
+//	t = clock() - t;
+//	cout << _cp->getName() << " forward padding: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//	t = clock();
+
 	dim3 blocks = dim3(_cp->getMinibatchSize(), _cp->getOutChannel()*_num_box);
-	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth());
+	dim3 threads = dim3(_cp->getThreadWidth(), _cp->getThreadHeight());
+/*
+	cout << _cp->getPaddedInHeight() << ":" << _cp->getPaddedInWidth() << "\n" \
+		<< _cp->getOutHeight() << ":" << _cp->getOutWidth() << "\n" \
+		<< _cp->getFilterHeight() << ":" << _cp->getFilterWidth() << "\n" \
+		<< _cp->getStrideHeight() << ":" << _cp->getStrideWidth() << "\n" \
+		<< _cp->getBoxNumHeight() << ":" << _cp->getBoxNumWidth() << "\n" \
+		<< _cp->getBoxInHeight() << ":" << _cp->getBoxInWidth() << "\n" \
+		<< _cp->getBoxOutHeight() << ":" << _cp->getBoxOutWidth() << "\n" \
+		<< _cp->getThreadHeight() << ":" << _cp->getThreadWidth() << "\n";
+*/
 
 	forward_convolution<<<blocks, threads, \
 		sizeof(Dtype)*(_cp->getInChannel()*_filt_pixs + _box_in_pixs)>>>(\
@@ -150,6 +167,8 @@ void ConvNet<Dtype>::computeOutput(Matrix<Dtype>* x){
 
 
 //	this->_w->showValue("whk");
+//	t = clock() - t;
+//	cout << _cp->getName() << " forward conv: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 //	this->_y->showValue(this->_cp->getName() + "yh");
 }
 
@@ -163,11 +182,11 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 //	t = clock();
 
 
-	dim3 blocks = dim3(_cp->getMinibatchSize()*_cp->getOutChannel() \
-			, _cp->getInChannel()*_num_box \
+	dim3 blocks = dim3(_cp->getMinibatchSize() \
+			, _num_box \
 			*_cp->getFilterHeight()*_cp->getFilterWidth());
 
-	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth());
+	dim3 threads = dim3(_cp->getThreadWidth(), _cp->getThreadHeight());
 
 	unranged_dE_dw->zeros();
 
@@ -181,13 +200,15 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 		dE_db_multi_channel = dE_db_tmp->getDevData();
 	}
 
-	cudaStream_t s1, s2;
-	cudaStreamCreate(&s1);
-	cudaStreamCreate(&s2);
+//	cudaStream_t s1, s2;
+//	cudaStreamCreate(&s1);
+//	cudaStreamCreate(&s2);
+	
+//	clock_t t = clock();
 
 	//每个线程只计算一个点，先将32*32输出块计算对应值存入共享变量，再用reduce
 	compute_convolution_derivs<<<blocks, threads, \
-		sizeof(Dtype)*_cp->getBoxOutHeight()*_cp->getBoxOutWidth(), s1>>>( \
+		sizeof(Dtype)*(_cp->getBoxOutHeight()*_cp->getBoxOutWidth())>>>( \
 			this->_dE_dy->getDevData(), padded_x->getDevData(), \
 			unranged_dE_dw->getDevData(), \
 			_cp->getBoxOutHeight(), _cp->getBoxOutWidth(), \
@@ -201,10 +222,14 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 	cudaDeviceSynchronize();
 	cudaCheckError();
 	
+//	t = clock() - t;
+//	cout << _cp->getName() << " dervis w: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//	t = clock();
+	
 	blocks = dim3(_cp->getMinibatchSize(), _cp->getOutChannel()*_num_box);
 	//从100*out_size*out_size*out_size*out_channel先生成100*out_channel*_num_box
 	compute_derivs_of_bias<<<blocks, threads, \
-		sizeof(Dtype)*_cp->getBoxOutHeight()*_cp->getBoxOutWidth(), s2>>>( \
+		sizeof(Dtype)*_cp->getBoxOutHeight()*_cp->getBoxOutWidth()>>>( \
 			this->_dE_dy->getDevData(), dE_db_multi_channel, \
 			_cp->getOutHeight(), _cp->getOutWidth(), \
 			_cp->getOutChannel(), \
@@ -215,11 +240,11 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 	cudaCheckError();
 	
 //	t = clock() - t;
-//	cout << _cp->getName() << " dervis w  convolution: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//	cout << _cp->getName() << " dervis bias: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 //	t = clock();
 
 	blocks = dim3(1, _cp->getInChannel()*_cp->getOutChannel());
-	compact_dervis_w<<<blocks, threads, 0, s1>>>( \
+	compact_dervis_w<<<blocks, threads, 0>>>( \
 			unranged_dE_dw->getDevData(), this->_dE_dw->getDevData(), \
 			_cp->getFilterHeight(), _cp->getFilterWidth(), \
 			_cp->getBoxNumHeight(), _cp->getBoxNumWidth(), \
@@ -227,10 +252,14 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 	cudaDeviceSynchronize();
 	cudaCheckError();
 	
+//	t = clock() - t;
+//	cout << _cp->getName() << " compact w: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//	t = clock();
+
 	if(_cp->getOutHeight() > MAX_THREAD_SIZE \
 				|| _cp->getOutWidth() > MAX_THREAD_SIZE) {
 		blocks = dim3(_cp->getMinibatchSize(), _cp->getOutChannel());
-		compute_derivs_of_bias<<<blocks, threads, sizeof(Dtype)*_num_box, s2>>>( \
+		compute_derivs_of_bias<<<blocks, threads, sizeof(Dtype)*_num_box>>>( \
 				unfold_dE_db_tmp->getDevData(), dE_db_tmp->getDevData(), \
 						_cp->getBoxNumHeight(), _cp->getBoxNumWidth(), \
 						_cp->getOutChannel(), _cp->getBoxNumHeight(), \
@@ -241,8 +270,6 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 	
 	dE_db_tmp->sumRow(this->_dE_db);
 
-//	t = clock() - t;
-//	cout << _cp->getName() << " compact w  convolution: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 
 //	if(_cp->getName() != "conv3"){
 //		this->_dE_dw->showValue("dE_dw");
@@ -251,11 +278,14 @@ void ConvNet<Dtype>::computeDerivsOfPars(Matrix<Dtype>* x){
 
 //unranged_dE_dw->showValue(_cp->getName()+"unranged_dE_dw");
 //this->_dE_dy->showValue(_cp->getName() + "dE_dy");
-///this->_dE_dw->showValue(_cp->getName() + "dE_dw");
+//this->_dE_dw->showValue(_cp->getName() + "dE_dw");
 //this->_dE_db->showValue(this->_cp->getName() + "dEdb");
 
-	cudaStreamDestroy(s1);
-	cudaStreamDestroy(s2);
+//	cudaStreamDestroy(s1);
+//	cudaStreamDestroy(s2);
+
+	//t = clock() - t;
+//	cout << _cp->getName() << " compact bias: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 
 }
 
@@ -263,15 +293,14 @@ template <typename Dtype>
 void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 
 	
-//	clock_t t;
-//	t = clock();
+//	clock_t t = clock();
 //this->_dE_dy->reValue(1.0f);
 //this->_w->reValue(_filt_pixs, true);
 //this->_w->showValue("w");
 
 
 	dim3 blocks = dim3(_cp->getMinibatchSize(), _cp->getInChannel() * _num_box);
-	dim3 threads = dim3(_cp->getThreadHeight(), _cp->getThreadWidth());
+	dim3 threads = dim3(_cp->getThreadWidth(), _cp->getThreadHeight());
 
 	int box_in_height = MAX_THREAD_SIZE > _cp->getOutHeight() \
 						  ? _cp->getPaddedInHeight() : _cp->getBoxInHeight();
@@ -305,6 +334,10 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 	cudaDeviceSynchronize();
 	cudaCheckError();
 //unfold_x->showValue(this->_cp->getName() + "dx");
+	
+//	t = clock() - t;
+//	cout << _cp->getName() << " back conv: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//	t = clock();
 
 	if((_cp->getOutHeight() > MAX_THREAD_SIZE \
 				|| _cp->getOutWidth() > MAX_THREAD_SIZE) \
@@ -328,6 +361,11 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 		cudaCheckError();
 //unranged_dE_dx->showValue("unrangeddEdx");
 	}
+
+//	t = clock() - t;
+//	cout << _cp->getName() << " back overlap: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//	t = clock();
+
 	if(_cp->getPadHeight() > 0 || _cp->getPadWidth() > 0){
 		int num_kernel = this->_cp->getMinibatchSize() * _in_pixs \
 					 * this->_cp->getInChannel();
@@ -347,5 +385,5 @@ void ConvNet<Dtype>::computeDerivsOfInput(Matrix<Dtype>* dE_dx){
 //dE_dx->showValue(this->_cp->getName() + "dx");
 
 //	t = clock() - t;
-//	cout << _cp->getName() << " backward convolution: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//	cout << _cp->getName() << " back padding: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
 }

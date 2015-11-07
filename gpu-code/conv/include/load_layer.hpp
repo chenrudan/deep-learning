@@ -11,6 +11,7 @@
 #include<vector>
 #include<map>
 #include<stdlib.h>
+#include"utils.cuh"
 
 #define MAX_OBJECT_NUM 24
 
@@ -111,58 +112,18 @@ template <typename Dtype>
 class LoadCifar10 : public LoadLayer<Dtype> {
 
 	int _minibatch_size;
+	int _num_process;
 public: 
-	LoadCifar10(const int minibatch_size);
+	LoadCifar10(const int minibatch_size, int num_process);
 
 	~LoadCifar10() {}
 
 	using LoadLayer<Dtype>::loadBinary;
 	void loadBinary(string filename, Dtype* &pixel_ptr, int* &label_ptr);
-	void loadTrainOneBatch(int batch_idx, int num_process, int pid, \
+	void loadTrainOneBatch(int batch_idx, int pid, \
 				Dtype* &mini_pixel, int* &mini_label);
-	void loadValidOneBatch(int batch_idx, int num_process, int pid, \
+	void loadValidOneBatch(int batch_idx, int pid, \
 				 Dtype* &mini_pixel, int* &mini_label);
-
-};
-
-template <typename Dtype>
-class LoadVOC : public LoadLayer<Dtype> {
-
-public: 
-	LoadVOC(int minibatch);
-
-	~LoadVOC();
-
-	using LoadLayer<Dtype>::loadBinary;
-	void loadBinary(string filenmae, Dtype* &pixel_ptr, \
-		int* &label_ptr, \
-		int* &coord_ptr, int* &label_num, int batch_idx, \
-		int num_process, int pid);
-	
-	void loadTrainOneBatch(int batch_idx, \
-		int num_process, int pid, Dtype* &mini_pixel, \
-		int* &mini_coord);
-	void loadValidOneBatch(int batch_idx, \
-		int num_process, int pid, Dtype* &mini_pixel, \
-		int* &mini_coord);
-
-	int* getObjectCoord(){
-		return _object_coord;
-	}
-	int* getTrainLabelNum(){
-		return _train_label_num;
-	}
-	int* getValidLabelNum(){
-		return _valid_label_num;
-	}
-
-private:
-	int _minibatch_size;
-	string _train_file;
-	string _valid_file;
-	int *_object_coord; 
-	int *_train_label_num; ///>这个数组保存的minibatch大小数组每一张图中有几个物体label
-	int *_valid_label_num;
 
 };
 
@@ -170,25 +131,26 @@ template <typename Dtype>
 class LoadDIC : public LoadLayer<Dtype> {
 
 public: 
-	LoadDIC(int minibatch, string train_file, string valid_file);
+	LoadDIC(const int minibatch, const int num_process, string train_file, string valid_file);
 
 	~LoadDIC();
 
 	void loadBinary(string filenmae, Dtype* pixel_ptr, \
 		int* label_ptr, int batch_idx, \
-		int num_process, int pid);
+		int pid);
 	
 	void loadTrainOneBatch(int batch_idx, \
-		int num_process, int pid, Dtype* &mini_pixel, \
+		int pid, Dtype* &mini_pixel, \
 		int* &mini_label);
 	void loadValidOneBatch(int batch_idx, \
-		int num_process, int pid, Dtype* &mini_pixel, \
+		int pid, Dtype* &mini_pixel, \
 		int* &mini_label);
 
 protected:
 	int _minibatch_size;
 	string _train_file;
 	string _valid_file;
+	int _num_process;
 
 };
 
@@ -196,14 +158,14 @@ template <typename Dtype>
 class LoadDICSegment : public LoadDIC<Dtype> {
 
 public: 
-	LoadDICSegment(int minibatch, string train_file, string valid_file) \
-		: LoadDIC<Dtype>(minibatch, train_file, valid_file) {}
+	LoadDICSegment(int minibatch, int num_process, string train_file, string valid_file) \
+		: LoadDIC<Dtype>(minibatch, num_process, train_file, valid_file) {}
 
 	~LoadDICSegment() {}
 
 	void loadBinary(string filenmae, Dtype* pixel_ptr, \
 		int* label_ptr, int batch_idx, \
-		int num_process, int pid);
+		int pid);
 private:
 	int* _ori_img_label;
 	int* _ori_img_idx;
@@ -249,6 +211,11 @@ protected:
 	int _num_test_img;
 	int _img_idx;
 	int _num_process;
+	vector<int> _cloth_class;
+	vector< vector<int> > _cloth_class_matches;
+	int _current_train_id;  //用来跟test计算的图片
+	int _current_test_id;
+	
 };
 
 

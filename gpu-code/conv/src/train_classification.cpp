@@ -32,9 +32,9 @@ void TrainClassification<Dtype>::parseImgBinary(int num_process, \
 	this->_model_component->_num_process = num_process;
 
 	if(this->_model_component->_pid == this->_model_component->_master_pid){
-		//	this->_load_layer = new LoadDICSegment<Dtype>(this->_model_component->_minibatch_size, \
-		train_file, valid_file);
-		this->_load_layer = new LoadCifar10<Dtype>(this->_model_component->_minibatch_size);
+		this->_load_layer = new LoadDIC<Dtype>(this->_model_component->_minibatch_size, num_process-1, \
+			train_file, valid_file);
+		//this->_load_layer = new LoadCifar10<Dtype>(this->_model_component->_minibatch_size, num_process-1);
 	}
 	TrainModel<Dtype>::parseImgBinary(num_process);
 }
@@ -155,6 +155,8 @@ void TrainClassification<Dtype>::train() {
 			this->_model_component->_send_recv_pixel[0]->dataFrom();
 			this->_model_component->_send_recv_label[0]->dataFrom();
 
+		//		if(batch_idx == this->_model_component->_num_train_batch-1)
+			//		this->_model_component->_mini_data[0]->showValue("minidata");
 			/*	
 				this->_model_component->_mini_data[0]->showValue("minidata");
 				if(batch_idx == this->_model_component->_num_train_batch-1){
@@ -162,22 +164,27 @@ void TrainClassification<Dtype>::train() {
 				this->_model_component->_mini_label[0]->savePars("snapshot/input_snap/mini_label.bin");
 				}
 				*/
+			//	this->_model_component->_mini_data[0]->savePars("snapshot/input_snap/mini_data.bin");
+			//	this->_model_component->_mini_label[0]->showValue("label");
+//		cout << batch_idx << ": train\n";
 			this->forwardPropagate();
 			forwardLastLayer();
+//			   t = clock() - t;
+//			   cout << " forward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//			   t = clock();
 			backwardLastLayer();
 			this->backwardPropagate();
-			/*
-			   t = clock() - t;
-			   cout << " backward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
-			   t = clock();
-			   cout << batch_idx << ": update\n";
-			   */
+			
+//			   t = clock() - t;
+//			   cout << " backward: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//			   t = clock();
+			   
 			this->computeAndUpdatePars();
-			/*
-			   t = clock() - t;
-			   cout << " update: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
-			   t = clock();
-			   */	
+			
+//			   t = clock() - t;
+//			   cout << " update: "<< ((float)t/CLOCKS_PER_SEC) << "s.\n";
+//			   t = clock();
+			   	
 			this->sendAndRecvWBiasForWorker(epoch_idx, batch_idx, flag);
 
 			if(batch_idx == this->_model_component->_num_train_batch-1){
@@ -245,13 +252,13 @@ void TrainClassification<Dtype>::train() {
 		//		if(this->_is_stop == false)
 		//			earlyStopping(epoch_idx);
 
-		if((epoch_idx+1) == 10 ){
+/*		if((epoch_idx+1) == 50 ){
 			for(int i = 0; i < this->_model_component->_num_need_train_layers; i++){
 				dynamic_cast<TrainParam*>( \
 						this->_model_component->_layers_need_train_param[i])->lrMultiScale(0.1);
 			}
 		}
-
+*/
 		if(this->_model_component->_pid == 1){
 			t = clock() - t;
 			cout << ((float)t/CLOCKS_PER_SEC) << "s.\n";
@@ -273,6 +280,8 @@ void TrainClassification<Dtype>::sendAndRecvForManager() {
 
 	int num_threads = num_trans*num_pars_type+num_trans*this->_num_data_type;
 	cout << "num_threads: " << num_threads<< endl;
+	bool is_push_stop = false;
+	bool is_fetch_stop = false;
 #pragma omp parallel num_threads(num_threads)
 	{
 		int tid = omp_get_thread_num();
@@ -338,12 +347,18 @@ void TrainClassification<Dtype>::sendAndRecvForManager() {
 				if(this->_model_component->_send_recv_w[tid]->getFlag() % 2 == 0){
 					this->_model_component->_send_recv_w[tid]->dataTo();
 					this->_model_component->_send_recv_bias[tid]->dataTo();
+					if(this->_model_component->_send_recv_w[tid]->getFlag() \
+							== PROCESS_END)
+						is_fetch_stop = true;
 				}else{
+
 					this->_model_component->_send_recv_w[tid]->dataFrom();
 					this->_model_component->_send_recv_bias[tid]->dataFrom();
+					if(this->_model_component->_send_recv_w[tid]->getFlag() \
+							== PROCESS_END+1)
+						is_push_stop = true;
 				}
-			}while(this->_model_component->_send_recv_w[tid]->getFlag() \
-					!= PROCESS_END);
+			}while(!is_push_stop || !is_fetch_stop);
 		}
 	}
 }	

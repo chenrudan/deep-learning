@@ -15,8 +15,6 @@
 #include "convnet.hpp"
 #include "pooling_layer.hpp"
 #include "dropout_layer.hpp"
-#include "predict_object_layer.hpp"
-#include "recommendation_layer.hpp"
 
 using namespace std;
 
@@ -248,12 +246,6 @@ void TrainModel<Dtype>::createLayerForWorker(){
 			} else if (param->getLayerType() == INNERPRODUCT ) {
 				FullConnectParam* fcp = dynamic_cast<FullConnectParam*>(param);
 				layer = new InnerProductLayer<Dtype>(dynamic_cast<InnerParam*>(fcp));
-			} else if (param->getLayerType() == PREDICTOBJECT ) {
-				layer = new PredictObjectLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
-			} else if (param->getLayerType() == RECOMMENDSUBSTITUE ) {
-				layer = new RecommendationLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
-			} else if (param->getLayerType() == RECOMMENDCOMPATIBLE ) {
-				layer = new RecommendationLayer<Dtype>(dynamic_cast<FullConnectParam*>(param));
 			}
 		}catch(int e){
 			cout << "dynamic point is null\n";
@@ -374,7 +366,8 @@ void TrainModel<Dtype>::createMPIDist() {
 
 template <typename Dtype>
 void TrainModel<Dtype>::initWeightAndBcastByRandom() {
-
+	
+	srand((unsigned)time(NULL)); 
 	for (int k = 0; k < _model_component->_num_need_train_layers; ++k) {
 		if (_model_component->_pid == _model_component->_master_pid) {
 			gaussRand(_model_component->_w[k], \
@@ -493,10 +486,12 @@ void TrainModel<Dtype>::sendAndRecvWBiasForWorker(const int epoch_idx, \
 		}else if(epoch_idx == this->_model_component->_num_epoch - 1){ 
 			if((batch_idx + this->_model_component->_n_push) >= \
 					this->_model_component->_num_train_batch \
-					|| batch_idx == this->_model_component->_num_train_batch - 1)
-				flag = PROCESS_END;
-			else
+					|| batch_idx == this->_model_component->_num_train_batch - 1){
+				flag = PROCESS_END+1;
+			}else{
 				flag = batch_idx*2+1;
+
+			}
 		}else{
 			flag = batch_idx*2+1;
 		}
@@ -523,6 +518,7 @@ void TrainModel<Dtype>::sendAndRecvWBiasForWorker(const int epoch_idx, \
 			flag = batch_idx*2;
 		}
 #pragma omp parallel num_threads(this->_model_component->_num_need_train_layers)
+
 		{   
 			int tid = omp_get_thread_num();
 			this->_model_component->_send_recv_w[tid]->sendFlag(flag);

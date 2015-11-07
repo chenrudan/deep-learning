@@ -79,8 +79,9 @@ int main(int argc, char** argv){
 	TrainClassification<float> *voc_model = new TrainClassification<float>(0, pid, true, false);
 //	TrainModel<float> *voc_model = new TrainModel<float>(0, pid);
 
-	voc_model->parseNetJson("script/cifar10.json");
-	voc_model->parseImgBinary(num_process, "", "");
+	voc_model->parseNetJson("script/cnv.json");
+	voc_model->parseImgBinary(num_process, "../../data/cnv937_duplicate_train.bin", \
+			"../../data/cnv937_duplicate_test.bin");
 
 	if(pid == 0){ 
 		managerNode(voc_model);

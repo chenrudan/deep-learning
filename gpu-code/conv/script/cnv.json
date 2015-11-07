@@ -1,0 +1,44 @@
+{
+	"name": "CIFAR10net",
+	"minibatch_size": 10,
+	"n_push": 200,
+	"n_fetch": 201,
+	"num_epoch": 300,
+	"img_height": 1,
+	"img_width": 1303,
+	"img_channel": 1,
+	"layer":
+	[
+		{
+			"type": "INNERPRODUCT",
+			"name": "inner1",
+			"num_out": 128,
+			"w_lr": 0.001,
+			"bias_lr": 0.002,
+			"momentum": 0.9,
+			"weight_decay": 0,
+			"w_gauss": 0.01
+		},
+		{
+			"type": "RECTIFIED",
+			"name": "sig1"
+		},
+		{
+			"type": "INNERPRODUCT",
+			"name": "inner2",
+			"num_out": 17,
+			"w_lr": 0.001,
+			"bias_lr": 0.002,
+			"momentum": 0.9,
+			"weight_decay": 0,
+			"w_gauss": 0.01
+		},
+		{
+			"type": "SOFTMAX",
+			"name": "softmax"
+		}
+
+	]
+}
+
+

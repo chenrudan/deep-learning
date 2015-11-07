@@ -177,12 +177,12 @@ public:
 							* 1.0f / MAX_THREAD_SIZE) + 1;
 			_box_num_width = ceil((this->getOutWidth() - MAX_THREAD_SIZE) \
 							* 1.0f / MAX_THREAD_SIZE) + 1;
-			_box_in_height = (MAX_THREAD_SIZE - 1) * stride_height + filter_height;
-			_box_in_width = (MAX_THREAD_SIZE - 1) * stride_width + filter_width;
 			_box_out_height = MAX_THREAD_SIZE > _out_height \
 					? _out_height : MAX_THREAD_SIZE;
 			_box_out_width = MAX_THREAD_SIZE > _out_width \
 					? _out_width : MAX_THREAD_SIZE;
+			_box_in_height = (_box_out_height - 1) * stride_height + filter_height;
+			_box_in_width = (_box_out_width - 1) * stride_width + filter_width;
 			
 			int pow2Length = _out_height; 
 			if(pow2Length & (pow2Length - 1)){
@@ -242,8 +242,8 @@ public:
 			_box_out_width = MAX_THREAD_SIZE > _out_width \
 					? _out_width : MAX_THREAD_SIZE;
 
-			_box_in_height = (MAX_THREAD_SIZE - 1) * stride_height + filter_height;
-			_box_in_width = (MAX_THREAD_SIZE - 1) * stride_width + filter_width;
+			_box_in_height = (_box_out_height - 1) * stride_height + filter_height;
+			_box_in_width = (_box_out_width - 1) * stride_width + filter_width;
 			
 			int pow2Length = _out_height; 
 			if(pow2Length & (pow2Length - 1)){
