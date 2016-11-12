@@ -9,7 +9,7 @@ def generator(gdata, img_size, batch_size, c_dim, num_filter):
     s2 = img_size/2
     s4 = img_size/4
    
-    stddev = 0.0001
+    stddev = 0.001
     with tf.variable_scope('g_conv1') as scope:
         w = tf.get_variable('w', [4, 4, c_dim, num_filter], 
                 initializer=tf.random_normal_initializer(stddev=stddev))
@@ -30,53 +30,33 @@ def generator(gdata, img_size, batch_size, c_dim, num_filter):
         bias = tf.nn.bias_add(gconv, biases)
         gconv2 = tf.nn.relu(bias, name=scope.name)
 
-    with tf.variable_scope('g_conv3') as scope:
-        w = tf.get_variable('w', [4, 4, num_filter*2, num_filter*4], 
-                initializer=tf.random_normal_initializer(stddev=stddev))
-        gconv = tf.nn.conv2d(gconv2, w, strides=[1, 2, 2, 1], 
-                padding='SAME') 
-        biases = tf.get_variable('biases', [num_filter*4], 
-                initializer=tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(gconv, biases)
-        gconv3 = tf.nn.relu(bias, name=scope.name)
-
     with tf.variable_scope('g_deconv1') as scope:
-        w = tf.get_variable('w', [4, 4, num_filter*2, num_filter*4], 
-                initializer=tf.random_normal_initializer(stddev=stddev))
-        deconv = tf.nn.conv2d_transpose(gconv3, w, 
-                output_shape=[batch_size, s4, s4, num_filter*2], strides=[1, 2, 2, 1]) 
-        biases = tf.get_variable('biases', [num_filter*2], 
-                initializer=tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(deconv, biases)
-        deconv1 = tf.nn.relu(bias, name=scope.name)
-
-    with tf.variable_scope('g_deconv2') as scope:
         w = tf.get_variable('w', [4, 4, num_filter, num_filter*2], 
                 initializer=tf.random_normal_initializer(stddev=stddev))
-        deconv = tf.nn.conv2d_transpose(deconv1, w, 
+        deconv = tf.nn.conv2d_transpose(gconv2, w, 
                 output_shape=[batch_size, s2, s2, num_filter], 
                 strides=[1, 2, 2, 1]) 
         biases = tf.get_variable('biases', [num_filter], 
                 initializer=tf.constant_initializer(0.0))
-        deconv2 = tf.nn.bias_add(deconv, biases)
+        deconv1 = tf.nn.bias_add(deconv, biases)
 
-    with tf.variable_scope('g_deconv3') as scope:
+    with tf.variable_scope('g_deconv2') as scope:
         w = tf.get_variable('w', [4, 4, c_dim, num_filter], 
                 initializer=tf.random_normal_initializer(stddev=stddev))
-        deconv = tf.nn.conv2d_transpose(deconv2, w, 
+        deconv = tf.nn.conv2d_transpose(deconv1, w, 
                 output_shape=[batch_size, img_size, img_size, c_dim], 
                 strides=[1, 2, 2, 1]) 
         biases = tf.get_variable('biases', [c_dim], 
                 initializer=tf.constant_initializer(0.0))
-        deconv3 = tf.nn.bias_add(deconv, biases)
+        deconv2 = tf.nn.bias_add(deconv, biases)
 
-    return tf.nn.tanh(deconv3)
+    return tf.nn.tanh(deconv2)
 
 def discriminator(ddata, batch_size, c_dim, num_filter, leak, reuse=False):
     if reuse:
         tf.get_variable_scope().reuse_variables()
 
-    stddev = 0.0002
+    stddev = 0.002
     with tf.variable_scope('d_conv1') as scope:
         w = tf.get_variable('w', [4, 4, c_dim, num_filter], 
                 initializer=tf.truncated_normal_initializer(stddev=stddev))
@@ -128,7 +108,7 @@ def discriminator(ddata, batch_size, c_dim, num_filter, leak, reuse=False):
 
     return tf.nn.sigmoid(dlocal), dlocal
         
-def build_model(img_size, batch_size=100, num_filter=32, c_dim=1, leak=0.1):
+def build_model(img_size, batch_size=100, num_filter=16, c_dim=1, leak=0.1):
 
     noise_images = tf.placeholder(tf.float32, [batch_size] 
             + [img_size, img_size, c_dim], name='noise_images')
@@ -259,7 +239,9 @@ def train(sess, img_size, batch_size=100, num_filter=16, c_dim=1, leak=0.2):
                 samples, loss1, loss2 = sess.run([G, d_loss, 
                         g_loss], feed_dict={noise_images: sample_z,
                         real_images: sample_images})
-                save_images(samples, [8, 8], './{}/train_{:02d}_{:04d}.png'.format('./sample', epoch, idx))
+                save_images(sample_z, [10, 10], './{}/noise_{:02d}_{:04d}.png'.format('./sample', epoch, idx))
+                save_images(samples, [10, 10], './{}/denoise_{:02d}_{:04d}.png'.format('./sample', epoch, idx))
+                save_images(sample_images, [10, 10], './{}/train_{:02d}_{:04d}.png'.format('./sample', epoch, idx))
                 print("[Sample] d_loss: %.8f, g_loss: %.8f" % (loss1, loss2))
 
             if np.mod(counter, 500) == 2:

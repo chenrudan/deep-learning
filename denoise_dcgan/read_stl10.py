@@ -1,10 +1,12 @@
 
+
 import os, sys, tarfile, urllib
 import numpy as np
 import Image
 
 height = 96
 width = 96
+
 
 data_path = './data/stl10_binary/train_X.bin'
 
@@ -18,7 +20,7 @@ images = np.transpose(images, (0, 3, 2, 1))
 print images.shape
 
 mean = 0
-sigma = 50
+sigma = 100
 
 for i in range(len(images)):
     new_img = Image.fromarray(images[i], 'RGB')
