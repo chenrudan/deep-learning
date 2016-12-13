@@ -33,6 +33,8 @@ pca = decomposition.PCA(n_components=2)
 #isomap = manifold.TSNE(n_components=2, init='pca', random_state=0)
 X_input = pca.fit_transform(high_dim_input)
 
+print 'Percentage of variance explained by each of the selected components:', pca.explained_variance_ratio_
+
 colors = [
         '#FC0E77', '#FC0E77', 
         'turquoise', 'turquoise',
